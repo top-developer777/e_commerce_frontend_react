@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import { getAllOrders } from './_request'
 import Select from 'react-select'
+import { getProductImageByID } from '../../inventory_management/components/_request'
 
 const fakeShipingType = [
   {
@@ -22,168 +23,70 @@ const fakeShipingType = [
   }
 ]
 
-const fakeAgent = [
-  {
-    "value": 1,
-    "label": "Customer Support Agent"
-  },
-  {
-    "value": 2,
-    "label": "Sales Agent"
-  },
-  {
-    "value": 3,
-    "label": "Technical Support Agent"
-  },
-  {
-    "value": 4,
-    "label": "Order Processing Agent"
-  }
-]
-
-const fakeOrders = [
-  {
-    "order_id": "3702703423",
-    "products": [
-      {
-        "Name": "Product 1",
-        "url": "https://example.com/product1.jpg"
-      },
-      {
-        "Name": "Product 2",
-        "url": "https://example.com/product2.jpg"
-      }
-    ],
-    "platform": "Amazon",
-    "invoice": "INV-1001",
-    "delivery": "2024-06-17",
-    "status": "Returned",
-    "payment": "Credit Card",
-    "shipping": "Standard",
-    "value": 2312.03
-  },
-  {
-    "order_id": "6698739234",
-    "products": [
-      {
-        "Name": "Product 3",
-        "url": "https://example.com/product3.jpg"
-      }
-    ],
-    "platform": "eBay",
-    "invoice": "INV-1002",
-    "delivery": "2024-06-18",
-    "status": "Processing",
-    "payment": "PayPal",
-    "shipping": "Express",
-    "value": 1122
-  },
-  {
-    "order_id": "9892667823",
-    "products": [
-      {
-        "Name": "Product 4",
-        "url": "https://example.com/product4.jpg"
-      },
-      {
-        "Name": "Product 5",
-        "url": "https://example.com/product5.jpg"
-      },
-      {
-        "Name": "Product 6",
-        "url": "https://example.com/product6.jpg"
-      }
-    ],
-    "platform": "Shopify",
-    "invoice": "INV-1003",
-    "delivery": "2024-06-19",
-    "status": "Completed",
-    "payment": "Debit Card",
-    "shipping": "Overnight",
-    "value": 323.80
-  },
-  {
-    "order_id": "1223112532",
-    "products": [
-      {
-        "Name": "Product 7",
-        "url": "https://example.com/product7.jpg"
-      }
-    ],
-    "platform": "Etsy",
-    "invoice": "INV-1004",
-    "delivery": "2024-06-20",
-    "status": "Canceled",
-    "payment": "Bank Transfer",
-    "shipping": "Standard",
-    "value": 12231
-  }
-]
-
 const StatusBadge = props => (
   <>
     {
-      props.status == "Completed" ?
+      props.status == 2 ?
       <div>
         <span className="badge badge-light-success fw-bold fs-7 p-2">
           <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
-          {props.status}
+          Completed
         </span>
       </div>
-      : props.status == "Canceled" ?
+      : props.status == 8 ?
       <div>
         <span className="badge badge-light-danger fw-bold fs-7 p-2">
           <i className='bi bi-slash-circle text-danger fw-bold'></i>&nbsp;
-          {props.status}
+          Canceled
         </span>
       </div>
-      : props.status == "New" ?
+      : props.status == 0 ?
       <div>
         <span className="badge badge-light-warning fw-bold fs-7 p-2">
           <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-          {props.status}
+          New
         </span>
       </div>
-      : props.status == "Received" ?
+      : props.status == 3 ?
       <div>
         <span className="badge badge-light-warning fw-bold fs-7 p-2">
           <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-          {props.status}
+          Received
         </span>
       </div>
-      : props.status == "Processing" ?
+      : props.status == 1 ?
       <div>
         <span className="badge badge-light-warning fw-bold fs-7 p-2">
           <i className='bi bi-hourglass text-warning fw-bold'></i>&nbsp;
-          {props.status}
+          Processing
         </span>
       </div>
-      : props.status == "Incompleted" ?
+      : props.status == 7 ?
       <div>
         <span className="badge badge-light-warning fw-bold fs-7 p-2">
           <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-          {props.status}
+          Incompleted
         </span>
       </div>
-      : props.status == "Returned" ?
+      : props.status == 4 ?
       <div>
         <span className="badge badge-light-secondary fw-bold fs-7 p-2">
           <i className='bi bi-repeat fw-bold'></i>&nbsp;
-          {props.status}
+          Returned
         </span>
       </div>
-      : props.status == "Errors" ?
+      : props.status == 6 ?
       <div>
         <span className="badge badge-light-danger fw-bold fs-7 p-2">
           <i className='bi bi-x-circle text-danger fw-bold'></i>&nbsp;
-          {props.status}
+          Errors
         </span>
       </div>
-      : props.status == "Not Completed" ?
+      : props.status == 5 ?
       <div>
         <span className="badge badge-light-warning fw-bold fs-7 p-2">
           <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-          {props.status}
+          Not Completed
         </span>
       </div>
       : <div>
@@ -259,16 +162,16 @@ const OrderTable = props => (
                 </td>
                 <td className='align-content-center text-center '>
                   {
-                    order.order_id
+                    order.id
                   }
                 </td>
                 <td className='align-content-center text-center'>
-                  <img src={order.products[0]["url"]} alt='Product'/>
+                  <img src={order.image_url} alt='Product'/>
                   
                 </td>
                 <td className='align-content-center text-center'>
                   {
-                    order.platform
+                    order.delivery_mode
                   }
                 </td>
                 <td className='align-content-center text-center'>
@@ -288,17 +191,17 @@ const OrderTable = props => (
                 </td>
                 <td className='align-content-center text-center'>
                   {
-                    order.payment
+                    order.detailed_payment_method
                   }
                 </td>
                 <td className='align-content-center text-center'>
                   {
-                    order.shipping
+                    order.shipping_tax
                   }
                 </td>
                 <td className='align-content-center text-center'>
                   {
-                    order.value.toLocaleString()
+                    order.shipping_tax.toLocaleString()
                   } RON
                 </td>
                 <td className='align-content-center text-center'>
@@ -377,15 +280,13 @@ const SearchBar = props => {
 
 export function Orders() {
   const [orders, SetOrders] = useState([])
-  const [shipingTypes, setShipingTypes] = useState([]);
-  const [trackingNumber, setTrackngNumber] = useState('');
   const [searchText, setSearchText] = useState('');
   
   useEffect(() => {
-    // getAllOrders(1)
-    //   .then(res => console.log(res.data))
-    setShipingTypes(fakeShipingType)
-    SetOrders(fakeOrders);
+    getAllOrders(1)
+      .then(async res => {
+        SetOrders(res.data)
+      })
   }, [])
 
   return (

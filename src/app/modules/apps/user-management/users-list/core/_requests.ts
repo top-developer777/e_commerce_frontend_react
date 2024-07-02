@@ -17,8 +17,8 @@ const getUsers = (query: string): Promise<UsersQueryResponse> => {
 const getUserById = (id: ID): Promise<User | undefined> => {
   return axios
     .get(`${USER_URL}/${id}`)
-    .then((response: AxiosResponse<Response<User>>) => response)
-    .then((response: Response<User>) => response);
+    .then((response: AxiosResponse<Response<User>>) => response.data)
+    .then((response: Response<User>) => response.data);
 };
 
 const createUser = (user: User): Promise<User | undefined> => {
