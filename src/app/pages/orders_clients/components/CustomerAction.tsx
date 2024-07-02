@@ -85,60 +85,80 @@ const fakeReplacements = [
   }
 ]
 
-const formatCurrency = (value) => {
+const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(value);
 };
 
-const TypeBadge = props => (
+const TypeBadge: React.FC<{
+  type: string,
+}> = props => (
   <>
     {
       props.type == "Replacement" ?
-      <div>
-        <span className="badge badge-light-primary fw-bold fs-7 p-2">
-          {/* <i className='bi bi-check2-circle text-primary fw-bold'></i>&nbsp; */}
-          {props.type}
-        </span>
-      </div>
-      : props.type == "Exchange" ?
-      <div>
-        <span className="badge badge-light-success fw-bold fs-7 p-2">
-          {/* <i className='bi bi-slash-circle text-success fw-bold'></i>&nbsp; */}
-          {props.type}
-        </span>
-      </div>
-      : <div>
-        
-      </div>
+        <div>
+          <span className="badge badge-light-primary fw-bold fs-7 p-2">
+            {/* <i className='bi bi-check2-circle text-primary fw-bold'></i>&nbsp; */}
+            {props.type}
+          </span>
+        </div>
+        : props.type == "Exchange" ?
+          <div>
+            <span className="badge badge-light-success fw-bold fs-7 p-2">
+              {/* <i className='bi bi-slash-circle text-success fw-bold'></i>&nbsp; */}
+              {props.type}
+            </span>
+          </div>
+          : <div>
+
+          </div>
     }
   </>
 )
 
-const TableReplacement = props => {
+interface Replacement {
+  date: string;
+  order_id: string;
+  mkp: string;
+  type: string;
+  cost: number;
+  address: string;
+  ordered_products: { name: string; image_url: string; }[];
+  ship_products: { name: string; image_url: string; }[];
+  comment: string;
+  ship_other: string;
+  awb: string;
+  return_awb: string;
+  order_date: string;
+}
+
+const TableReplacement: React.FC<{
+  replacements: Replacement[],
+}> = props => {
   return (
     <div>
       <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
         <thead>
-            <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                <th className='col-md-1 text-center px-1'>Date</th>
-                <th className='col-md-1 text-center px-1'>Order ID</th>
-                <th className='w-100px text-center px-1'>Type</th>
-                <th className='col-md-1 text-center px-1'>Cost</th>
-                <th className='col-md-2 px-1'>Address</th>
-                <th className='col-md-1 text-center px-1'>Products<br />Ordered</th>
-                <th className='col-md-1 text-center px-1'>Products<br />to ship</th>
-                <th className='col-md-2 px-1'>Comment</th>
-                <th className='text-center px-1'>Ship to<br />other<br />address</th>
-                <th className='col-md-1 text-center px-1'>AWB</th>
-                <th className='col-md-1 text-center px-1'>Return AWB</th>
-                <th className='col-md-1 text-center px-1'>Order Date</th>
-            </tr>
+          <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+            <th className='col-md-1 text-center px-1'>Date</th>
+            <th className='col-md-1 text-center px-1'>Order ID</th>
+            <th className='w-100px text-center px-1'>Type</th>
+            <th className='col-md-1 text-center px-1'>Cost</th>
+            <th className='col-md-2 px-1'>Address</th>
+            <th className='col-md-1 text-center px-1'>Products<br />Ordered</th>
+            <th className='col-md-1 text-center px-1'>Products<br />to ship</th>
+            <th className='col-md-2 px-1'>Comment</th>
+            <th className='text-center px-1'>Ship to<br />other<br />address</th>
+            <th className='col-md-1 text-center px-1'>AWB</th>
+            <th className='col-md-1 text-center px-1'>Return AWB</th>
+            <th className='col-md-1 text-center px-1'>Order Date</th>
+          </tr>
         </thead>
         <tbody>
           {
-            props.replacements.map((replacement, index) => 
+            props.replacements.map((replacement: Replacement, index: number) =>
               <tr key={`replacement-${index}`}>
                 <td className='align-content-center text-center p-1 m-0'>
                   {
@@ -220,12 +240,12 @@ const TableReplacement = props => {
 }
 
 export function CustomerAction() {
-  const [replacements, setReplacements] = useState([]);
+  const [replacements, setReplacements] = useState<Replacement[]>([]);
 
   useEffect(() => {
     setReplacements(fakeReplacements);
   }, [])
-  
+
   return (
     <Content>
       <div className="card card-custom card-stretch shadow cursor-pointer mb-4">

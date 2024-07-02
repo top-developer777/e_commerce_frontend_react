@@ -13,6 +13,7 @@ const PrivateRoutes = () => {
   const AlertsPage = lazy(() => import('../pages/alerts/AlertsPage'))
   const PayBackPage = lazy(() => import('../pages/pay_back/PayBackPage'))
   const AutoResponderPage = lazy(() => import('../pages/auto_respender/AutoResponderPage'))
+  const AdminPage = lazy(() => import('../pages/admin/AdminPage'))
   return (
     <Routes>
       <Route element={<MasterLayout />}>
@@ -65,6 +66,14 @@ const PrivateRoutes = () => {
           element={
             <SuspensedView>
               <AutoResponderPage />
+            </SuspensedView>
+          }
+        />
+        <Route
+          path='admin/*'
+          element={
+            <SuspensedView>
+              <AdminPage />
             </SuspensedView>
           }
         />
