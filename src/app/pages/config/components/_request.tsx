@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_APP_API_URL
 const MARKETPLACE_ENDPOINT = `${API_URL}/marketplace`
 const UPLOAD_ENDPOINT = `${API_URL}/utils/upload`
 
-const createMarketplace = (data) => {
+const createMarketplace = (data: object) => {
     return axios
         .post(MARKETPLACE_ENDPOINT, data)
         .then((response) => response.data)
@@ -12,15 +12,15 @@ const createMarketplace = (data) => {
 
 const getAllMarketplaces = () => {
     return axios
-        .get(MARKETPLACE_ENDPOINT, {limit: 1000})
+        .get(MARKETPLACE_ENDPOINT, { params: { limit: 1000 } })
 }
 
-const removeMarketplace = (id) => {
+const removeMarketplace = (id: number) => {
     return axios
         .delete(`${MARKETPLACE_ENDPOINT}/${id}`)
 }
 
-const uploadImage = (data) => {
+const uploadImage = (data: object) => {
     return axios.post(UPLOAD_ENDPOINT, data, {
         headers: {
             'Content-Type': 'multipart/form-data',

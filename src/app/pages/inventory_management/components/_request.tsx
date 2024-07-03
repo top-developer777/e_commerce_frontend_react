@@ -6,32 +6,36 @@ const SUPPLIERS_ENDPOINT = `${API_URL}/products`
 
 type Query = {
     page: number,
-    limit?: number
+    limit?: number,
+    data: never[],
 }
 
-const getAllProducts = (page: number, limit=50) : Query => {
+const getAllProducts = (page: number, limit = 50): Promise<Query> => {
     const query: Query = {
         page: page,
-        limit: limit
+        limit: limit,
+        data: []
     }
     return axios
-        .get(PRODUCTS_ENDPOINT, query)
+        .get(PRODUCTS_ENDPOINT, {
+            params: query
+        })
 }
 
-const getAllSuppliers = (page: number, limit=50) => {
+const getAllSuppliers = (page: number, limit = 50) => {
     return axios
-        .get(SUPPLIERS_ENDPOINT, {page: page, items_per_page: limit})
+        .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
 }
 
-const getProductByID = (id:number) => {
+const getProductByID = (id: number) => {
     return axios
         .get(`${PRODUCTS_ENDPOINT}/${id}`)
 }
 
 const getProductImageByID = async (id: number) => {
-    let response = await axios.get(`${PRODUCTS_ENDPOINT}/${id}`)
-    response = response.data
-    return JSON.parse(response.images).length > 0 ? JSON.parse(response.images)[0]["url"] : [{"url": ""}]
+    const response = await axios.get(`${PRODUCTS_ENDPOINT}/${id}`);
+    const images = JSON.parse(response.data.images);
+    return images.length > 0 ? images[0]["url"] : [{ "url": "" }]
 }
 
 export {

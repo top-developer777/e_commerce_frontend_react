@@ -45,8 +45,20 @@ const ColorForAvatar = [
   }
 ]
 
+interface Supplier {
+  name: string;
+  currency: string;
+  email: string;
+  wechat: string;
+  website: string;
+  numOfproducts: number;
+  numOfOrders: number;
+  author: string;
+  author_email: string;
+}
+
 export function Suppliers() {
-  const [suppliers, setSuppliers] = useState([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   useEffect(() => {
     setSuppliers(fakeSuppliers)
@@ -70,7 +82,7 @@ export function Suppliers() {
         <tbody>
           {
             suppliers.map((supplier, index) => 
-              <tr>
+              <tr key={index}>
                 <td className='align-content-center'>
                   {
                     supplier.name

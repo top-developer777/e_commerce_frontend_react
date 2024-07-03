@@ -64,6 +64,14 @@ const SidebarMenuMain = () => {
       <SidebarMenuItem icon='bi bi-graph-up' to='/auto-respender/campaigns' title='Campaigns' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/auto-respender/products' title='Products' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/auto-respender/orders' title='Orders' hasBullet={false} />
+      <div className='menu-item'>
+        <div className='menu-content pt-8 pb-2'>
+          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Admin</span>
+        </div>
+      </div>
+      <SidebarMenuItem icon='bi bi-people-fill' to='/account-manage/account/teams' title='Users' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-gear-fill' to='/account-manage/account/settings' title='Settings' hasBullet={false} />
+      <SidebarMenuItem icon='bi socion-warcraft' to='/account-manage/account/edit' title='Edit' hasBullet={false} />
       {/* <div className='menu-item'>
         <a
           target='_blank'

@@ -1,5 +1,5 @@
 
-import { FC, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 
 const fakeTile = [
@@ -128,16 +128,52 @@ const fakeProducts = [
       "30 - Sea May #2 (Core)",
     ]
   }
-]
+];
 
-const formatCurrency = (value) => {
+interface Product {
+  admin_user: string;
+  part_number_key: string;
+  brand_name: string;
+  category_id: number;
+  brand: string;
+  name: string;
+  part_number: string;
+  sale_price: string;
+  currency: string;
+  images: string;
+  url: string;
+  fba_fbm_stock: number;
+  reserved: number;
+  stock_value: number;
+  sales_velocity: number;
+  days_of_stock: number;
+  sent_to_fba: number;
+  production_time: number;
+  ordered: number;
+  days_until_next_order: number;
+  recommended_quantity: number;
+  recommended_shipping_mode: string;
+  roi: number;
+  comment: number;
+  imports: string[];
+}
+
+interface Tile {
+  title: string;
+  units: number;
+  cost_of_goods: number;
+  potential_sales: number;
+  potential_profit: number;
+}
+
+const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(value);
 };
 
-const TileComponent: FC = props => (
+const TileComponent: React.FC<{ tile: Tile }> = props => (
   <div className="card card-custom card-stretch shadow cursor-pointer">
     <div className="card-header pt-4">
       <div className='row'>
@@ -185,86 +221,86 @@ const TileComponent: FC = props => (
   </div>
 )
 
-const Icon = props => (
+const Icon: React.FC<{ value: number }> = props => (
   <>
     {
       props.value > 10 ?
-      <div>
-        <span className="badge badge-light-success fw-bold fs-5 p-2">
-          <i className='bi bi-check2-circle text-success fw-bold fs-5'></i>&nbsp;
-          {props.value.toLocaleString()}
-        </span>
-      </div>
-      : props.value > 0 ?
-      <div>
-        <span className="badge badge-light-warning fw-bold fs-5 p-2">
-          <i className='bi bi-slash-circle text-warning fw-bold fs-5'></i>&nbsp;
-          {props.value.toLocaleString()}
-        </span>
-      </div>
-      : <div>
-        <span className="badge badge-light-danger fw-bold fs-5 p-2">
-          <i className='bi bi-x-circle text-danger fw-bold fs-5'></i>&nbsp;
-          {props.value.toLocaleString()}
-        </span>
-      </div>
+        <div>
+          <span className="badge badge-light-success fw-bold fs-5 p-2">
+            <i className='bi bi-check2-circle text-success fw-bold fs-5'></i>&nbsp;
+            {props.value.toLocaleString()}
+          </span>
+        </div>
+        : props.value > 0 ?
+          <div>
+            <span className="badge badge-light-warning fw-bold fs-5 p-2">
+              <i className='bi bi-slash-circle text-warning fw-bold fs-5'></i>&nbsp;
+              {props.value.toLocaleString()}
+            </span>
+          </div>
+          : <div>
+            <span className="badge badge-light-danger fw-bold fs-5 p-2">
+              <i className='bi bi-x-circle text-danger fw-bold fs-5'></i>&nbsp;
+              {props.value.toLocaleString()}
+            </span>
+          </div>
     }
   </>
 )
 
-const ShippingMode = props => (
+const ShippingMode: React.FC<{ mode: string }> = props => (
   <>
     {
-      props.mode == "air" ? 
+      props.mode == "air" ?
         <i className="fa-sharp fa-solid fa-plane fw-bold fs-1 text-success"></i>
-      : props.mode == "train" ?
-        <i className="fa-solid fa-train-tram fw-bold fs-1 text-warning"></i>
-      : props.mode == "ship" ?
-        <i className="fa-sharp fa-solid fa-ship fw-bold fs-1 text-primary"></i>
-      : "No Mode"
+        : props.mode == "train" ?
+          <i className="fa-solid fa-train-tram fw-bold fs-1 text-warning"></i>
+          : props.mode == "ship" ?
+            <i className="fa-sharp fa-solid fa-ship fw-bold fs-1 text-primary"></i>
+            : "No Mode"
     }
   </>
 )
 
-const TableProductPlanner: FC = props => (
+const TableProductPlanner: React.FC<{ products: Product[] }> = props => (
   <table className="table table-rounded table-row-bordered border gy-7 gs-7">
     <thead>
-        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-            <th className='col-md-4 align-content-center'>Product</th>
-            <th className='text-end align-content-center px-1'>FBA/FBM<br />stock</th>
-            <th className='text-end align-content-center px-1'>Stock value</th>
-            <th className='text-end align-content-center px-1'>Sales<br />Velocity<br />(units/day)</th>
-            <th className='text-end align-content-center px-1'>Days of<br />stock left</th>
-            <th className='text-end align-content-center px-1'>Sent to<br />FBA</th>
-            <th className='text-end align-content-center px-1'>Production Time<br />(day)</th>
-            <th className='text-end align-content-center px-1'>Ordered</th>
-            <th className='text-center align-content-center px-1'>Days until<br />next order</th>
-            <th className='text-end align-content-center px-1'>Recommended<br />quantity for<br />reordering</th>
-            <th className='text-center align-content-center px-1'>Recommended<br />shipping mode</th>
-            <th className='text-center align-content-center px-1'>Imports</th>
-            <th className='text-center align-content-center px-1'>ROI</th>
-            <th className='align-content-center px-1'>Actions</th>
-        </tr>
+      <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+        <th className='col-md-4 align-content-center'>Product</th>
+        <th className='text-end align-content-center px-1'>FBA/FBM<br />stock</th>
+        <th className='text-end align-content-center px-1'>Stock value</th>
+        <th className='text-end align-content-center px-1'>Sales<br />Velocity<br />(units/day)</th>
+        <th className='text-end align-content-center px-1'>Days of<br />stock left</th>
+        <th className='text-end align-content-center px-1'>Sent to<br />FBA</th>
+        <th className='text-end align-content-center px-1'>Production Time<br />(day)</th>
+        <th className='text-end align-content-center px-1'>Ordered</th>
+        <th className='text-center align-content-center px-1'>Days until<br />next order</th>
+        <th className='text-end align-content-center px-1'>Recommended<br />quantity for<br />reordering</th>
+        <th className='text-center align-content-center px-1'>Recommended<br />shipping mode</th>
+        <th className='text-center align-content-center px-1'>Imports</th>
+        <th className='text-center align-content-center px-1'>ROI</th>
+        <th className='align-content-center px-1'>Actions</th>
+      </tr>
     </thead>
     <tbody>
       {
-        props.products.map((product, index) => 
-          <tr className='py-1'>
+        props.products.map((product, index) =>
+          <tr className='py-1' key={index}>
             <td className='align-content-center py-3 px-0'>
               <div className='d-flex'>
                 <div className='p-2 align-content-center'>
                   {
                     JSON.parse(product.images).length > 0 ? <img width={60} height={60} src={JSON.parse(product.images)[0]["url"]} alt={product.name} />
-                    : 
-                    <div>
-                      No Image
-                    </div>
+                      :
+                      <div>
+                        No Image
+                      </div>
                   }
                 </div>
                 <div className='align-content-center'>
                   <span>{product.part_number_key}</span><br />
                   <span className='two-line-text'>{product.name}</span>
-                  <span>{formatCurrency(product.sale_price)}</span>
+                  <span>{formatCurrency(parseFloat(product.sale_price))}</span>
                 </div>
               </div>
             </td>
@@ -315,7 +351,7 @@ const TableProductPlanner: FC = props => (
             <td className='text-center align-content-center'>
               <div className='row'>
                 {
-                  product.imports.map(_import => <span className='two-line-text'>
+                  product.imports.map((_import, index) => <span className='two-line-text' key={index}>
                     {_import}
                   </span>)
                 }
@@ -362,8 +398,8 @@ const TableProductPlanner: FC = props => (
 )
 
 export function Planner() {
-  const [tiles, setTiles] = useState([])
-  const [products, setProducts] = useState([])
+  const [tiles, setTiles] = useState<Tile[]>([])
+  const [products, setProducts] = useState<Product[]>([])
 
   useEffect(() => {
     setTiles(fakeTile)
@@ -374,8 +410,8 @@ export function Planner() {
     <Content>
       <div className='row'>
         {
-          tiles.map(tile =>
-            <div className='col-xl-3'>
+          tiles.map((tile, index) =>
+            <div className='col-xl-3' key={index}>
               <TileComponent tile={tile} />
             </div>
           )

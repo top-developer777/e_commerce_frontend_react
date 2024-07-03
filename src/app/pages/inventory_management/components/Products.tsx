@@ -4,13 +4,13 @@ import { getAllProducts } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 
-const Pagination = (props) => {
-  return (
-    <div className='pagination'>
+// const Pagination = (props) => {
+//   return (
+//     <div className='pagination'>
 
-    </div>
-  )
-}
+//     </div>
+//   )
+// }
 
 const fakeShipments = [
   {
@@ -68,7 +68,16 @@ const fakeSeriesOrders = [
 
 const fakeCategoriesOrders = ['19/05/2024', '21/05/2024', '23/05/2024', '25/05/2024', '27/05/2024', '29/05/2024', '31/05/2024', '02/06/2024', '04/06/2024', '06/06/2024', '08/06/2024', '10/06/2024']
 
-const ReturnsInformation = props => {
+interface Return {
+  return_type: string;
+  rate: number;
+  quantity: number;
+  summary: string;
+}
+
+const ReturnsInformation:React.FC<{
+  returns: Return[];
+}> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
       <div className="card-header pt-4 w-full">
@@ -125,7 +134,20 @@ const ReturnsInformation = props => {
   )
 }
 
-const ShipmentInformation = props => {
+interface Shipment {
+  shipment_id: string;
+  shipment_name: string;
+  destination: string;
+  last_updated: string;
+  created: string;
+  qty_shipped: number;
+  qty_received: number;
+  shipment_status: string;
+}
+
+const ShipmentInformation:React.FC<{
+  shipments: Shipment[];
+}> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
       <div className="card-header pt-4 w-full">
@@ -204,14 +226,26 @@ const ShipmentInformation = props => {
   )
 }
 
-const DetailedProduct = props => {
-  const [shipments, setShipments] = useState([]);
-  const [returns, setReturns] = useState([]);
+interface Product {
+  name: string;
+  images: string;
+  brand: string;
+  part_number: string;
+  part_number_key: string;
+  sale_price: number;
+  currency: number;
+  stock: string;
+}
+
+const DetailedProduct:React.FC<{ product: Product }> = ({ product }) => {
+  console.log(product);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [returns, setReturns] = useState<Return[]>([]);
 
   useEffect(() => {
     setShipments(fakeShipments)
     setReturns(fakeReturns)
-  }, [])
+  }, []);
 
   return (
     <div>
@@ -224,9 +258,11 @@ const DetailedProduct = props => {
 }
 
 export function Products() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductID, setSelectedProductID] = useState(-1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(50);
 
   useEffect(() => {
@@ -235,7 +271,7 @@ export function Products() {
         setProducts(res.data);
       })
       .catch(err => console.log(err))
-  }, []);
+  }, [currentPage, limit]);
 
   return (
     <Content>
@@ -356,7 +392,7 @@ export function Products() {
                     </td>
                     <td className='align-content-center'>
                       <div className="form-check form-switch form-check-custom form-check-solid">
-                        <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" checked="checked" />
+                        <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" checked={true} />
                       </div>
                     </td>
                   </tr>

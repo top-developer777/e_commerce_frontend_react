@@ -1,18 +1,16 @@
 
-import {useEffect, useRef, FC} from 'react'
-import ApexCharts, {ApexOptions} from 'apexcharts'
-import {getCSS, getCSSVariableValue} from '../../../../_metronic/assets/ts/_utils'
-import {useThemeMode} from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
+import { useEffect, useRef, FC } from 'react'
+import ApexCharts, { ApexOptions } from 'apexcharts'
+import { getCSS, getCSSVariableValue } from '../../../assets/ts/_utils'
+import { useThemeMode } from '../../layout/theme-mode/ThemeModeProvider'
 
 type Props = {
-  className: string,
-  series: string,
-  categories: string
+  className: string
 }
 
-const ChartComponent: FC<Props> = ({className, series, categories}) => {
+const ChartsWidget6: FC<Props> = ({ className }) => {
   const chartRef = useRef<HTMLDivElement | null>(null)
-  const {mode} = useThemeMode()
+  const { mode } = useThemeMode()
   const refreshChart = () => {
     if (!chartRef.current) {
       return
@@ -20,7 +18,7 @@ const ChartComponent: FC<Props> = ({className, series, categories}) => {
 
     const height = parseInt(getCSS(chartRef.current, 'height'))
 
-    const chart = new ApexCharts(chartRef.current, getChartOptions(height, series, categories))
+    const chart = new ApexCharts(chartRef.current, getChartOptions(height))
     if (chart) {
       chart.render()
     }
@@ -36,7 +34,6 @@ const ChartComponent: FC<Props> = ({className, series, categories}) => {
         chart.destroy()
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartRef, mode])
 
   return (
@@ -44,25 +41,32 @@ const ChartComponent: FC<Props> = ({className, series, categories}) => {
       {/* begin::Header */}
       <div className='card-header border-0 pt-5'>
         <h3 className='card-title align-items-start flex-column'>
-          <span className='card-label fw-bold fs-3 mb-1'>Recent Orders</span>
+          <span className='card-label fw-bold fs-3 mb-1'>Recent Customers</span>
 
-          <span className='text-muted fw-semibold fs-7'>More than 500+ new orders</span>
+          <span className='text-muted fw-semibold fs-7'>More than 500 new customers</span>
         </h3>
 
         {/* begin::Toolbar */}
         <div className='card-toolbar' data-kt-buttons='true'>
           <a
             className='btn btn-sm btn-color-muted btn-active btn-active-primary active px-4 me-1'
-            id='kt_charts_widget_6_sales_btn'
+            id='kt_charts_widget_5_year_btn'
           >
-            Sales
+            Year
           </a>
 
           <a
             className='btn btn-sm btn-color-muted btn-active btn-active-primary px-4 me-1'
-            id='kt_charts_widget_6_expenses_btn'
+            id='kt_charts_widget_5_month_btn'
           >
-            Expenses
+            Month
+          </a>
+
+          <a
+            className='btn btn-sm btn-color-muted btn-active btn-active-primary px-4'
+            id='kt_charts_widget_5_week_btn'
+          >
+            Week
           </a>
         </div>
         {/* end::Toolbar */}
@@ -72,7 +76,7 @@ const ChartComponent: FC<Props> = ({className, series, categories}) => {
       {/* begin::Body */}
       <div className='card-body'>
         {/* begin::Chart */}
-        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{height: '350px'}}></div>
+        <div ref={chartRef} id='kt_charts_widget_5_chart' style={{ height: '350px' }}></div>
         {/* end::Chart */}
       </div>
       {/* end::Body */}
@@ -80,20 +84,29 @@ const ChartComponent: FC<Props> = ({className, series, categories}) => {
   )
 }
 
-export {ChartComponent}
+export { ChartsWidget6 }
 
-function getChartOptions(height: number, series: string, categories: string): ApexOptions {
+function getChartOptions(height: number): ApexOptions {
   const labelColor = getCSSVariableValue('--bs-gray-500')
   const borderColor = getCSSVariableValue('--bs-gray-200')
 
   const baseColor = getCSSVariableValue('--bs-primary')
-  const baseLightColor = getCSSVariableValue('--bs-primary-light')
   const secondaryColor = getCSSVariableValue('--bs-info')
 
   return {
-    series: JSON.parse(series),
+    series: [
+      {
+        name: 'Net Profit',
+        data: [40, 50, 65, 70, 50, 30],
+      },
+      {
+        name: 'Revenue',
+        data: [-30, -40, -55, -60, -40, -20],
+      },
+    ],
     chart: {
       fontFamily: 'inherit',
+      type: 'bar',
       stacked: true,
       height: height,
       toolbar: {
@@ -103,8 +116,8 @@ function getChartOptions(height: number, series: string, categories: string): Ap
     plotOptions: {
       bar: {
         horizontal: false,
-        borderRadius: 5,
         columnWidth: '12%',
+        borderRadius: 5,
       },
     },
     legend: {
@@ -114,13 +127,12 @@ function getChartOptions(height: number, series: string, categories: string): Ap
       enabled: false,
     },
     stroke: {
-      curve: 'smooth',
       show: true,
       width: 2,
       colors: ['transparent'],
     },
     xaxis: {
-      categories: JSON.parse(categories),
+      categories: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
       axisBorder: {
         show: false,
       },
@@ -135,7 +147,8 @@ function getChartOptions(height: number, series: string, categories: string): Ap
       },
     },
     yaxis: {
-      max: 120,
+      min: -80,
+      max: 80,
       labels: {
         style: {
           colors: labelColor,
@@ -177,7 +190,7 @@ function getChartOptions(height: number, series: string, categories: string): Ap
         },
       },
     },
-    colors: [baseColor, secondaryColor, baseLightColor],
+    colors: [baseColor, secondaryColor],
     grid: {
       borderColor: borderColor,
       strokeDashArray: 4,
@@ -185,12 +198,6 @@ function getChartOptions(height: number, series: string, categories: string): Ap
         lines: {
           show: true,
         },
-      },
-      padding: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
       },
     },
   }

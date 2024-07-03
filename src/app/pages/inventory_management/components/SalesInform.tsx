@@ -1,9 +1,8 @@
 
-import {useEffect, useRef, FC} from 'react'
-import ApexCharts, {ApexOptions} from 'apexcharts'
-import {getCSS, getCSSVariableValue} from '../../../../_metronic/assets/ts/_utils'
-import {useThemeMode} from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
-import { json } from 'node:stream/consumers'
+import { useEffect, useRef, FC } from 'react'
+import ApexCharts, { ApexOptions } from 'apexcharts'
+import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
+import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
 
 type Props = {
   className: string,
@@ -11,9 +10,9 @@ type Props = {
   categories: string
 }
 
-const SalesInformation: FC<Props> = ({className, series, categories}) => {
+const SalesInformation: FC<Props> = ({ className, series, categories }) => {
   const chartRef = useRef<HTMLDivElement | null>(null)
-  const {mode} = useThemeMode()
+  const { mode } = useThemeMode()
   const refreshChart = () => {
     if (!chartRef.current) {
       return
@@ -37,6 +36,7 @@ const SalesInformation: FC<Props> = ({className, series, categories}) => {
         chart.destroy()
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartRef, mode])
 
   return (
@@ -144,13 +144,13 @@ const SalesInformation: FC<Props> = ({className, series, categories}) => {
             Units
           </button>
         </div>
-        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{height: '350px'}}></div>
+        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
       </div>
     </div>
   )
 }
 
-export {SalesInformation}
+export { SalesInformation }
 
 function getChartOptions(height: number, series: string, categories: string): ApexOptions {
   const labelColor = getCSSVariableValue('--bs-gray-500')
@@ -210,9 +210,6 @@ function getChartOptions(height: number, series: string, categories: string): Ap
           fontSize: '12px',
         },
       },
-    },
-    fill: {
-      opacity: 1,
     },
     states: {
       normal: {

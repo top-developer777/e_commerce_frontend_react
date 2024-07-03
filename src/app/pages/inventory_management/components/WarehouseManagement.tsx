@@ -36,7 +36,20 @@ const fakeWarehouses = [
   }
 ]
 
-const WarehouseTable = props => (
+interface Warehouse {
+  name: string,
+  company_name: string,
+  company_address: string,
+  email: string,
+  phone: string,
+  zip_code: string
+}
+
+const WarehouseTable:React.FC<{
+  warehouses: Warehouse[],
+  setEditID: React.Dispatch<React.SetStateAction<number>>,
+  setRemoveID: React.Dispatch<React.SetStateAction<number>>,
+}> = props => (
   <table className="table table-rounded table-row-bordered border gy-7 gs-7">
     <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
@@ -98,7 +111,13 @@ const WarehouseTable = props => (
   </table>
 )
 
-const AddNewWarehouse = props => {
+const AddNewWarehouse:React.FC<{
+  edit: boolean;
+  setCurWarehouse: React.Dispatch<React.SetStateAction<Warehouse>>;
+  setEditID: React.Dispatch<React.SetStateAction<number>>;
+  product?: Warehouse;
+  save?: (state: boolean) => void;
+}> = props => {
   const [currentWarehouse, setCurrentWarehouse] = useState({
     "name": "",
     "company_name": "",
@@ -109,17 +128,17 @@ const AddNewWarehouse = props => {
   });
 
   useEffect(() => {
-    if(props.edit == true){
+    if(props.edit === true && props.product){
       setCurrentWarehouse(props.product);
     }
-  }, [])
+  }, [props.edit, props.product])
 
   const confirm = () => {
     props.setCurWarehouse(currentWarehouse);
-    if(props.edit == false){
-      props.setEditID(-3)
+    if(props.edit === false){
+      props.setEditID(-3);
     } else {
-      props.save(true)
+      if (props.save) props.save(true);
     }
   }
 
@@ -222,39 +241,46 @@ const AddNewWarehouse = props => {
 }
 
 export function WarehouseManagement() {
-  const [warehouses, setWarehouses] = useState([])
-  const [editId, setEditID] = useState(-1);
-  const [removeId, setRemoveID] = useState(-1);
-  const [curWarehouse, setCurWarehouse] = useState({});
-  const [save, setSave] = useState(false);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
+  const [editId, setEditID] = useState<number>(-1);
+  const [removeId, setRemoveID] = useState<number>(-1);
+  const [curWarehouse, setCurWarehouse] = useState<Warehouse>({
+    name: "",
+    company_name: "",
+    company_address: "",
+    email: "",
+    phone: "",
+    zip_code: ""
+  });
+  const [save, setSave] = useState<boolean>(false);
 
   useEffect(() => {
     setWarehouses(fakeWarehouses)
   }, [])
 
   useEffect(() => {
-    if(editId == -3){
+    if(editId === -3){
       setEditID(-1);
       setWarehouses([...warehouses, curWarehouse]);
     }
-  }, [editId])
+  }, [curWarehouse, editId, warehouses])
 
   useEffect(() => {
     if(removeId > -1){
       setWarehouses(warehouses.filter((warehouse, index) => index != removeId))
       setRemoveID(-1);
     }
-  }, [removeId])
+  }, [removeId, warehouses])
 
   useEffect(() => {
     if(save == true){
-      let objs = warehouses;
+      const objs = warehouses;
       objs[editId] = curWarehouse;
       setWarehouses(objs)
       setEditID(-1);
       setSave(false);
     }
-  }, [save])
+  }, [curWarehouse, editId, save, warehouses])
 
   return (
     <Content>

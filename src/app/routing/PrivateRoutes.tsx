@@ -5,6 +5,7 @@ import TopBarProgress from 'react-topbar-progress-indicator'
 import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
+import UsersPage from '../modules/apps/user-management/UsersPage'
 
 const PrivateRoutes = () => {
   const ConfigPage = lazy(() => import('../pages/config/ConfigPage'))
@@ -13,7 +14,6 @@ const PrivateRoutes = () => {
   const AlertsPage = lazy(() => import('../pages/alerts/AlertsPage'))
   const PayBackPage = lazy(() => import('../pages/pay_back/PayBackPage'))
   const AutoResponderPage = lazy(() => import('../pages/auto_respender/AutoResponderPage'))
-  const AdminPage = lazy(() => import('../pages/admin/AdminPage'))
   return (
     <Routes>
       <Route element={<MasterLayout />}>
@@ -70,10 +70,10 @@ const PrivateRoutes = () => {
           }
         />
         <Route
-          path='admin/*'
+          path='account-manage/account/*'
           element={
             <SuspensedView>
-              <AdminPage />
+              <UsersPage />
             </SuspensedView>
           }
         />

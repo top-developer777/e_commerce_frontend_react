@@ -1,9 +1,8 @@
-import internal from "stream"
-
 export interface AuthModel {
   access_token: string
   refresh_Token?: string
   token_type?: string
+  api_token?: string;
 }
 
 export interface Profile {

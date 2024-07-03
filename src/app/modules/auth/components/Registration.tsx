@@ -8,6 +8,14 @@ import {toAbsoluteUrl} from '../../../../_metronic/helpers'
 import {PasswordMeterComponent} from '../../../../_metronic/assets/ts/components'
 import {useAuth} from '../core/Auth'
 
+interface ErrorResponse {
+  response: {
+    data: {
+      detail: string;
+    }
+  }
+}
+
 const initialValues = {
   full_name: '',
   username: '',
@@ -65,7 +73,8 @@ export function Registration() {
       } catch (error) {
         console.error(error)
         saveAuth(undefined)
-        setStatus((error.response.data) == null ? "Unknown Error" : error.response.data.detail)
+        const errResponse = error as ErrorResponse;
+        setStatus((errResponse.response.data) == null ? "Unknown Error" : errResponse.response.data.detail)
         setSubmitting(false)
         setLoading(false)
       }

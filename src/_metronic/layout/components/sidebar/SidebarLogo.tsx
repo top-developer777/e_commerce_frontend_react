@@ -70,7 +70,7 @@ const SidebarLogo = (props: PropsType) => {
             />
           </>
         )} */}
-        <h2 className='opacity-75-hover'><span className="text-danger">Seller</span>board</h2>
+        <h2 className='opacity-75-hover' style={{ color: 'white' }}><span className="text-danger">Seller</span>board</h2>
         <img
           alt='Logo'
           src={toAbsoluteUrl('media/logos/default-small.svg')}

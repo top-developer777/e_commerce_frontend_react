@@ -1,9 +1,7 @@
 import {FC, useEffect, useState} from 'react'
 import {useIntl} from 'react-intl'
 import {PageTitle} from '../../../_metronic/layout/core'
-import { ToolbarWrapper } from '../../../_metronic/layout/components/toolbar'
 import { Content } from '../../../_metronic/layout/components/content'
-import { getDashboardInfo } from './components/_request'
 import { ChartComponent } from './components/ChartComponent'
 
 // const currentDate = new Date();
@@ -258,32 +256,99 @@ const fakeSeries = [
 
 const fakeCategories = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
 
-const fakeStatistic = {
-  "Sales": [
-    {
-      "label": "Organic",
-      "value": "16056.22"
-    },{
-      "label": "Sponsored Products",
-      "value": "146.85"
-    }
-  ],
+// const fakeStatistic = {
+//   "Sales": [
+//     {
+//       "label": "Organic",
+//       "value": "16056.22"
+//     },{
+//       "label": "Sponsored Products",
+//       "value": "146.85"
+//     }
+//   ],
+// }
+
+// const fakeTrends = [
+//   {
+//     "product_id": ""
+//   }
+// ]
+
+interface DashboardInfo {
+  title: string;
+  date: string;
+  orders_units: string;
+  sales: string;
+  refunds: string;
+  adv_cost: string;
+  est_payout: string;
+  gross_profit: string;
+  net_profit: string;
 }
 
-const fakeTrends = [
-  {
-    "product_id": ""
-  }
-]
+interface Product {
+  admin_user: string;
+  part_number_key: string;
+  brand_name: string;
+  buy_button_rank?: number | null;
+  category_id: number;
+  brand: string;
+  name: string;
+  part_number: string;
+  sale_price: string;
+  currency: string;
+  description?: string;
+  url: string;
+  warranty: number;
+  general_stock: number;
+  weight: string;
+  status: number;
+  recommended_price: number | null;
+  images: string;
+  attachments: string;
+  vat_id: number;
+  family: string;
+  reversible_vat_charging: boolean;
+  min_sale_price: string;
+  max_sale_price: string;
+  offer_details: string;
+  availability: string;
+  stock: string;
+  handling_time: string;
+  ean: string;
+  commission: string | null;
+  validation_status: string;
+  translation_validation_status: string;
+  offer_validation_status: string;
+  auto_translated: number;
+  ownership: boolean;
+  best_offer_sale_price: string;
+  best_offer_recommended_price: string;
+  number_of_offers: number;
+  genius_eligibility: number;
+  recyclewarranties: number;
+  id: number;
+  units_sold: number;
+  refunds: number;
+  sales: number;
+  ads: number;
+  sellable_return: number;
+  gross_profit: number;
+  net_profit: number;
+  margin: number;
+  roi: number;
+}
 
-const formatCurrency = (value) => {
+const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(value);
 };
 
-const TileComponent: FC = props => (
+const TileComponent: FC<{
+  dashboardinfo: DashboardInfo
+}> = props => (
     <div className="card card-custom card-stretch shadow mb-5 cursor-pointer">
       <div className="card-header pt-4 pb-3">
         <div className='row'>
@@ -296,7 +361,7 @@ const TileComponent: FC = props => (
           <span className='text-gray-700'>Sales</span><br />
           <h2 className='text-gray-900 text-hover-primary'>
             {
-              formatCurrency(props.dashboardinfo.sales)
+              formatCurrency(parseFloat(props.dashboardinfo.sales))
             }
           </h2>
         </div>
@@ -324,7 +389,7 @@ const TileComponent: FC = props => (
             <span className='text-gray-700'>Adv. cost</span><br />
             <h4 className='text-gray-900 text-hover-primary'>
               {
-                formatCurrency(props.dashboardinfo.adv_cost)
+                formatCurrency(parseFloat(props.dashboardinfo.adv_cost))
               }
             </h4>
           </div>
@@ -332,7 +397,7 @@ const TileComponent: FC = props => (
             <span className='text-gray-700'>Est. payout</span><br />
             <h4 className='text-gray-900 text-hover-primary'>
               {
-                formatCurrency(props.dashboardinfo.est_payout)
+                formatCurrency(parseFloat(props.dashboardinfo.est_payout))
               }
             </h4>
           </div>
@@ -342,7 +407,7 @@ const TileComponent: FC = props => (
             <span className='text-gray-700'>Gross profit</span><br />
             <h4 className='text-gray-900 text-hover-primary'>
               {
-                formatCurrency(props.dashboardinfo.gross_profit)
+                formatCurrency(parseFloat(props.dashboardinfo.gross_profit))
               }
             </h4>
           </div>
@@ -350,7 +415,7 @@ const TileComponent: FC = props => (
             <span className='text-gray-700'>Net profit</span><br />
             <h4 className='text-gray-900 text-hover-primary'>
               {
-                formatCurrency(props.dashboardinfo.net_profit)
+                formatCurrency(parseFloat(props.dashboardinfo.net_profit))
               }
             </h4>
           </div>
@@ -362,7 +427,7 @@ const TileComponent: FC = props => (
     </div>
 )
 
-const TableProductsOrders: FC = props => (
+const TableProductsOrders: FC<{ products: Product[] }> = props => (
   <table className="table table-rounded table-row-bordered border gy-7 gs-7">
     <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
@@ -382,7 +447,7 @@ const TableProductsOrders: FC = props => (
     <tbody>
       {
         props.products.map((product, index) => 
-          <tr>
+          <tr key={index}>
             <td className='align-content-center p-2'>
               <div className='row'>
                 <div className='col-1 align-content-center'>
@@ -397,7 +462,7 @@ const TableProductsOrders: FC = props => (
                 <div className='col-10'>
                   <span>{product.part_number_key}</span><br />
                   <span>{product.name}</span><br />
-                  <span>{formatCurrency(product.sale_price)}</span>
+                  <span>{formatCurrency(parseFloat(product.sale_price))}</span>
                 </div>
               </div>
             </td>
@@ -459,8 +524,8 @@ const TableProductsOrders: FC = props => (
 
 
 const DashboardPage: FC = () => {
-  const [dashboardinfos, setDashboardInfos] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [dashboardinfos, setDashboardInfos] = useState<DashboardInfo[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     // getDashboardInfo()
@@ -527,8 +592,8 @@ const DashboardPage: FC = () => {
           >
             <div className='row d-flex'>
               {
-                dashboardinfos.map(dashboardinfo => 
-                  <div className='custom-col-5'>
+                dashboardinfos.map((dashboardinfo, index) => 
+                  <div className='custom-col-5' key={index}>
                     <TileComponent dashboardinfo={dashboardinfo} />
                   </div>
                 )

@@ -8,7 +8,7 @@ const getDashboardInfo = () => {
         .get(DASHBOARD_ENDPOINT)
 }
 
-const getProductsDay = (day) => {
+const getProductsDay = (day: string) => {
     return axios
         .post(`${DASHBOARD_ENDPOINT}/days`, {day: day})
 }

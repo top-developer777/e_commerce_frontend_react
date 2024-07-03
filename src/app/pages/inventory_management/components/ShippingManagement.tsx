@@ -166,102 +166,151 @@ const fakeShipments = [
     "note": "Documents attached",
     "est_date": "2024-06-22"
   }
-]
+];
 
-const formatCurrency = (value) => {
+interface Shipment {
+  shipment_name: string;
+  createAt: string;
+  nr: number;
+  new: number;
+  awb: string;
+  status: string;
+  note: string;
+  est_date: string;
+}
+
+interface Shipping {
+  id: number;
+  shippingType: string;
+  picture: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  total: number;
+  stock: number;
+  salesPerDay: number;
+  imports: string;
+  unitsPerBox: number;
+  supplier: {
+    name: string;
+    wechat: string;
+  }
+  recommendedReorderQuantity: number;
+  numberOfBoxes: number;
+  orderSent: string;
+  payment: string;
+  trackingNumber: string;
+  arrivedAtAgent: string;
+  author: string;
+}
+
+const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(value);
 };
 
-const Icon = props => (
+const Icon: React.FC<{
+  payment: string;
+}> = props => (
   <>
     {
       props.payment == "Paid" ?
-      <div>
-        <span className="badge badge-light-success fw-bold fs-7 p-2">
-          <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
-          {props.payment}
-        </span>
-      </div>
-      : props.payment == "Pending" ?
-      <div>
-        <span className="badge badge-light-warning fw-bold fs-7 p-2">
-          <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-          {props.payment}
-        </span>
-      </div>
-      : <div>
-        
-      </div>
+        <div>
+          <span className="badge badge-light-success fw-bold fs-7 p-2">
+            <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
+            {props.payment}
+          </span>
+        </div>
+        : props.payment == "Pending" ?
+          <div>
+            <span className="badge badge-light-warning fw-bold fs-7 p-2">
+              <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
+              {props.payment}
+            </span>
+          </div>
+          : <div>
+
+          </div>
     }
   </>
 )
 
-const StatusBadge = props => (
+const StatusBadge: React.FC<{
+  status: string;
+}> = props => (
   <>
     {
       props.status == "Customs" ?
-      <div>
-        <span className="badge badge-light-danger fw-bold fs-7 p-2">
-          {props.status}
-        </span>
-      </div>
-      : props.status == "Arrived" ?
-      <div>
-        <span className="badge badge-light-success fw-bold fs-7 p-2">
-          {props.status}
-        </span>
-      </div>
-      : props.status == "New" ?
-      <div>
-        <span className="badge badge-light-dark text-gray-800 fw-bold fs-7 p-2">
-          {props.status}
-        </span>
-      </div>
-      : props.status == "Shipped" ?
-      <div>
-        <span className="badge badge-light-warning fw-bold fs-7 p-2">
-          {props.status}
-        </span>
-      </div>
-      : <div>
-        
-      </div>
+        <div>
+          <span className="badge badge-light-danger fw-bold fs-7 p-2">
+            {props.status}
+          </span>
+        </div>
+        : props.status == "Arrived" ?
+          <div>
+            <span className="badge badge-light-success fw-bold fs-7 p-2">
+              {props.status}
+            </span>
+          </div>
+          : props.status == "New" ?
+            <div>
+              <span className="badge badge-light-dark text-gray-800 fw-bold fs-7 p-2">
+                {props.status}
+              </span>
+            </div>
+            : props.status == "Shipped" ?
+              <div>
+                <span className="badge badge-light-warning fw-bold fs-7 p-2">
+                  {props.status}
+                </span>
+              </div>
+              : <div>
+
+              </div>
     }
   </>
 )
 
-const TableProductPlanner: FC = props => {
-
+const TableProductPlanner: React.FC<{
+  editID?: number;
+  confirm: () => void;
+  productName: string;
+  selectedProductID: number;
+  shippings: Shipping[];
+  setEditID: React.Dispatch<React.SetStateAction<number>>;
+  setProductName: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedProduct: React.Dispatch<React.SetStateAction<Shipping>>;
+  setSelectedProductID: React.Dispatch<React.SetStateAction<number>>;
+}> = props => {
   return (
     <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7">
       <thead>
-          <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-              <th className='text-center align-content-center px-1'>shipping type</th>
-              <th className='text-center align-content-center px-1'>Picture</th>
-              <th className='text-start align-content-center px-1 col-md-2'>Product name</th>
-              <th className='text-center align-content-center px-0'>Quantity</th>
-              <th className='text-center align-content-center px-1'>Price</th>
-              <th className='text-center align-content-center px-1'>Total</th>
-              <th className='text-center align-content-center px-1'>Stock</th>
-              <th className='text-center align-content-center px-1'>Sales<br />per day</th>
-              <th className='text-center align-content-center px-1'>Imports</th>
-              <th className='text-center align-content-center px-1'>Nr pf<br />units<br />perbox</th>
-              <th className='text-center align-content-center px-1 py-0'>Supplier Name<br />/ WeChat</th>
-              <th className='text-center align-content-center px-1 py-0'>Recommended<br />quantity for<br />reordering</th>
-              <th className='text-center align-content-center px-1'>Number<br />of boxes</th>
-              <th className='text-center align-content-center px-0'>Order Sent</th>
-              <th className='text-center align-content-center px-1'>Payment</th>
-              <th className='text-center align-content-center px-1'>Tracking Number</th>
-              <th className='text-center align-content-center px-1'>Arrived at agent</th>
-              <th className='text-center align-content-center px-1'>Author</th>
-          </tr>
+        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+          <th className='text-center align-content-center px-1'>shipping type</th>
+          <th className='text-center align-content-center px-1'>Picture</th>
+          <th className='text-start align-content-center px-1 col-md-2'>Product name</th>
+          <th className='text-center align-content-center px-0'>Quantity</th>
+          <th className='text-center align-content-center px-1'>Price</th>
+          <th className='text-center align-content-center px-1'>Total</th>
+          <th className='text-center align-content-center px-1'>Stock</th>
+          <th className='text-center align-content-center px-1'>Sales<br />per day</th>
+          <th className='text-center align-content-center px-1'>Imports</th>
+          <th className='text-center align-content-center px-1'>Nr pf<br />units<br />perbox</th>
+          <th className='text-center align-content-center px-1 py-0'>Supplier Name<br />/ WeChat</th>
+          <th className='text-center align-content-center px-1 py-0'>Recommended<br />quantity for<br />reordering</th>
+          <th className='text-center align-content-center px-1'>Number<br />of boxes</th>
+          <th className='text-center align-content-center px-0'>Order Sent</th>
+          <th className='text-center align-content-center px-1'>Payment</th>
+          <th className='text-center align-content-center px-1'>Tracking Number</th>
+          <th className='text-center align-content-center px-1'>Arrived at agent</th>
+          <th className='text-center align-content-center px-1'>Author</th>
+        </tr>
       </thead>
       <tbody>
         {
-          props.shippings.map((shipping, index) => 
+          props.shippings.map((shipping, index) =>
             <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedProduct(props.shippings[index])}>
               <td className='align-content-center text-center'>
                 {
@@ -271,11 +320,11 @@ const TableProductPlanner: FC = props => {
               <td className='align-content-center py-3 px-0'>
                 <div className='p-2 align-content-center text-center'>
                   {
-                    shipping.picture.length > 0 ? <img width={60} height={60} src={shipping.picture} alt={shipping.id} />
-                    : 
-                    <div>
-                      No Image
-                    </div>
+                    shipping.picture.length > 0 ? <img width={60} height={60} src={shipping.picture} alt={`${shipping.id}`} />
+                      :
+                      <div>
+                        No Image
+                      </div>
                   }
                 </div>
               </td>
@@ -294,7 +343,7 @@ const TableProductPlanner: FC = props => {
                         <i className="bi bi-check-lg fs-3 p-1"></i>
                       </a>
                     </div>
-                  : 
+                    :
                     <>
                       {
                         shipping.productName
@@ -304,7 +353,7 @@ const TableProductPlanner: FC = props => {
                       </a>
                     </>
                 }
-                
+
               </td>
               <td className='text-center align-content-center'>
                 {
@@ -390,26 +439,29 @@ const TableProductPlanner: FC = props => {
   )
 }
 
-const TableShipment: FC = props => {
+const TableShipment: React.FC<{
+  shipments: Shipment[];
+  setSelectedShipment: React.Dispatch<React.SetStateAction<number>>;
+}> = props => {
   return (
     <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7">
       <thead>
-          <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-              <th className='align-content-center'>Shipment Name</th>
-              <th className='text-center align-content-center px-1'>Created Date</th>
-              <th className='text-center align-content-center px-1 col-md-2'>Nr.</th>
-              <th className='text-center align-content-center px-0'>New</th>
-              <th className='text-center align-content-center px-1'>AWB</th>
-              <th className='text-center align-content-center px-1'>Status</th>
-              <th className='text-center align-content-center px-1'>Note</th>
-              <th className='text-center align-content-center px-1'>Estimated Date</th>
-              <th className='text-center align-content-center px-1'>Actions</th>
-          </tr>
+        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+          <th className='align-content-center'>Shipment Name</th>
+          <th className='text-center align-content-center px-1'>Created Date</th>
+          <th className='text-center align-content-center px-1 col-md-2'>Nr.</th>
+          <th className='text-center align-content-center px-0'>New</th>
+          <th className='text-center align-content-center px-1'>AWB</th>
+          <th className='text-center align-content-center px-1'>Status</th>
+          <th className='text-center align-content-center px-1'>Note</th>
+          <th className='text-center align-content-center px-1'>Estimated Date</th>
+          <th className='text-center align-content-center px-1'>Actions</th>
+        </tr>
       </thead>
       <tbody>
         {
-          props.shipments.map((shipment, index) => 
-            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedShipment(index)}>
+          props.shipments.map((shipment, index) =>
+            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedShipment(index)} key={index}>
               <td className='align-content-center'>
                 {
                   shipment.shipment_name
@@ -462,27 +514,27 @@ const TableShipment: FC = props => {
 }
 
 export function ShippingManagement() {
-  const [shipments, setShipments] = useState([]);
-  const [shippings, setshippings] = useState([]);
-  const [shipingTypes, setShipingTypes] = useState([]);
-  const [editID, setEditID] = useState(-1);
-  const [productName, setProductName] = useState('');
-  const [selectedShipment, setSelectedShipment] = useState(-1);
-  const [selectedProductID, setSelectedProductID] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState({});
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [shippings, setshippings] = useState<Shipping[]>([]);
+  const [shipingTypes, setShipingTypes] = useState<{ value: number; label: string; }[]>([]);
+  const [editID, setEditID] = useState<number>(-1);
+  const [productName, setProductName] = useState<string>('');
+  const [selectedShipment, setSelectedShipment] = useState<number>(-1);
+  const [selectedProductID, setSelectedProductID] = useState<number>(0);
+  const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
 
   useEffect(() => {
     setShipments(fakeShipments);
     setShipingTypes(fakeShipingType);
     setshippings(fakeshippings);
-    setSelectedProduct(fakeshippings[0])
+    setSelectedProduct(fakeshippings[0]);
   }, [])
 
   useEffect(() => {
-    if(editID != -1){
+    if (editID != -1) {
       setProductName(shippings[editID]['productName'])
     }
-  }, [editID])
+  }, [editID, shippings])
 
   useEffect(() => {
     setSelectedProductID(0);
@@ -490,15 +542,15 @@ export function ShippingManagement() {
 
   const confirm = () => {
     setshippings(shippings.map((shipping, index) => {
-        if (index == editID){
-          let obj = shipping
-          obj.productName = productName
-          return obj
-        } else {
-          return shipping
-        }
+      if (index == editID) {
+        const obj = shipping
+        obj.productName = productName
+        return obj
+      } else {
+        return shipping
       }
-      ))
+    }
+    ))
     setEditID(-1);
   }
 
@@ -506,8 +558,8 @@ export function ShippingManagement() {
     <Content>
       {
         selectedShipment == -1 ?
-          <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment}/>
-        : 
+          <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} />
+          :
           <div className='row'>
             <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
               <div className="card-header pt-4 w-full">
@@ -531,17 +583,17 @@ export function ShippingManagement() {
                     <span className='text-gray-700'>Total Units</span><br />
                     <h4 className='text-gray-900 text-hover-primary'>
                       {
-                        (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()
+                        selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()
                       }
                     </h4>
                   </div>
                   <div className='col-md-8'>
                     <span className='text-gray-700'>Shiping Type</span><br />
                     <div className='col-md-4'>
-                      <Select 
-                        className='react-select-styled react-select-solid react-select-sm' 
-                        classNamePrefix='react-select' 
-                        options={shipingTypes} 
+                      <Select
+                        className='react-select-styled react-select-solid react-select-sm'
+                        classNamePrefix='react-select'
+                        options={shipingTypes}
                         placeholder='Select Shiping Type'
                       />
                     </div>
@@ -552,17 +604,17 @@ export function ShippingManagement() {
                     <span className='text-gray-700'>Total Boxes</span><br />
                     <h4 className='text-gray-900 text-hover-primary'>
                       {
-                        selectedProduct.numberOfBoxes.toLocaleString()
+                        selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()
                       }
                     </h4>
                   </div>
                   <div className='col-md-8'>
                     <span className='text-gray-700'>Agent</span><br />
                     <div className='col-md-4'>
-                      <Select 
-                        className='react-select-styled react-select-solid react-select-sm' 
-                        classNamePrefix='react-select' 
-                        options={fakeAgent} 
+                      <Select
+                        className='react-select-styled react-select-solid react-select-sm'
+                        classNamePrefix='react-select'
+                        options={fakeAgent}
                         placeholder='Select an Agent'
                       />
                     </div>
@@ -573,7 +625,7 @@ export function ShippingManagement() {
                     <span className='text-gray-700'>Total</span><br />
                     <h4 className='text-gray-900 text-hover-primary'>
                       {
-                        formatCurrency(selectedProduct.total)
+                        selectedProduct && formatCurrency(selectedProduct.total)
                       }
                     </h4>
                   </div>
@@ -583,8 +635,8 @@ export function ShippingManagement() {
                       type="text"
                       className="form-control form-control-solid p-2"
                       placeholder="Tracking Number"
-                      value={selectedProduct.trackingNumber}
-                      onChange={e => setSelectedProduct({...setSelectedProduct, "trackingNumber": e.target.value})}
+                      value={selectedProduct?.trackingNumber}
+                      onChange={e => setSelectedProduct({ ...selectedProduct, trackingNumber: e.target.value })}
                     />
                   </div>
                 </div>
