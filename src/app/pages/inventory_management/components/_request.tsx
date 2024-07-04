@@ -22,6 +22,10 @@ const getAllProducts = (page: number, limit = 50): Promise<Query> => {
         })
 }
 
+const getProductAmout = () => {
+    return axios.get(`${API_URL}/products/count`)
+}
+
 const getAllSuppliers = (page: number, limit = 50) => {
     return axios
         .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
@@ -41,6 +45,7 @@ const getProductImageByID = async (id: number) => {
 export {
     getAllProducts,
     getAllSuppliers,
+    getProductAmout,
     getProductByID,
-    getProductImageByID
+    getProductImageByID,
 }

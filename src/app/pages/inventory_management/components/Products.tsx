@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts } from './_request'
+import { getAllProducts, getProductAmout } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 
@@ -269,13 +269,20 @@ export function Products() {
   useEffect(() => {
     getAllProducts(currentPage, limit)
       .then(res => {
+        console.log(res.data);
         setProducts(res.data);
-        setTotalProducts(res.data.length);
-        // setTotalPages(Math.ceil(res.data.length / limit));
-        setTotalPages(11);
       })
       .catch(err => console.log(err))
-  }, [currentPage, limit]);
+  });
+
+  useEffect(() => {
+    getProductAmout()
+      .then(res => {
+        console.log(res.data);
+        setTotalProducts(res.data);
+        setTotalPages(Math.ceil(res.data.length / limit));
+      })
+  }, [limit, products.length]);
 
   const handleAddProduct = () => {
   }
