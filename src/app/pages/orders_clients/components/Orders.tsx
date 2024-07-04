@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
+import { useAuth } from '../../../modules/auth';
 import { getAllOrders } from './_request'
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
@@ -109,6 +110,7 @@ const OrderTable: React.FC<{
   orders: Order[],
   setEditID?: React.Dispatch<React.SetStateAction<number>>,
 }> = props => {
+  const { currentUser } = useAuth();
   const handleEdit = (id: number) => {
     if (props.setEditID) {
       props.setEditID(id);
@@ -168,13 +170,15 @@ const OrderTable: React.FC<{
               <th className='col-md-1 align-content-center text-center py-0'>Payment Method</th>
               <th className='col-md-1 align-content-center text-center py-0'>Shipping Method</th>
               <th className='col-md-1 align-content-center text-center'>Total Value</th>
-              <th className='col-md-1 align-content-center text-center'>Actions</th>
+              {currentUser && parseInt(currentUser.role ?? '') > 2 && (
+                <th className='col-md-1 align-content-center text-center'>Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
             {
               props.orders.map((order: Order, index: number) =>
-                <tr>
+                <tr key={index}>
                   <td className='align-content-center'>
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td>
@@ -222,11 +226,15 @@ const OrderTable: React.FC<{
                       order.shipping_tax.toLocaleString()
                     } RON
                   </td>
-                  <td className='align-content-center text-center'>
-                    <a className='btn btn-white btn-sm p-0' onClick={() => handleEdit(index)}>
-                      <i className="bi bi-pencil-square fs-3 p-1"></i>
-                    </a>
-                  </td>
+                  {currentUser && [3, 4].includes(parseInt(currentUser.role ?? '')) && (
+                    <td className='align-content-center text-center'>
+                      {(currentUser.role == '3' && [2, 3].includes(order.status)) ? '' : (
+                        <a className='btn btn-white btn-sm p-0' onClick={() => handleEdit(index)}>
+                          <i className="bi bi-pencil-square fs-3 p-1"></i>
+                        </a>
+                      )}
+                    </td>
+                  )}
                 </tr>
               )
             }
@@ -301,14 +309,22 @@ const SearchBar: React.FC<{
 }
 
 export function Orders() {
-  const [orders, SetOrders] = useState([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     getAllOrders(1)
       .then(async res => {
-        SetOrders(res.data)
+        setOrders(res.data)
       })
+    setOrders([{
+      id: 1,
+      detailed_payment_method: "string",
+      delivery_mode: "string",
+      status: 1,
+      image_url: 'string',
+      shipping_tax: 'string'
+    }]);
   }, [])
 
   return (

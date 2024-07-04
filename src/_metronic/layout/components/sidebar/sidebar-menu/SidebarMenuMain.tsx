@@ -1,10 +1,12 @@
 import {useIntl} from 'react-intl'
 // import {KTIcon} from '../../../../helpers'
 import {SidebarMenuItem} from './SidebarMenuItem'
+import { useAuth } from '../../../../../app/modules/auth'
 // import { FALSE } from 'sass'
 
 const SidebarMenuMain = () => {
   const intl = useIntl()
+  const { currentUser } = useAuth();
 
   return (
     <>
@@ -38,9 +40,21 @@ const SidebarMenuMain = () => {
         </div>
       </div>
       <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/inventory-management/products' title='Products' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-list-check' to='/inventory-management/planner' title='Planner' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-command' to='/inventory-management/shipping-management' title='Shipping Management' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-database-fill' to='/inventory-management/warehouse' title='Warehouse Management' hasBullet={false} />
+      {currentUser && (parseInt(currentUser.role ?? '') > 1) && (
+        <>
+          <SidebarMenuItem icon='bi bi-list-check' to='/inventory-management/planner' title='Planner' hasBullet={false} />
+        </>
+      )}
+      {currentUser && [1, 3, 4].includes(parseInt(currentUser.role ?? '')) && (
+        <>
+          <SidebarMenuItem icon='bi bi-command' to='/inventory-management/shipping-management' title='Shipping Management' hasBullet={false} />
+        </>
+      )}
+      {currentUser && [0, 3, 4].includes(parseInt(currentUser.role ?? '')) && (
+        <>
+          <SidebarMenuItem icon='bi bi-database-fill' to='/inventory-management/warehouse' title='Warehouse Management' hasBullet={false} />
+        </>
+      )}
       <SidebarMenuItem icon='bi bi-lightning-fill' to='/inventory-management/suppliers' title='Suppliers' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
@@ -56,22 +70,30 @@ const SidebarMenuMain = () => {
       </div>
       <SidebarMenuItem icon='bi bi-heartbreak-fill' to='/pay-back/lost-damaged' title='Lost & Damaged' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-reply-fill' to='/pay-back/returns' title='Returns' hasBullet={false} />
-      <div className='menu-item'>
-        <div className='menu-content pt-8 pb-2'>
-          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Auto respender</span>
-        </div>
-      </div>
-      <SidebarMenuItem icon='bi bi-graph-up' to='/auto-respender/campaigns' title='Campaigns' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/auto-respender/products' title='Products' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/auto-respender/orders' title='Orders' hasBullet={false} />
-      <div className='menu-item'>
-        <div className='menu-content pt-8 pb-2'>
-          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Admin</span>
-        </div>
-      </div>
-      <SidebarMenuItem icon='bi bi-people-fill' to='/account-manage/account/teams' title='Users' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-gear-fill' to='/account-manage/account/settings' title='Settings' hasBullet={false} />
-      <SidebarMenuItem icon='bi socion-warcraft' to='/account-manage/account/edit' title='Edit' hasBullet={false} />
+      {currentUser && parseInt(currentUser.role ?? '') > 2 && (
+        <>
+          <div className='menu-item'>
+            <div className='menu-content pt-8 pb-2'>
+              <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Auto respender</span>
+            </div>
+          </div>
+          <SidebarMenuItem icon='bi bi-graph-up' to='/auto-respender/campaigns' title='Campaigns' hasBullet={false} />
+          <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/auto-respender/products' title='Products' hasBullet={false} />
+          <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/auto-respender/orders' title='Orders' hasBullet={false} />
+        </>
+      )}
+      {currentUser && parseInt(currentUser.role ?? '') === 4 && (
+        <>
+          <div className='menu-item'>
+            <div className='menu-content pt-8 pb-2'>
+              <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Administrator</span>
+            </div>
+          </div>
+          <SidebarMenuItem icon='bi bi-people-fill' to='/site-manager/manage-users' title='Users' hasBullet={false} />
+          {/* <SidebarMenuItem icon='bi bi-gear-fill' to='/account-manage/account/settings' title='Settings' hasBullet={false} />
+          <SidebarMenuItem icon='bi bi-pencil-square' to='/account-manage/account/edit' title='Edit' hasBullet={false} /> */}
+        </>
+      )}
       {/* <div className='menu-item'>
         <a
           target='_blank'

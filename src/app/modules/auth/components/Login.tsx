@@ -33,7 +33,7 @@ const initialValues = {
 
 export function Login() {
   const [loading, setLoading] = useState(false)
-  const { saveAuth, setCurrentUser } = useAuth()
+  const { saveAuth, setCurrentUser, logout } = useAuth()
 
   const formik = useFormik({
     initialValues,
@@ -45,6 +45,9 @@ export function Login() {
         saveAuth(auth)
         const { data: user } = await getUserByToken(auth.access_token)
         setCurrentUser(user)
+        if (user.role == '-1') {
+          logout();
+        }
       } catch (error) {
         console.error(error)
         saveAuth(undefined)

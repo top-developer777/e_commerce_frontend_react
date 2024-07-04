@@ -75,7 +75,7 @@ interface Return {
   summary: string;
 }
 
-const ReturnsInformation:React.FC<{
+const ReturnsInformation: React.FC<{
   returns: Return[];
 }> = props => {
   return (
@@ -99,7 +99,7 @@ const ReturnsInformation:React.FC<{
           </thead>
           <tbody>
             {
-              props.returns.map((_return, index) => 
+              props.returns.map((_return, index) =>
                 <tr key={index}>
                   <td className='align-content-center text-center'>
                     {
@@ -145,7 +145,7 @@ interface Shipment {
   shipment_status: string;
 }
 
-const ShipmentInformation:React.FC<{
+const ShipmentInformation: React.FC<{
   shipments: Shipment[];
 }> = props => {
   return (
@@ -155,26 +155,26 @@ const ShipmentInformation:React.FC<{
           <h3 className="text-gray-800 card-title align-content-center">Shipment Information</h3>
         </div>
         <div>
-          
+
         </div>
       </div>
       <div className="card-body p-6">
         <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
           <thead>
-              <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                <th className='col-md-1'>Shipment ID</th>
-                <th className='col-md-2'>Shipment Name</th>
-                <th className='col-md-2'>Destination</th>
-                <th className='col-md-2'>Last Updated</th>
-                <th className='col-md-2'>Created</th>
-                <th className='col-md-2'>Qty Shipped</th>
-                <th className='col-md-2'>Qty Received</th>
-                <th className='col-md-2'>Shipment Status</th>
-              </tr>
+            <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+              <th className='col-md-1'>Shipment ID</th>
+              <th className='col-md-2'>Shipment Name</th>
+              <th className='col-md-2'>Destination</th>
+              <th className='col-md-2'>Last Updated</th>
+              <th className='col-md-2'>Created</th>
+              <th className='col-md-2'>Qty Shipped</th>
+              <th className='col-md-2'>Qty Received</th>
+              <th className='col-md-2'>Shipment Status</th>
+            </tr>
           </thead>
           <tbody>
             {
-              props.shipments.map((shipment, index) => 
+              props.shipments.map((shipment, index) =>
                 <tr key={index}>
                   <td className='align-content-center'>
                     {
@@ -237,7 +237,7 @@ interface Product {
   stock: string;
 }
 
-const DetailedProduct:React.FC<{ product: Product }> = ({ product }) => {
+const DetailedProduct: React.FC<{ product: Product }> = ({ product }) => {
   console.log(product);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
@@ -259,152 +259,169 @@ const DetailedProduct:React.FC<{ product: Product }> = ({ product }) => {
 
 export function Products() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProductID, setSelectedProductID] = useState(-1);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState<number>(0);
+  const [selectedProductID, setSelectedProductID] = useState<number>(-1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(50);
+  const [totalPages, setTotalPages] = useState<number>(0);
 
   useEffect(() => {
     getAllProducts(currentPage, limit)
       .then(res => {
         setProducts(res.data);
+        setTotalProducts(res.data.length);
+        // setTotalPages(Math.ceil(res.data.length / limit));
+        setTotalPages(11);
       })
       .catch(err => console.log(err))
   }, [currentPage, limit]);
+
+  const handleAddProduct = () => {
+  }
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(totalPages - 1, currentPage + 2);
+    pageNumbers.push(
+      <button key='page1' type='button' className={`btn ${currentPage === 1 ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(1)}>1</button>
+    );
+    if (startPage > 2) {
+      pageNumbers.push(<>...</>);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button key={`page${i}`} type='button' className={`btn ${currentPage === i ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(i)}>{i}</button>
+      );
+    }
+    if (endPage < totalPages - 1) {
+      pageNumbers.push(<>...</>);
+    }
+    if (totalPages > 1) {
+      pageNumbers.push(
+        <button key={`page${totalPages}`} type='button' className={`btn ${currentPage === totalPages ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+      );
+    }
+    return pageNumbers;
+  };
 
   return (
     <Content>
       {
         selectedProductID == -1 ?
-        <>
-          <div className='d-flex flex-row justify-content-between mb-4'>
-            <div className='d-flex flex-row '>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                <i className="bi bi-chevron-double-left"></i>
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                1
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                2
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                3
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                ...
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                11
-              </button>
-              <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-                <i className="bi bi-chevron-double-right"></i>
-              </button>
-              <div className='align-content-center mx-10'>
-                Total: {
-                  573
-                }
+          <>
+            <div className='d-flex flex-row justify-content-between mb-4'>
+              <div className='d-flex flex-row '>
+                <button type='button' key={-1} className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                  <i className="bi bi-chevron-double-left"></i>
+                </button>
+                {renderPageNumbers()}
+                <button type='button' key="+1" className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                  <i className="bi bi-chevron-double-right"></i>
+                </button>
+                <div className='align-content-center mx-10'>
+                  Total: {totalProducts}
+                </div>
+              </div>
+              <div>
+                <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7' onClick={handleAddProduct}>
+                  <i className="bi bi-cart-plus"></i>
+                  Add Product
+                </button>
               </div>
             </div>
-            <div>
-              <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7'>
-                <i className="bi bi-cart-plus"></i>
-                Add Product
-              </button>
-            </div>
-          </div>
-          <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
-            <thead>
+            <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
+              <thead>
                 <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                    <th style={{width: '100px'}}><div className="form-check form-check-custom form-check-solid">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
-                    </div></th>
-                    <th className='col-md-1'>Photo</th>
-                    <th className='col-md-8'>Name</th>
-                    <th className='col-md-2'>Price / Stock</th>
-                    <th className='col-md-2'>Status</th>
+                  <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
+                    <input className="form-check-input" type="checkbox" value="" />
+                  </div></th>
+                  <th className='col-md-1'>Photo</th>
+                  <th className='col-md-8'>Name</th>
+                  <th className='col-md-2'>Price / Stock</th>
+                  <th className='col-md-2'>Status</th>
                 </tr>
-            </thead>
-            <tbody>
-              {
-                products.map((product, index) => 
-                  <tr key={index} onClick={() => setSelectedProductID(index)}>
-                    <td className='align-content-center'>
-                      <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
-                    </td>
-                    <td className='align-content-center'>
-                      {
-                        JSON.parse(product.images).length > 0 ? <img width={80} height={80} src={JSON.parse(product.images)[0]["url"]} alt={product.name} />
-                        : 
-                        <div>
-                          No Image
-                        </div>
-                      }
-                    </td>
-                    <td className='align-content-center py-0'>
-                      <div className='row mb-2'>
-                        <div className='col-md-1 text-gray-800 fw-bold'>
-                          Name: 
-                        </div>
-                        <div className='col-md-11 text-gray-800 fw-bold'>
-                          {product.name} 
-                        </div>
-                      </div>
-                      <div className='row mb-4'>
-                        <div className='col-md-1 text-gray-800 fw-bold'>
-                          Brand: 
-                        </div>
-                        <div className='col-md-1 text-gray-900 fw-bold'>
-                          {product.brand}
-                        </div>
-                      </div>
-                      <div className='row mb-2'>
-                        <div className='col-md-4'>
-                          <div className='row'>
-                            <div className='col-md-5 text-gray-800 fw-bold'>
-                              Part Number: 
+              </thead>
+              <tbody>
+                {
+                  products.map((product, index) =>
+                    <tr key={`product${index}`} onClick={() => setSelectedProductID(index)}>
+                      <td className='align-content-center'>
+                        <input className="form-check-input" type="checkbox" value={index} />
+                      </td>
+                      <td className='align-content-center'>
+                        {
+                          JSON.parse(product.images).length > 0 ? <img width={80} height={80} src={JSON.parse(product.images)[0]["url"]} alt={product.name} />
+                            :
+                            <div>
+                              No Image
                             </div>
-                            <div className='col-md-4 text-gray-800 fw-bold'>
-                              {product.part_number}
+                        }
+                      </td>
+                      <td className='align-content-center py-0'>
+                        <div className='row mb-2'>
+                          <div className='col-md-1 text-gray-800 fw-bold'>
+                            Name:
+                          </div>
+                          <div className='col-md-11 text-gray-800 fw-bold'>
+                            {product.name}
+                          </div>
+                        </div>
+                        <div className='row mb-4'>
+                          <div className='col-md-1 text-gray-800 fw-bold'>
+                            Brand:
+                          </div>
+                          <div className='col-md-1 text-gray-900 fw-bold'>
+                            {product.brand}
+                          </div>
+                        </div>
+                        <div className='row mb-2'>
+                          <div className='col-md-4'>
+                            <div className='row'>
+                              <div className='col-md-5 text-gray-800 fw-bold'>
+                                Part Number:
+                              </div>
+                              <div className='col-md-4 text-gray-800 fw-bold'>
+                                {product.part_number}
+                              </div>
+                            </div>
+                          </div>
+                          <div className='col-md-8'>
+                            <div className='row'>
+                              <div className='col-md-3 text-gray-800 fw-bold'>
+                                Part Number Key:
+                              </div>
+                              <div className='col-md-4 text-gray-800 fw-bold'>
+                                {product.part_number_key}
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className='col-md-8'>
-                          <div className='row'>
-                            <div className='col-md-3 text-gray-800 fw-bold'>
-                              Part Number Key:
-                            </div>
-                            <div className='col-md-4 text-gray-800 fw-bold'>
-                              {product.part_number_key}
-                            </div>
-                          </div>
+                      </td>
+                      <td className='align-content-center'>
+                        <div className='row mb-2'>
+                          {product.sale_price} {product.currency}
                         </div>
-                      </div>
-                    </td>
-                    <td className='align-content-center'>
-                      <div className='row mb-2'>
-                        {product.sale_price} {product.currency}
-                      </div>
-                      <div className='row mb-2'>
-                        Stock: {JSON.parse(product.stock)[0]["value"]}
-                      </div>
-                    </td>
-                    <td className='align-content-center'>
-                      <div className="form-check form-switch form-check-custom form-check-solid">
-                        <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" checked={true} />
-                      </div>
-                    </td>
-                  </tr>
-                )
-              }
-            </tbody>
-          </table>
-        </>
-        :
-        <>
-          <DetailedProduct product={products[selectedProductID]} />
-        </>
+                        <div className='row mb-2'>
+                          Stock: {JSON.parse(product.stock)[0]["value"]}
+                        </div>
+                      </td>
+                      <td className='align-content-center'>
+                        <div className="form-check form-switch form-check-custom form-check-solid">
+                          <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                }
+              </tbody>
+            </table>
+          </>
+          :
+          <>
+            <DetailedProduct product={products[selectedProductID]} />
+          </>
       }
     </Content>
   )

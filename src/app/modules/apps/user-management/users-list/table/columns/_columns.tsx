@@ -7,7 +7,7 @@ import {UserCustomHeader} from './UserCustomHeader'
 import {UserSelectionHeader} from './UserSelectionHeader'
 import {User} from '../../core/_models'
 
-const usersColumns: ReadonlyArray<Column<User>> = [
+const usersColumns: Array<Column<User>> = [
   {
     Header: (props) => <UserSelectionHeader tableProps={props} />,
     id: 'selection',

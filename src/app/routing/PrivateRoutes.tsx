@@ -1,11 +1,11 @@
-import {lazy, FC, Suspense} from 'react'
-import {Route, Routes, Navigate} from 'react-router-dom'
-import {MasterLayout} from '../../_metronic/layout/MasterLayout'
+import { lazy, FC, Suspense } from 'react'
+import { Route, Routes, Navigate } from 'react-router-dom'
+import { MasterLayout } from '../../_metronic/layout/MasterLayout'
 import TopBarProgress from 'react-topbar-progress-indicator'
-import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
-import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
-import {WithChildren} from '../../_metronic/helpers'
-import UsersPage from '../modules/apps/user-management/UsersPage'
+import { DashboardWrapper } from '../pages/dashboard/DashboardWrapper'
+import { getCSSVariableValue } from '../../_metronic/assets/ts/_utils'
+import { WithChildren } from '../../_metronic/helpers'
+import SiteManagerPage from '../pages/site-manager/SiteManagerPage'
 
 const PrivateRoutes = () => {
   const ConfigPage = lazy(() => import('../pages/config/ConfigPage'))
@@ -70,10 +70,10 @@ const PrivateRoutes = () => {
           }
         />
         <Route
-          path='account-manage/account/*'
+          path='site-manager/*'
           element={
             <SuspensedView>
-              <UsersPage />
+              <SiteManagerPage />
             </SuspensedView>
           }
         />
@@ -83,7 +83,7 @@ const PrivateRoutes = () => {
   )
 }
 
-const SuspensedView: FC<WithChildren> = ({children}) => {
+const SuspensedView: FC<WithChildren> = ({ children }) => {
   const baseColor = getCSSVariableValue('--bs-primary')
   TopBarProgress.config({
     barColors: {
@@ -95,4 +95,4 @@ const SuspensedView: FC<WithChildren> = ({children}) => {
   return <Suspense fallback={<TopBarProgress />}>{children}</Suspense>
 }
 
-export {PrivateRoutes}
+export { PrivateRoutes }
