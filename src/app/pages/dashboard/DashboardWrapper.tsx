@@ -535,7 +535,24 @@ const DashboardPage: FC = () => {
                         <input type="text" className="form-control" name='products' placeholder="Search products by name, tag, SKU, ASIN" onChange={(e) => setSearchChartProducts(e.target.value)} />
                       </div>
                       <form className="dropdown-menu p-4">
-                        Product list
+                        <div className='text-end'>
+                          <button className="btn btn-primary btn-sm" type='button'>Select All</button>
+                        </div>
+                        <ul className="list-group">
+                          <li className="list-group-item">
+                            <label className='d-flex align-items-center'>
+                              <div className="d-flex pe-3">
+                                <input type="checkbox" value={'1'} />
+                              </div>
+                              <div className="d-flex">
+                                <img src="https://app.sellerboard.com/images/Demo_pictures/10_SS40_.jpg" className='rounded-lg' alt="Product1" style={{ width: '36px' }} />
+                              </div>
+                              <div className="d-flex text-nowrap ps-3">
+                                Big Corrugated Box 47*40*25cm / 21XXX344 / FBA
+                              </div>
+                            </label>
+                          </li>
+                        </ul>
                       </form>
                     </div>
                   </div>
