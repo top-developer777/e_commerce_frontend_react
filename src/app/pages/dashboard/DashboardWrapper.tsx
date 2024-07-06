@@ -352,9 +352,10 @@ const TableProductsOrders: FC<{ orders: Order[] }> = props => (
 const DashboardPage: FC = () => {
   const [dashboardinfos, setDashboardInfos] = useState<DashboardInfo[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [series, setSeries] = useState<string>('[]');
   const [categories, setCategories] = useState<string>('[]');
+  const [chartPeriod, setChartPeriod] = useState<string>('1');
+  const [searchChartProducts, setSearchChartProducts] = useState<string>('');
 
   type Series = {
     name: string;
@@ -453,7 +454,11 @@ const DashboardPage: FC = () => {
           setCategories(JSON.stringify(categories));
         }
       });
-  }, [])
+  }, []);
+
+  const handleChartFilter = () => {
+    console.log(chartPeriod, searchChartProducts);
+  }
 
   return (
     <>
@@ -527,7 +532,7 @@ const DashboardPage: FC = () => {
                     <div className="dropdown">
                       <div className="input-group" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                         <span className="input-group-text" id="products"><i className="bi bi-search"></i></span>
-                        <input type="text" className="form-control" name='products' placeholder="Search products by name, tag, SKU, ASIN" />
+                        <input type="text" className="form-control" name='products' placeholder="Search products by name, tag, SKU, ASIN" onChange={(e) => setSearchChartProducts(e.target.value)} />
                       </div>
                       <form className="dropdown-menu p-4">
                         Product list
@@ -535,14 +540,14 @@ const DashboardPage: FC = () => {
                     </div>
                   </div>
                   <div className="col-md-4">
-                    <select className="form-select form-select-lg mb-3">
-                      <option value="1" selected>Last 12 months, by month</option>
+                    <select className="form-select form-select-lg mb-3" onChange={(e) => setChartPeriod(e.target.value)} defaultValue='1'>
+                      <option value="1">Last 12 months, by month</option>
                       <option value="2">Last 3 months, by week</option>
                       <option value="3">Last 30 days, by day</option>
                     </select>
                   </div>
                   <div className="col-md-2">
-                    <button type='button' className='btn btn-primary'>
+                    <button type='button' className='btn btn-primary' onClick={handleChartFilter}>
                       <i className="bi bi-funnel"></i>
                       Filter
                     </button>
