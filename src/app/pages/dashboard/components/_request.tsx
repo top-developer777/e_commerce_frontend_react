@@ -5,7 +5,12 @@ const DASHBOARD_ENDPOINT = `${API_URL}/dashboard`
 
 const getDashboardInfo = () => {
     return axios
-        .get(DASHBOARD_ENDPOINT)
+        .get(`${DASHBOARD_ENDPOINT}/tiles`)
+}
+
+const getChartInfo = (type: number, productIds: string = '') => {
+    return axios
+        .get(`${DASHBOARD_ENDPOINT}/chart?type=${type}${productIds ? `&product_ids=${productIds}` : ''}`)
 }
 
 const getProductsDay = (day: string) => {
@@ -15,5 +20,6 @@ const getProductsDay = (day: string) => {
 
 export {
     getDashboardInfo,
-    getProductsDay
+    getProductsDay,
+    getChartInfo
 }

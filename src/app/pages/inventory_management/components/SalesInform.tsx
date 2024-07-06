@@ -3,14 +3,24 @@ import { useEffect, useRef, FC } from 'react'
 import ApexCharts, { ApexOptions } from 'apexcharts'
 import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
 import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
+import { Product } from './Products'
 
 type Props = {
   className: string,
   series: string,
-  categories: string
+  categories: string,
+  product: Product,
 }
 
-const SalesInformation: FC<Props> = ({ className, series, categories }) => {
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(value);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SalesInformation: FC<Props> = ({ className, series, categories, product }) => {
   const chartRef = useRef<HTMLDivElement | null>(null)
   const { mode } = useThemeMode()
   const refreshChart = () => {
@@ -46,13 +56,13 @@ const SalesInformation: FC<Props> = ({ className, series, categories }) => {
           <span className='card-label fw-bold fs-3 mb-1'>Sales Information</span>
         </h3>
       </div>
-      <div className='card-body'>
+      <div className='card-body py-0'>
         <div className='row'>
-          <div className='col-xl-6'>
-            <div className='row mb-2 text-gray-800 fw-bold'>
+          <div className='col-xl-4'>
+            <div className='mb-2 text-gray-800 fw-bold'>
               View sales data for:
             </div>
-            <div className='row mb-2'>
+            <div className='mb-2'>
               <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
                 SKU
               </button>
@@ -61,23 +71,23 @@ const SalesInformation: FC<Props> = ({ className, series, categories }) => {
               </button>
             </div>
             <div className='row mb-2'>
-              <div className='col-md-4 text-gray-800 fw-bold'>
+              <div className='col-md-6 text-gray-800 fw-bold'>
                 Sales rank
               </div>
-              <div className='col-md-4 text-gray-800 fw-bold'>
+              <div className='col-md-6 text-gray-800 fw-bold'>
                 Category
               </div>
             </div>
             <div className='row mb-4'>
-              <div className='col-md-4 fw-bold'>
+              <div className='col-md-6 fw-bold'>
                 4,349
               </div>
-              <div className='col-md-4 fw-bold'>
+              <div className='col-md-6 fw-bold'>
                 Home & Kitcken
               </div>
             </div>
           </div>
-          <div className='col-xl-6'>
+          <div className='col-xl-8'>
             <div className='row mb-2'>
               <div className='col-md-3'>
 
@@ -125,24 +135,27 @@ const SalesInformation: FC<Props> = ({ className, series, categories }) => {
                 Avg selling price
               </div>
               <div className='col-md-3 fw-bold fs-5'>
-                $27.33
+                {formatCurrency(27.33)}
               </div>
               <div className='col-md-3 fw-bold fs-5'>
-                $27.03
+                {formatCurrency(27.03)}
               </div>
               <div className='col-md-3 fw-bold fs-5'>
-                $27.03
+                {formatCurrency(27.03)}
               </div>
             </div>
           </div>
         </div>
         <div className='row'>
-          <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
-            Sales
-          </button>
-          <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
-            Units
-          </button>
+          <div className="col-md-12">
+            <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
+              Sales
+            </button>
+            <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
+              Units
+            </button>
+          </div>
+          
         </div>
         <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
       </div>

@@ -1,25 +1,27 @@
 
-import {useEffect, useRef, FC} from 'react'
-import ApexCharts, {ApexOptions} from 'apexcharts'
-import {getCSS, getCSSVariableValue} from '../../../../_metronic/assets/ts/_utils'
-import {useThemeMode} from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
-import { json } from 'node:stream/consumers'
-import Select from 'react-select'
+import { useEffect, useRef, FC } from 'react'
+import ApexCharts, { ApexOptions } from 'apexcharts'
+import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
+import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
+import Select from 'react-select';
+import { Product } from './Products';
 
 type Props = {
   className: string,
   series: string,
-  categories: string
+  categories: string,
+  product: Product,
 }
 
-const OrdersInformation: FC<Props> = ({className, series, categories}) => {
+const OrdersInformation: FC<Props> = ({ className, series, categories, product }) => {
+  console.log(product);
   const options = [
     { value: 'ncx_rate', label: 'NCX rate' },
     { value: 'total_orders', label: 'Total Orders' },
     { value: 'ncx_orders', label: 'NCX Orders' },
-]
+  ]
   const chartRef = useRef<HTMLDivElement | null>(null)
-  const {mode} = useThemeMode()
+  const { mode } = useThemeMode()
   const refreshChart = () => {
     if (!chartRef.current) {
       return
@@ -60,13 +62,15 @@ const OrdersInformation: FC<Props> = ({className, series, categories}) => {
         </div>
         <div className='row align-content-center'>
           <div className='col-xl-2'>
-            <img src='https://marketplace-static.emag.ro/resources/000/039/390/178/39390178.png' alt='image' className='w-150px h-150px' />
+            <a href={product.url}>
+              <img src={JSON.parse(product.images)[0]} alt={product.name} className='w-150px h-150px' />
+            </a>
           </div>
           <div className='col-xl-10'>
             <div className='row'>
               <div className='col-md-4'>
                 <span>ASIN</span><br />
-                <span>B0C3RG3LH8</span>
+                <span>{product.part_number_key}</span>
               </div>
               <div className='col-md-4'>
                 <span>FnSku</span><br />
@@ -112,20 +116,20 @@ const OrdersInformation: FC<Props> = ({className, series, categories}) => {
         </div>
         <div className='d-flex'>
           <span className='align-content-center fw-bold text-gray-800 fs-5 px-2'>Parameter</span>
-            <Select 
-              className='react-select-styled react-select-solid' 
-              classNamePrefix='react-select' 
-              options={options}
-              placeholder='Select an option' 
-            />
+          <Select
+            className='react-select-styled react-select-solid'
+            classNamePrefix='react-select'
+            options={options}
+            placeholder='Select an option'
+          />
         </div>
-        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{height: '350px'}}></div>
+        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
       </div>
     </div>
   )
 }
 
-export {OrdersInformation}
+export { OrdersInformation }
 
 function getChartOptions(height: number, series: string, categories: string): ApexOptions {
   const labelColor = getCSSVariableValue('--bs-gray-500')

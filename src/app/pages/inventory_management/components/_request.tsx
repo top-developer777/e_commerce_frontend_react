@@ -22,6 +22,17 @@ const getAllProducts = (page: number, limit = 50): Promise<Query> => {
         })
 }
 
+const addProductRequest = (data: { [key: string]: string | number | boolean }) => {
+    console.log(data);
+    return axios.post(PRODUCTS_ENDPOINT, { params: data })
+}
+
+const editProductRequest = (id: number, data: { [key: string]: string | number | boolean }) => {
+    console.log(id);
+    console.log(data);
+    return axios.put(`${PRODUCTS_ENDPOINT}/${id}`, { params: data });
+}
+
 const getProductAmout = () => {
     return axios.get(`${API_URL}/products/count`)
 }
@@ -43,6 +54,8 @@ const getProductImageByID = async (id: number) => {
 }
 
 export {
+    addProductRequest,
+    editProductRequest,
     getAllProducts,
     getAllSuppliers,
     getProductAmout,

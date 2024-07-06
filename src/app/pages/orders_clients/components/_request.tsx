@@ -9,3 +9,7 @@ export const getAllOrders = (page: number, limit = 50) => {
       params: { page: page, items_per_page: limit }
     })
 }
+
+export const getOrderAmout = () => {
+  return axios.get(`${API_URL}/orders/count`)
+}

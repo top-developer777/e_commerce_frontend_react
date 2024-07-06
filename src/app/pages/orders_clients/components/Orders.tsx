@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import { useAuth } from '../../../modules/auth';
-import { getAllOrders } from './_request'
+import { getAllOrders, getOrderAmout } from './_request'
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
 
@@ -108,31 +108,64 @@ const StatusBadge: React.FC<{ status: number }> = props => (
 
 const OrderTable: React.FC<{
   orders: Order[],
+  currentPage: number,
+  limit: number,
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
   setEditID?: React.Dispatch<React.SetStateAction<number>>,
 }> = props => {
+  const { currentPage, setCurrentPage } = props;
+  const [totalPages, setTotalPages] = useState<number>(0);
+  getOrderAmout()
+    .then(res => {
+      setTotalPages(res.data > 0 ? Math.floor(res.data / props.limit) : 1);
+    })
+
   const { currentUser } = useAuth();
   const handleEdit = (id: number) => {
     if (props.setEditID) {
       props.setEditID(id);
     }
   }
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(totalPages - 1, currentPage + 2);
+    pageNumbers.push(
+      <button key='page1' type='button' className={`btn ${currentPage === 1 ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(1)}>1</button>
+    );
+    if (startPage > 2) {
+      pageNumbers.push(<>...</>);
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button key={`page${i}`} type='button' className={`btn ${currentPage === i ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(i)}>{i}</button>
+      );
+    }
+    if (endPage < totalPages - 1) {
+      pageNumbers.push(<>...</>);
+    }
+    if (totalPages > 1) {
+      pageNumbers.push(
+        <button key={`page${totalPages}`} type='button' className={`btn ${currentPage === totalPages ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+      );
+    }
+    return pageNumbers;
+  };
+
   return (
     <>
       <div className='d-flex flex-row justify-content-between mb-4'>
         <div className='d-flex flex-row '>
-          <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
+          <button type='button' key={-1} className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
             <i className="bi bi-chevron-double-left"></i>
           </button>
-          <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
-            1
-          </button>
-          <button type='button' className='btn btn-light p-2 px-3 mx-1 fs-7'>
+          {renderPageNumbers()}
+          <button type='button' key="+1" className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
             <i className="bi bi-chevron-double-right"></i>
           </button>
           <div className='align-content-center mx-10'>
-            Total: {
-              4
-            }
+            Total: {props.orders.length}
           </div>
         </div>
         <div>
@@ -310,27 +343,30 @@ const SearchBar: React.FC<{
 
 export function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [limit, setLimit] = useState<number>(50);
 
   useEffect(() => {
-    getAllOrders(1)
+    getAllOrders(currentPage, limit)
       .then(async res => {
         setOrders(res.data)
-      })
-    setOrders([{
-      id: 1,
-      detailed_payment_method: "string",
-      delivery_mode: "string",
-      status: 1,
-      image_url: 'string',
-      shipping_tax: 'string'
-    }]);
-  }, [])
+        // setOrders([{
+        //   id: 1,
+        //   detailed_payment_method: "string",
+        //   delivery_mode: "string",
+        //   status: 1,
+        //   image_url: 'string',
+        //   shipping_tax: 'string'
+        // }]);
+      });
+  }, [currentPage, limit]);
 
   return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} />
-      <OrderTable orders={orders} />
+      <OrderTable orders={orders} currentPage={currentPage} setCurrentPage={setCurrentPage} limit={limit} />
     </Content>
   )
 }

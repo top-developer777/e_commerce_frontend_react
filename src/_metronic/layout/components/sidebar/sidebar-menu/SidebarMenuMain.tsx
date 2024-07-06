@@ -12,10 +12,11 @@ const SidebarMenuMain = () => {
     <>
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
-          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Dashboard</span>
+          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Profit</span>
         </div>
       </div>
       <SidebarMenuItem to='/dashboard' icon='element-11' title={intl.formatMessage({id: 'MENU.DASHBOARD'})} fontIcon='bi-app-indicator' />
+      <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/inventory-management/products' title='Products' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Configuration</span>
@@ -39,7 +40,6 @@ const SidebarMenuMain = () => {
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Inventory management</span>
         </div>
       </div>
-      <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/inventory-management/products' title='Products' hasBullet={false} />
       {currentUser && (parseInt(currentUser.role ?? '') > 1) && (
         <>
           <SidebarMenuItem icon='bi bi-list-check' to='/inventory-management/planner' title='Planner' hasBullet={false} />
