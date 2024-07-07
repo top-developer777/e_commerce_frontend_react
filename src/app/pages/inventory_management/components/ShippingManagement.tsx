@@ -461,7 +461,7 @@ const TableShipment: React.FC<{
       <tbody>
         {
           props.shipments.map((shipment, index) =>
-            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedShipment(index)} key={index}>
+            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedShipment(index)} key={`shipment${index}`}>
               <td className='align-content-center'>
                 {
                   shipment.shipment_name

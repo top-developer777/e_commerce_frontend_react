@@ -14,7 +14,6 @@ type Props = {
 }
 
 const OrdersInformation: FC<Props> = ({ className, series, categories, product }) => {
-  console.log(product);
   const options = [
     { value: 'ncx_rate', label: 'NCX rate' },
     { value: 'total_orders', label: 'Total Orders' },
@@ -45,6 +44,7 @@ const OrdersInformation: FC<Props> = ({ className, series, categories, product }
         chart.destroy()
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartRef, mode])
 
   return (
@@ -62,23 +62,19 @@ const OrdersInformation: FC<Props> = ({ className, series, categories, product }
         </div>
         <div className='row align-content-center'>
           <div className='col-xl-2'>
-            <a href={product.url}>
-              <img src={JSON.parse(product.images)[0]} alt={product.name} className='w-150px h-150px' />
+            <a href={product.image_link}>
+              {product.image_link ? <img src={product.image_link} alt={product.product_name} className='w-150px h-150px' /> : 'No Image'}
             </a>
           </div>
           <div className='col-xl-10'>
             <div className='row'>
               <div className='col-md-4'>
-                <span>ASIN</span><br />
-                <span>{product.part_number_key}</span>
-              </div>
-              <div className='col-md-4'>
-                <span>FnSku</span><br />
-                <span>X001RQWRPZ</span>
+                <span>Model Name</span><br />
+                <span>{product.model_name}</span>
               </div>
               <div className='col-md-4'>
                 <span>SKU</span><br />
-                <span>90-E7WH-FROG</span>
+                <span>{product.sku}</span>
               </div>
             </div>
             <div className="separator my-10"></div>

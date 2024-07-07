@@ -89,7 +89,7 @@ const ReturnsInformation: React.FC<{
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
       <div className="card-header pt-4 w-full">
         <div>
-          <h3 className="text-gray-800 card-title align-content-center">Order Dashboard</h3>
+          <h3 className="text-gray-800 card-title align-content-center">Return Dashboard</h3>
         </div>
         <div>
         </div>
@@ -235,19 +235,59 @@ const ShipmentInformation: React.FC<{
 
 export interface Product {
   id?: number;
-  name: string;
-  images: string;
-  brand: string;
-  part_number: string;
-  part_number_key: string;
-  sale_price: number;
-  currency: number;
-  stock: string;
-  barcode?: string;
-  url: string;
-  weight: string;
+  product_name: string,
+  model_name: string,
+  sku: string,
+  price: string,
+  image_link: string,
+  barcode_title: string,
+  masterbox_title: string,
+  link_address_1688: string,
+  price_1688: string,
+  variation_name_1688: string,
+  pcs_ctn: string,
+  weight: string,
+  dimensions: string,
+  supplier_id: number,
+  english_name: string,
+  romanian_name: string,
+  material_name_en: string,
+  material_name_ro: string,
+  hs_code: string,
+  battery: boolean,
+  default_usage: string,
+  production_time: string,
+  discontinued: boolean,
+  stock: number,
+  day_stock: number,
 }
 
+const fakeSuppliers = [
+  {
+    id: 1,
+    "name": "ABC",
+    "currency": "RON",
+    "email": "abc@test.com",
+    "wechat": "wxid_1234567890",
+    "website": "http://localhost:8000",
+    "numOfproducts": 10,
+    "numOfOrders": 100,
+    "author": "Victor Sava",
+    "author_email": "victor@admin.com",
+  },
+  {
+    id: 2,
+    "name": "BBB",
+    "currency": "RON",
+    "email": "BBB@test.com",
+    "wechat": "wxid_1234567890",
+    "website": "http://localhost:8000",
+    "numOfproducts": 10,
+    "numOfOrders": 100,
+    "author": "Admin",
+    "author_email": "admin@dev.com",
+  },
+]
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.Dispatch<React.SetStateAction<number>> }> = ({ product, setSelectedProductID }) => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -273,17 +313,17 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
         </div>
         <div className='card-body py-0'>
           <div className="row">
-            <div className="col-md-12"><a href="https://amazon.com/dp/B0XLFX8JXK" target='_blank'>https://amazon.com/dp/B0XLFX8JXK</a></div>
+            <div className="col-md-12"><a href={`https://amazon.com/dp/${product.model_name}}`} target='_blank'>https://amazon.com/dp/${product.model_name}</a></div>
           </div>
           <div className="row py-2">
-            <div className="col-md-4 fw-bold">Price: {formatCurrency(product.sale_price)}</div>
-            <div className="col-md-4">Variation Name: Variation Name</div>
-            <div className="col-md-4">PCS/CTN: 0 / 0</div>
+            <div className="col-md-4 fw-bold">Price: {formatCurrency(parseFloat(product.price))}</div>
+            <div className="col-md-4">Variation Name: {product.variation_name_1688}</div>
+            <div className="col-md-4">PCS/CTN: {product.pcs_ctn}</div>
           </div>
           <div className="row py-2">
             <div className="col-md-4">Weight: {product.weight}</div>
-            <div className="col-md-4">Dimensions: 25 * 15 * 30</div>
-            <div className="col-md-4">Supplier: <a href="#">WeChat</a></div>
+            <div className="col-md-4">Dimensions: {product.dimensions}</div>
+            <div className="col-md-4">Supplier: <a href="#">WeChat {product.supplier_id}</a></div>
           </div>
         </div>
       </div>
@@ -305,6 +345,11 @@ export function Products() {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [editProduct, setEditProduct] = useState<Product>();
   const [showMore, setShowMore] = useState<boolean>(false);
+  const [suppliers, setSuppliers] = useState<{ [key: string]: string | number }[]>([]);
+  const [checkedSuppliers, setCheckedSuppliers] = useState<{ [key: string]: boolean }>({});
+  const [checkedMethods, setCheckedMethods] = useState<{ [key: string]: boolean }>({ Train: true, Airplain: true, Ship: true });
+  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
+  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
 
   useEffect(() => {
     getAllProducts(currentPage, limit)
@@ -321,6 +366,47 @@ export function Products() {
         setTotalPages(res.data ? Math.ceil(res.data / limit) : 1);
       })
   }, [limit, products.length]);
+
+  useEffect(() => {
+    setSuppliers(fakeSuppliers);
+  }, []);
+
+  const filterSuppliers = (str: string) => {
+    const filterTxt = str.toLowerCase();
+    const lis = document.querySelectorAll('.supplier-panel li');
+    for (const li of lis) {
+      const content = li.textContent?.toLowerCase() ?? '';
+      if (content.indexOf(filterTxt) < 0) {
+        li.setAttribute('style', 'display: none');
+      } else {
+        li.setAttribute('style', 'display: block');
+      }
+    }
+  }
+
+  const handleChangeSuppliers = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = event.target;
+    setCheckedSuppliers({
+      ...checkedSuppliers,
+      [value]: checked,
+    });
+    setSelectedSuppliers(Object.keys(checkedSuppliers).filter((key) => checkedSuppliers[key]));
+  }
+
+  const handleChangeMethods = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = event.target;
+    setCheckedMethods({
+      ...checkedMethods,
+      [value]: checked,
+    });
+    // const keyArr = Object.keys(checkedMethods).filter((key) => checkedMethods[key]);
+    // setSelectedMethods(keyArr);
+  }
+
+  const getChangedMethods = () => {
+    console.log(checkedMethods);
+    return Object.keys(checkedMethods).filter((key) => checkedMethods[key]);
+  }
 
   const handleAddProduct = () => {
     const form = document.querySelector('#addProductModal form');
@@ -361,6 +447,14 @@ export function Products() {
     setEditProduct(undefined);
   }
 
+  const handleFilterProduct = () => {
+    getAllProducts(currentPage, limit, selectedSuppliers.join(','))
+      .then(res => {
+        setProducts(res.data);
+      })
+      .catch(err => console.log(err))
+  }
+
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const startPage = Math.max(2, currentPage - 2);
@@ -385,13 +479,87 @@ export function Products() {
       );
     }
     return pageNumbers;
-  };
+  }
 
   return (
     <Content>
       {
         selectedProductID == -1 ?
           <>
+            <div className="row py-2">
+              <div className="col-md-5">
+                <div className="dropdown">
+                  <div className="input-group" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <span className="input-group-text" id="filter"><i className="bi bi-search"></i></span>
+                    <input type="text" className="form-control" name='filter' placeholder="Search products by supplier" onChange={(e) => filterSuppliers(e.target.value)} />
+                  </div>
+                  <form className="dropdown-menu p-4">
+                    <ul className="list-group supplier-panel">
+                      {suppliers.map(((supplier, index) => (
+                        <li className="list-group-item" key={`supplier${index}`}>
+                          <label className='d-flex align-items-center'>
+                            <div className="d-flex pe-3">
+                              <input type="checkbox" value={supplier.id} onChange={handleChangeSuppliers} />
+                            </div>
+                            <div className="d-flex text-nowrap ps-3 flex-column">
+                              <div className="d-flex">{supplier.name}</div>
+                              <div className="d-flex">{supplier.email}</div>
+                            </div>
+                          </label>
+                        </li>
+                      )))}
+                    </ul>
+                  </form>
+                </div>
+              </div>
+              <div className="col-md-5">
+                <div className="dropdown">
+                  <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <input type="text" className="form-control" name='filter' placeholder="Select shipping type" readOnly value={getChangedMethods().join(', ')} />
+                  </div>
+                  <form className="dropdown-menu p-4">
+                    <ul className="list-group">
+                      <li className="list-group-item">
+                        <label className='d-flex align-items-center'>
+                          <div className="d-flex pe-3">
+                            <input type="checkbox" value='Train' defaultChecked={true} onChange={handleChangeMethods} />
+                          </div>
+                          <div className="d-flex text-nowrap ps-3 flex-column">
+                            Train
+                          </div>
+                        </label>
+                      </li>
+                      <li className="list-group-item">
+                        <label className='d-flex align-items-center'>
+                          <div className="d-flex pe-3">
+                            <input type="checkbox" value='Airplain' defaultChecked={true} onChange={handleChangeMethods} />
+                          </div>
+                          <div className="d-flex text-nowrap ps-3 flex-column">
+                            Airplain
+                          </div>
+                        </label>
+                      </li>
+                      <li className="list-group-item">
+                        <label className='d-flex align-items-center'>
+                          <div className="d-flex pe-3">
+                            <input type="checkbox" value='Ship' defaultChecked={true} onChange={handleChangeMethods} />
+                          </div>
+                          <div className="d-flex text-nowrap ps-3 flex-column">
+                            Ship
+                          </div>
+                        </label>
+                      </li>
+                    </ul>
+                  </form>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <button type='button' className='btn btn-primary' onClick={handleFilterProduct}>
+                  <i className="bi bi-funnel"></i>
+                  Filter
+                </button>
+              </div>
+            </div>
             <div className='d-flex flex-row justify-content-between mb-4'>
               <div className='d-flex flex-row '>
                 <button type='button' key={-1} className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
@@ -419,7 +587,8 @@ export function Products() {
                     <input className="form-check-input" type="checkbox" value="" />
                   </div></th>
                   <th>Product</th>
-                  <th>Price / Stock</th>
+                  <th>Price</th>
+                  <th>Stock (Days Left in Stock)</th>
                   <th>Barcode Title</th>
                   <th>Masterbox Title</th>
                   <th>Action</th>
@@ -432,29 +601,28 @@ export function Products() {
                       <td className='align-content-center'>
                         <input className="form-check-input" type="checkbox" value={index} />
                       </td>
-                      <td className='align-content-center' /* onClick={() => setSelectedProductID(index)} */>
+                      <td className='align-content-center'>
                         <div className="d-flex">
-                          <div className="d-flex align-items-center">
-                            <a href={product.url}>
-                              {
-                                (JSON.parse(product.images) && JSON.parse(product.images).length > 0)
-                                  ? <img className='rounded-2' width={80} height={80} src={JSON.parse(product.images)[0]["url"]} alt={product.name} />
-                                  : <div> No Image </div>
-                              }
-                            </a>
+                          <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
+                            {
+                              product.image_link
+                                ? <img className='rounded-2' width={80} height={80} src={product.image_link} alt={product.product_name} />
+                                : <div> No Image </div>
+                            }
                           </div>
                           <div className="d-flex flex-column ms-2">
                             <div className="d-flex align-items-center">
-                              <span className='d-flex'><a href={`https://amazon.com/dp/${product.part_number_key}`} target='_blank'>{product.part_number_key}</a></span>
+                              <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
                             </div>
-                            <div className="d-flex">Jewelry Packaging Gift Box 2.5*2.5*3cm</div>
-                            <div className="d-flex"></div>
+                            <div className="d-flex" onClick={() => setSelectedProductID(index)}>{product.product_name}</div>
+                            <div className="d-flex"><a href={product.link_address_1688}>{product.link_address_1688}</a></div>
                           </div>
                         </div>
                       </td>
-                      <td className='align-content-center'>{formatCurrency(product.sale_price)} / {JSON.parse(product.stock)[0].value}</td>
-                      <td className='align-content-center'>{product.barcode ?? 'Barcode Title'}</td>
-                      <td className='align-content-center'>Masterbox Title</td>
+                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
+                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} (0 days)</td>
+                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
+                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
                       {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />
@@ -482,7 +650,7 @@ export function Products() {
               <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Product for {editProduct?.name}</h1>
+                    <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Product for {editProduct?.product_name}</h1>
                     <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div className="modal-body">
@@ -492,7 +660,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='name' defaultValue={editProduct.part_number_key} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" />
+                            <input type="text" className="form-control" name='product_name' defaultValue={editProduct.product_name} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
                           </div>
                         </div>
                       </div>
@@ -501,7 +669,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='model_name' defaultValue={editProduct.part_number_key} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" />
+                            <input type="text" className="form-control" name='model_name' defaultValue={editProduct.model_name} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
                           </div>
                         </div>
                       </div>
@@ -510,7 +678,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' defaultValue={'SKU'} placeholder="SKU" aria-label="SKU" aria-describedby="sku" />
+                            <input type="text" className="form-control" name='sku' defaultValue={editProduct.sku} placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
                           </div>
                         </div>
                       </div>
@@ -519,7 +687,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='price' defaultValue={editProduct.sale_price} placeholder="Price" aria-label="Price" aria-describedby="price" />
+                            <input type="text" className="form-control" name='price' defaultValue={parseFloat(editProduct.price)} placeholder="Price" aria-label="Price" aria-describedby="price" required />
                           </div>
                         </div>
                       </div>
@@ -528,7 +696,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='temp_img_link' defaultValue={editProduct.url} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" />
+                            <input type="text" className="form-control" name='image_link' defaultValue={editProduct.image_link} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
                         </div>
                       </div>
@@ -537,7 +705,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='barcode_title' defaultValue={editProduct.barcode} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" />
+                            <input type="text" className="form-control" name='barcode_title' defaultValue={editProduct.barcode_title} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
                           </div>
                         </div>
                       </div>
@@ -546,7 +714,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='masterbox_title' defaultValue={'Masterbox Title'} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" />
+                            <input type="text" className="form-control" name='masterbox_title' defaultValue={editProduct.masterbox_title} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
                           </div>
                         </div>
                       </div>
@@ -555,7 +723,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='link_address_1688' defaultValue={editProduct?.url} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" />
+                            <input type="text" className="form-control" name='link_address_1688' defaultValue={editProduct.link_address_1688} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
                           </div>
                         </div>
                       </div>
@@ -564,7 +732,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='price1688' defaultValue={editProduct?.sale_price} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" />
+                            <input type="text" className="form-control" name='price_1688' defaultValue={parseFloat(editProduct.price_1688)} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
                           </div>
                         </div>
                       </div>
@@ -573,7 +741,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
-                            <input type="text" className="form-control" name='variation_name_1688' defaultValue={editProduct?.url} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" />
+                            <input type="text" className="form-control" name='variation_name_1688' defaultValue={editProduct.variation_name_1688} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
                           </div>
                         </div>
                       </div>
@@ -582,7 +750,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
-                            <input type="text" className="form-control" name='pcs_ctn' defaultValue={editProduct?.url} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" />
+                            <input type="text" className="form-control" name='pcs_ctn' defaultValue={editProduct.pcs_ctn} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
                           </div>
                         </div>
                       </div>
@@ -591,7 +759,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="text" className="form-control" name='weight' defaultValue={parseFloat(editProduct?.weight ?? '')} placeholder="Weight" aria-label="Weight" aria-describedby="weight" />
+                            <input type="text" className="form-control" name='weight' defaultValue={parseFloat(editProduct.weight)} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
                           </div>
                         </div>
                       </div>
@@ -600,16 +768,16 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
-                            <input type="text" className="form-control" name='dimensions' defaultValue={'25 * 25 * 25'} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" />
+                            <input type="text" className="form-control" name='dimensions' defaultValue={editProduct.dimensions} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
                           </div>
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier Group:</div>
+                        <div className="d-flex fw-bold w-25">Supplier:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
-                            <span className="input-group-text" id="supplier-group"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='supplier_group' defaultValue={'Supplier Group'} placeholder="Supplier Group" aria-label="Supplier Group" aria-describedby="supplier-group" />
+                            <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
+                            <input type="text" className="form-control" name='supplier_id' defaultValue={editProduct.supplier_id} placeholder="Supplier" aria-label="Supplier" aria-describedby="supplier-id" required />
                           </div>
                         </div>
                       </div>
@@ -624,7 +792,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='en_name' defaultValue={editProduct.name} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" />
+                              <input type="text" className="form-control" name='english_name' defaultValue={editProduct.english_name} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
                             </div>
                           </div>
                         </div>
@@ -633,7 +801,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='ro_name' defaultValue={editProduct.name} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" />
+                              <input type="text" className="form-control" name='romanian_name' defaultValue={editProduct.romanian_name} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
                             </div>
                           </div>
                         </div>
@@ -642,7 +810,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='en_mat_name' defaultValue={'Material Name (EN)'} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" />
+                              <input type="text" className="form-control" name='material_name_en' defaultValue={editProduct.material_name_en} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
                             </div>
                           </div>
                         </div>
@@ -651,7 +819,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='ro_mat_name' defaultValue={'Material Name (RO)'} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" />
+                              <input type="text" className="form-control" name='material_name_ro' defaultValue={editProduct.material_name_ro} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
                             </div>
                           </div>
                         </div>
@@ -660,7 +828,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='hs_code' defaultValue={'HS Code'} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" />
+                              <input type="text" className="form-control" name='hs_code' defaultValue={editProduct.hs_code} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
                             </div>
                           </div>
                         </div>
@@ -668,7 +836,7 @@ export function Products() {
                           <div className="d-flex fw-bold w-25">Battery:</div>
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="form-check form-switch form-check-custom form-check-solid">
-                              <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={false} readOnly={true} />
+                              <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={editProduct.battery} />
                             </div>
                           </div>
                         </div>
@@ -677,25 +845,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='usage' defaultValue={'Commercial'} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Supplier Name:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="supplier-name"><i className="bi bi-coin"></i></span>
-                              <input type="text" className="form-control" name='supplier_name' defaultValue={'Supplier Name'} placeholder="Supplier Name" aria-label="Supplier Name" aria-describedby="supplier-name" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Supplier WeChat:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="supplier-wechat"><i className="bi bi-coin"></i></span>
-                              <input type="text" className="form-control" name='supplier_wechat' defaultValue={"Supplier WeChat"} placeholder="Supplier WeChat" aria-label="Supplier WeChat" aria-describedby="supplier-wechat" />
+                              <input type="text" className="form-control" name='default_usage' defaultValue={editProduct.default_usage} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
                             </div>
                           </div>
                         </div>
@@ -704,7 +854,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                              <input type="text" className="form-control" name='production_time' defaultValue={'Production Time'} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" />
+                              <input type="text" className="form-control" name='production_time' defaultValue={editProduct.production_time} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
                             </div>
                           </div>
                         </div>
@@ -712,7 +862,7 @@ export function Products() {
                           <div className="d-flex fw-bold w-25">Discontinued:</div>
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="form-check form-switch form-check-custom form-check-solid">
-                              <input className="form-check-input" type="checkbox" id="discounted" name='discounted' defaultChecked={false} readOnly={true} />
+                              <input className="form-check-input" type="checkbox" id="discontinued" name='discontinued' defaultChecked={editProduct.discontinued} />
                             </div>
                           </div>
                         </div>
@@ -745,7 +895,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='name' placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" />
+                            <input type="text" className="form-control" name='product_name' placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
                           </div>
                         </div>
                       </div>
@@ -754,7 +904,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='model_name' placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" />
+                            <input type="text" className="form-control" name='model_name' placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
                           </div>
                         </div>
                       </div>
@@ -763,7 +913,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' placeholder="SKU" aria-label="SKU" aria-describedby="sku" />
+                            <input type="text" className="form-control" name='sku' placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
                           </div>
                         </div>
                       </div>
@@ -772,7 +922,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='price' placeholder="Price" aria-label="Price" aria-describedby="price" />
+                            <input type="text" className="form-control" name='price' placeholder="Price" aria-label="Price" aria-describedby="price" required />
                           </div>
                         </div>
                       </div>
@@ -781,7 +931,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='temp_img_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" />
+                            <input type="text" className="form-control" name='image_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
                         </div>
                       </div>
@@ -790,7 +940,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='barcode_title' placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" />
+                            <input type="text" className="form-control" name='barcode_title' placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
                           </div>
                         </div>
                       </div>
@@ -799,7 +949,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='masterbox_title' placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" />
+                            <input type="text" className="form-control" name='masterbox_title' placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
                           </div>
                         </div>
                       </div>
@@ -808,7 +958,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='link_address_1688' placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" />
+                            <input type="text" className="form-control" name='link_address_1688' placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
                           </div>
                         </div>
                       </div>
@@ -817,7 +967,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='price1688' defaultValue={0} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" />
+                            <input type="text" className="form-control" name='price_1688' defaultValue={0} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
                           </div>
                         </div>
                       </div>
@@ -826,7 +976,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
-                            <input type="text" className="form-control" name='variation_name_1688' placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" />
+                            <input type="text" className="form-control" name='variation_name_1688' placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
                           </div>
                         </div>
                       </div>
@@ -835,7 +985,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
-                            <input type="text" className="form-control" name='pcs_ctn' placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" />
+                            <input type="text" className="form-control" name='pcs_ctn' placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
                           </div>
                         </div>
                       </div>
@@ -844,7 +994,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="text" className="form-control" name='weight' defaultValue={0} placeholder="Weight" aria-label="Weight" aria-describedby="weight" />
+                            <input type="text" className="form-control" name='weight' defaultValue={0} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
                           </div>
                         </div>
                       </div>
@@ -853,16 +1003,16 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
-                            <input type="text" className="form-control" name='dimensions' placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" />
+                            <input type="text" className="form-control" name='dimensions' placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
                           </div>
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier Group:</div>
+                        <div className="d-flex fw-bold w-25">Supplier:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
-                            <span className="input-group-text" id="supplier-group"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='supplier_group' placeholder="Supplier Group" aria-label="Supplier Group" aria-describedby="supplier-group" />
+                            <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
+                            <input type="text" className="form-control" name='supplier_id' defaultValue={1} placeholder="Supplier" aria-label="Supplier" aria-describedby="supplier-id" required />
                           </div>
                         </div>
                       </div>
@@ -871,7 +1021,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='en_name' placeholder="English Name" aria-label="English Name" aria-describedby="en-name" />
+                            <input type="text" className="form-control" name='english_name' placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
                           </div>
                         </div>
                       </div>
@@ -880,7 +1030,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='ro_name' placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" />
+                            <input type="text" className="form-control" name='romanian_name' placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
                           </div>
                         </div>
                       </div>
@@ -889,7 +1039,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='en_mat_name' placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" />
+                            <input type="text" className="form-control" name='material_name_en' placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
                           </div>
                         </div>
                       </div>
@@ -898,7 +1048,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='ro_mat_name' placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" />
+                            <input type="text" className="form-control" name='material_name_ro' placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
                           </div>
                         </div>
                       </div>
@@ -907,7 +1057,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='hs_code' placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" />
+                            <input type="text" className="form-control" name='hs_code' placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
                           </div>
                         </div>
                       </div>
@@ -915,7 +1065,7 @@ export function Products() {
                         <div className="d-flex fw-bold w-25">Battery:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="form-check form-switch form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={false} readOnly={true} />
+                            <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={false} />
                           </div>
                         </div>
                       </div>
@@ -924,25 +1074,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='usage' placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="supplier-name"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='supplier_name' placeholder="Supplier Name" aria-label="Supplier Name" aria-describedby="supplier-name" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier WeChat:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="supplier-wechat"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='supplier_wechat' placeholder="Supplier WeChat" aria-label="Supplier WeChat" aria-describedby="supplier-wechat" />
+                            <input type="text" className="form-control" name='default_usage' placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
                           </div>
                         </div>
                       </div>
@@ -951,7 +1083,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='production_time' placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" />
+                            <input type="text" className="form-control" name='production_time' placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
                           </div>
                         </div>
                       </div>
@@ -959,7 +1091,7 @@ export function Products() {
                         <div className="d-flex fw-bold w-25">Discontinued:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="form-check form-switch form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" id="discounted" name='discounted' defaultChecked={false} readOnly={true} />
+                            <input className="form-check-input" type="checkbox" id="discontinued" name='discontinued' defaultChecked={false} />
                           </div>
                         </div>
                       </div>
@@ -967,7 +1099,7 @@ export function Products() {
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" className="btn btn-primary" onClick={handleAddProduct}>Save changes</button>
+                    <button type="button" className="btn btn-primary" onClick={handleAddProduct}>Add Product</button>
                   </div>
                 </div>
               </div>

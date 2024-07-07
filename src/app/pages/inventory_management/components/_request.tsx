@@ -6,13 +6,15 @@ const SUPPLIERS_ENDPOINT = `${API_URL}/products`
 
 type Query = {
     page: number,
+    supplier_ids?: string,
     limit?: number,
     data: never[],
 }
 
-const getAllProducts = (page: number, limit = 50): Promise<Query> => {
+const getAllProducts = (page: number, limit: number = 50, suppliers: string = ''): Promise<Query> => {
     const query: Query = {
         page: page,
+        supplier_ids: suppliers,
         limit: limit,
         data: []
     }
@@ -24,13 +26,13 @@ const getAllProducts = (page: number, limit = 50): Promise<Query> => {
 
 const addProductRequest = (data: { [key: string]: string | number | boolean }) => {
     console.log(data);
-    return axios.post(PRODUCTS_ENDPOINT, { params: data })
+    return axios.post(PRODUCTS_ENDPOINT, data)
 }
 
 const editProductRequest = (id: number, data: { [key: string]: string | number | boolean }) => {
     console.log(id);
     console.log(data);
-    return axios.put(`${PRODUCTS_ENDPOINT}/${id}`, { params: data });
+    return axios.put(`${PRODUCTS_ENDPOINT}/${id}`, data);
 }
 
 const getProductAmout = () => {
