@@ -1,72 +1,34 @@
 
-import { useEffect, useRef, FC } from 'react'
+import { useEffect, useRef, FC, useState, useCallback } from 'react'
+import Select from 'react-select'
 import ApexCharts, { ApexOptions } from 'apexcharts'
 import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
 import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
+import { getChartInfo, getAllProducts } from './_request'
+import { Order } from '../../models/order'
+import { TableProductsOrders } from './TableProductOrders'
+import { Product } from '../../models/product'
 
 type Props = {
-  className: string,
-  series: string,
-  categories: string
+  className: string
 }
 
-const ChartComponent: FC<Props> = ({ className, series, categories }) => {
-  const chartRef = useRef<HTMLDivElement | null>(null)
-  const { mode } = useThemeMode()
-  const refreshChart = () => {
-    if (!chartRef.current) {
-      return
-    }
-    const height = parseInt(getCSS(chartRef.current, 'height'))
-    const chart = new ApexCharts(chartRef.current, getChartOptions(height, series, categories))
-    if (chart) {
-      chart.render()
-    }
-    return chart
-  }
+const periods = [
+  {
+    value: '1',
+    label: 'Last 12 months, by month'
+  },
+  {
+    value: '2',
+    label: 'Last 3 months, by week'
+  },
+  {
+    value: '3',
+    label: 'Last 30 days, by day'
+  },
+];
 
-  useEffect(() => {
-    const chart = refreshChart()
-    return () => {
-      if (chart) {
-        chart.destroy()
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartRef, mode, series, categories])
-
-  return (
-    <div className={`card ${className}`}>
-      <div className='card-header border-0 pt-5'>
-        <h3 className='card-title align-items-start flex-column'>
-          <span className='card-label fw-bold fs-3 mb-1'>Recent Orders</span>
-          <span className='text-muted fw-semibold fs-7'>More than 500+ new orders</span>
-        </h3>
-        <div className='card-toolbar' data-kt-buttons='true'>
-          <a
-            className='btn btn-sm btn-color-muted btn-active btn-active-primary active px-4 me-1'
-            id='kt_charts_widget_6_sales_btn'
-          >
-            Sales
-          </a>
-          <a
-            className='btn btn-sm btn-color-muted btn-active btn-active-primary px-4 me-1'
-            id='kt_charts_widget_6_expenses_btn'
-          >
-            Expenses
-          </a>
-        </div>
-      </div>
-      <div className='card-body'>
-        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
-      </div>
-    </div>
-  )
-}
-
-export { ChartComponent }
-
-function getChartOptions(height: number, series: string, categories: string): ApexOptions {
+const getChartOptions = (height: number, series: string, categories: string): ApexOptions => {
   const labelColor = getCSSVariableValue('--bs-gray-500')
   const borderColor = getCSSVariableValue('--bs-gray-200')
 
@@ -175,4 +137,299 @@ function getChartOptions(height: number, series: string, categories: string): Ap
       },
     },
   }
+}
+
+export const ChartComponent: FC<Props> = ({ className }) => {
+  const [series, setSeries] = useState<string>('[]');
+  const [categories, setCategories] = useState<string>('[]');
+  const [chartPeriod, setChartPeriod] = useState<string>('1');
+  const [searchChartProducts, setSearchChartProducts] = useState<string>('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [amount, setAmount] = useState<number>(1);
+  const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [orders, setOrders] = useState<Order[]>([]);
+  const chartRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLUListElement | null>(null);
+  const { mode } = useThemeMode()
+
+  type Series = {
+    name: string;
+    type: string;
+    data: number[];
+  };
+
+  const handleChartFilter = () => {
+    const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
+    const productIds = [];
+    if (inputs) for (const input of inputs) {
+      if (input.checked) productIds.push(input.value);
+    }
+    setSelectedProducts(productIds);
+    getChartInfo(parseInt(chartPeriod), productIds.join(','))
+      .then(res => {
+        if (res.status === 200) {
+          const data = res.data.chart_data;
+          const categories = [];
+          const series: Series[] = [
+            {
+              name: 'Units sold',
+              type: 'line',
+              data: [],
+            },
+            {
+              name: 'Advertising cost',
+              type: 'bar',
+              data: [],
+            },
+            {
+              name: 'Refunds',
+              type: 'line',
+              data: [],
+            },
+            {
+              name: 'Net Profit',
+              type: 'bar',
+              data: [],
+            },
+          ];
+          for (const datum of data) {
+            categories.push(datum.date_string);
+            series[0].data.push(datum.total_units);
+            series[1].data.push(0);
+            series[2].data.push(datum.total_refund);
+            series[3].data.push(datum.total_net_profit);
+          }
+          setSeries(JSON.stringify(series));
+          setCategories(JSON.stringify(categories));
+        } else {
+          console.error(res);
+        }
+      });
+  }
+  const checkSelected = () => {
+    const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
+    const productIds = [];
+    if (inputs) for (const input of inputs) {
+      if (input.checked) productIds.push(input.value);
+    }
+    setSelectedProducts(productIds);
+  }
+  const clearSelection = () => {
+    setSelectedProducts([]);
+    const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
+    if (inputs) for (const input of inputs) {
+      input.checked = false;
+    }
+  }
+  const refreshChart = () => {
+    if (!chartRef.current) {
+      return
+    }
+    const height = parseInt(getCSS(chartRef.current, 'height'))
+    const chart = new ApexCharts(chartRef.current, getChartOptions(height, series, categories))
+    if (chart) {
+      chart.render()
+    }
+    return chart
+  }
+  const handleScroll = useCallback(() => {
+    const element = scrollRef.current;
+    if (element) {
+      const { scrollTop, scrollHeight, clientHeight } = element;
+      if (scrollTop + clientHeight >= scrollHeight) {
+        setAmount(amount + 1);
+      }
+    }
+  }, [amount]);
+  const checkAll = () => {
+    const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
+    if (inputs) for (const input of inputs) {
+      if (!isAllChecked) {
+        input.checked = true;
+        setIsAllChecked(true);
+      } else {
+        input.checked = false;
+        setIsAllChecked(false);
+      }
+      checkSelected();
+    }
+  }
+
+  useEffect(() => {
+    getChartInfo()
+      .then(res => {
+        if (res.status === 200) {
+          const data = res.data.chart_data;
+          const categories = [];
+          const series: Series[] = [
+            {
+              name: 'Units sold',
+              type: 'line',
+              data: [],
+            },
+            {
+              name: 'Advertising cost',
+              type: 'bar',
+              data: [],
+            },
+            {
+              name: 'Refunds',
+              type: 'line',
+              data: [],
+            },
+            {
+              name: 'Net Profit',
+              type: 'bar',
+              data: [],
+            },
+          ];
+          for (const datum of data) {
+            categories.push(datum.date_string);
+            series[0].data.push(datum.total_units);
+            series[1].data.push(0);
+            series[2].data.push(datum.total_refund);
+            series[3].data.push(datum.total_net_profit);
+          }
+          setSeries(JSON.stringify(series));
+          setCategories(JSON.stringify(categories));
+        } else {
+          console.error(res);
+        }
+      });
+    getAllProducts(1, 1000)
+      .then(res => {
+        setProducts(res.data);
+      })
+      .catch(err => console.log(err));
+  }, []);
+  useEffect(() => {
+    const chart = refreshChart()
+    return () => {
+      if (chart) {
+        chart.destroy()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartRef, mode, series, categories]);
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (element) {
+      element.addEventListener('scroll', handleScroll);
+      return () => {
+        element.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [handleScroll]);
+
+  return (
+    <div className="tab-pane fade" id="dashboard-chart" role="tabpanel">
+      <div className="row">
+        <div className="col-md-7">
+          <div className="dropdown">
+            <div className="input-group" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+              <span className="input-group-text" id="products"><i className="bi bi-search"></i></span>
+              <input type="text" className="form-control" onChange={(e) => setSearchChartProducts(e.target.value)} name='products' autoComplete='false' placeholder="Search products by name, tag, SKU, ASIN" />
+              {selectedProducts.length === 0 && <></>}
+              {selectedProducts.length === 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+                <div className="d-flex align-items-center h-100 w-100">
+                  <span className='d-flex'>
+                    <img src={products[parseInt(selectedProducts[0])].image_link} alt="" width={30} height={30} />
+                  </span>
+                  <span className='overflow-hidden text-nowrap ps-2' style={{ textOverflow: 'ellipsis', width: 'calc(100% - 36px - 22px)' }}>{products.find(product => parseInt(selectedProducts[0]) === product.id)?.product_name}</span>
+                  <span onClick={clearSelection}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#999' }}>
+                      <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </span>
+                </div>
+              </div>}
+              {selectedProducts.length > 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+                <div className="d-flex align-items-center h-100 w-100">
+                  <span className='d-flex ps-2' style={{ width: 'calc(100% - 22px)' }}>
+                    Selected: {selectedProducts.length} products
+                  </span>
+                  <span onClick={clearSelection}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#999' }}>
+                      <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </span>
+                </div>
+              </div>}
+            </div>
+            <form className="dropdown-menu p-4 w-100">
+              <div className='text-end'>
+                <button className="btn btn-primary btn-sm" type='button' onClick={checkAll}>{isAllChecked ? 'Unselect All' : 'Select All'}</button>
+              </div>
+              <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
+                {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
+                {products.map((product, index) => {
+                  if (index >= amount * 10) return;
+                  if ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts) < 0) return;
+                  return (
+                    <li className="list-group-item" key={`product${index}`}>
+                      <label className='d-flex align-items-center'>
+                        <div className="d-flex pe-3">
+                          <input type="checkbox" value={product.id} onClick={checkSelected} />
+                        </div>
+                        <div className="d-flex">
+                          <img src={product.image_link} className='rounded-lg' alt={product.product_name} style={{ width: '36px' }} />
+                        </div>
+                        <div className="d-flex text-nowrap ps-3">
+                          {product.product_name} / {product.model_name}
+                        </div>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </form>
+          </div>
+        </div>
+        <div className="col-md-3 border">
+          <Select
+            className='react-select-styled react-select-solid react-select-sm'
+            onChange={(e) => setChartPeriod(e?.value ?? '')}
+            options={periods}
+            defaultValue={{ value: '1', label: 'Last 12 months, by month' }}
+            isSearchable={false}
+          />
+        </div>
+        <div className="col-md-2">
+          <button type='button' className='btn btn-primary' onClick={handleChartFilter}>
+            <i className="bi bi-funnel"></i>
+            Filter
+          </button>
+        </div>
+      </div>
+      <div className={`card ${className}`}>
+        <div className='card-header border-0 pt-5'>
+          <h3 className='card-title align-items-start flex-column'>
+            <span className='card-label fw-bold fs-3 mb-1'>Recent Orders</span>
+          </h3>
+          {/* <div className='card-toolbar' data-kt-buttons='true'>
+            <a
+              className='btn btn-sm btn-color-muted btn-active btn-active-primary active px-4 me-1'
+              id='kt_charts_widget_6_sales_btn'
+            >
+              Sales
+            </a>
+            <a
+              className='btn btn-sm btn-color-muted btn-active btn-active-primary px-4 me-1'
+              id='kt_charts_widget_6_expenses_btn'
+            >
+              Expenses
+            </a>
+          </div> */}
+        </div>
+        <div className='card-body'>
+          <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
+        </div>
+      </div>
+      {orders.length ? <div className='row'>
+        <TableProductsOrders orders={orders} />
+      </div> : <></>}
+    </div>
+  )
 }

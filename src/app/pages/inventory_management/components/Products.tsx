@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts, getProductAmout, editProductRequest, addProductRequest } from './_request'
+import { getAllProducts, editProductRequest, addProductRequest, getFilteredProducts } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
+import { Product } from '../../models/product'
 
 // const Pagination = (props) => {
 //   return (
@@ -80,7 +81,16 @@ const formatCurrency = (value: number) => {
     style: 'currency',
     currency: 'USD'
   }).format(value);
-};
+}
+
+const isValidURL = (url: string) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 const ReturnsInformation: React.FC<{
   returns: Return[];
@@ -183,46 +193,14 @@ const ShipmentInformation: React.FC<{
             {
               props.shipments.map((shipment, index) =>
                 <tr key={index}>
-                  <td className='align-content-center'>
-                    {
-                      shipment.shipment_id
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.shipment_name
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.destination
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.last_updated
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.created
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.qty_shipped
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.qty_received
-                    }
-                  </td>
-                  <td className='align-content-center'>
-                    {
-                      shipment.shipment_status
-                    }
-                  </td>
+                  <td className='align-content-center'>{shipment.shipment_id}</td>
+                  <td className='align-content-center'>{shipment.shipment_name}</td>
+                  <td className='align-content-center'>{shipment.destination}</td>
+                  <td className='align-content-center'>{shipment.last_updated}</td>
+                  <td className='align-content-center'>{shipment.created}</td>
+                  <td className='align-content-center'>{shipment.qty_shipped}</td>
+                  <td className='align-content-center'>{shipment.qty_received}</td>
+                  <td className='align-content-center'>{shipment.shipment_status}</td>
                 </tr>
               )
             }
@@ -233,61 +211,6 @@ const ShipmentInformation: React.FC<{
   )
 }
 
-export interface Product {
-  id?: number;
-  product_name: string,
-  model_name: string,
-  sku: string,
-  price: string,
-  image_link: string,
-  barcode_title: string,
-  masterbox_title: string,
-  link_address_1688: string,
-  price_1688: string,
-  variation_name_1688: string,
-  pcs_ctn: string,
-  weight: string,
-  dimensions: string,
-  supplier_id: number,
-  english_name: string,
-  romanian_name: string,
-  material_name_en: string,
-  material_name_ro: string,
-  hs_code: string,
-  battery: boolean,
-  default_usage: string,
-  production_time: string,
-  discontinued: boolean,
-  stock: number,
-  day_stock: number,
-}
-
-const fakeSuppliers = [
-  {
-    id: 1,
-    "name": "ABC",
-    "currency": "RON",
-    "email": "abc@test.com",
-    "wechat": "wxid_1234567890",
-    "website": "http://localhost:8000",
-    "numOfproducts": 10,
-    "numOfOrders": 100,
-    "author": "Victor Sava",
-    "author_email": "victor@admin.com",
-  },
-  {
-    id: 2,
-    "name": "BBB",
-    "currency": "RON",
-    "email": "BBB@test.com",
-    "wechat": "wxid_1234567890",
-    "website": "http://localhost:8000",
-    "numOfproducts": 10,
-    "numOfOrders": 100,
-    "author": "Admin",
-    "author_email": "admin@dev.com",
-  },
-]
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.Dispatch<React.SetStateAction<number>> }> = ({ product, setSelectedProductID }) => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -336,6 +259,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 }
 
 export function Products() {
+  const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
   const [products, setProducts] = useState<Product[]>([]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
@@ -345,116 +269,151 @@ export function Products() {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [editProduct, setEditProduct] = useState<Product>();
   const [showMore, setShowMore] = useState<boolean>(false);
-  const [suppliers, setSuppliers] = useState<{ [key: string]: string | number }[]>([]);
-  const [checkedSuppliers, setCheckedSuppliers] = useState<{ [key: string]: boolean }>({});
-  const [checkedMethods, setCheckedMethods] = useState<{ [key: string]: boolean }>({ Train: true, Airplain: true, Ship: true });
-  const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
-  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [checkedMethods, setCheckedMethods] = useState<string[]>(['Train', 'Airplain', 'Ship']);
+  const [weight, setWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
+  const [vWeight, setVWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
+
+  const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
+  const toastClose = document.querySelector('#toast button') as HTMLElement;
 
   useEffect(() => {
-    getAllProducts(currentPage, limit)
+    getAllProducts()
       .then(res => {
         setProducts(res.data);
+        setTotalProducts(res.data.length);
+        setTotalPages(res.data.length ? Math.ceil(res.data.length / limit) : 1);
       })
       .catch(err => console.log(err))
-  }, [currentPage, limit]);
+  }, [limit]);
 
-  useEffect(() => {
-    getProductAmout()
-      .then(res => {
-        setTotalProducts(res.data);
-        setTotalPages(res.data ? Math.ceil(res.data / limit) : 1);
-      })
-  }, [limit, products.length]);
-
-  useEffect(() => {
-    setSuppliers(fakeSuppliers);
-  }, []);
-
-  const filterSuppliers = (str: string) => {
-    const filterTxt = str.toLowerCase();
-    const lis = document.querySelectorAll('.supplier-panel li');
-    for (const li of lis) {
-      const content = li.textContent?.toLowerCase() ?? '';
-      if (content.indexOf(filterTxt) < 0) {
-        li.setAttribute('style', 'display: none');
-      } else {
-        li.setAttribute('style', 'display: block');
-      }
-    }
-  }
-
-  const handleChangeSuppliers = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = event.target;
-    setCheckedSuppliers({
-      ...checkedSuppliers,
-      [value]: checked,
-    });
-    setSelectedSuppliers(Object.keys(checkedSuppliers).filter((key) => checkedSuppliers[key]));
-  }
-
-  const handleChangeMethods = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = event.target;
-    setCheckedMethods({
-      ...checkedMethods,
-      [value]: checked,
-    });
-    // const keyArr = Object.keys(checkedMethods).filter((key) => checkedMethods[key]);
-    // setSelectedMethods(keyArr);
-  }
-
-  const getChangedMethods = () => {
-    console.log(checkedMethods);
-    return Object.keys(checkedMethods).filter((key) => checkedMethods[key]);
-  }
 
   const handleAddProduct = () => {
+    const modal = document.querySelector('#addProductModal');
     const form = document.querySelector('#addProductModal form');
     const data: { [key: string]: string | number | boolean } = {};
     const inputs = form?.querySelectorAll('input');
     if (inputs) for (const input of inputs) {
-      data[input.name] = input.type === 'text' ? input.value : input.checked;
+      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+      if (input.value === '') {
+        modal?.classList.remove('show');
+        setToast({ msg: 'All fields must be filled.', status: 'danger' });
+        toastBtn.click();
+        modal?.classList.add('show');
+        setTimeout(() => {
+          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+        }, 5000);
+        return;
+      }
+    }
+    if (!isValidURL(data.image_link as string)) {
+      modal?.classList.remove('show');
+      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
+      toastBtn.click();
+      modal?.classList.add('show');
+      setTimeout(() => {
+        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      }, 5000);
+      return;
+    }
+    if (!isValidURL(data.link_address_1688 as string)) {
+      modal?.classList.remove('show');
+      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
+      toastBtn.click();
+      modal?.classList.add('show');
+      setTimeout(() => {
+        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      }, 5000);
+      return;
     }
     addProductRequest(data)
       .then(res => {
+        modal?.classList.remove('show');
         if (res.status === 200) {
-          alert('Success to create!');
+          handleFilterProduct();
+          setToast({ msg: 'Success to create!', status: 'success' });
         } else {
-          alert('Failed to create!');
+          setToast({ msg: 'Failed to create!', status: 'success' });
         }
+        toastBtn.click();
+        modal?.classList.add('show');
+        setTimeout(() => {
+          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+        }, 5000);
       });
     const closeBtn = document.querySelector('#addProductModal .btn-close') as HTMLElement;
     closeBtn?.click();
   }
-
   const handleEditProduct = () => {
+    const modal = document.querySelector('#editProductModal');
     const form = document.querySelector('#editProductModal form');
     const data: { [key: string]: string | number | boolean } = {};
     const inputs = form?.querySelectorAll('input');
     if (inputs) for (const input of inputs) {
-      data[input.name] = input.type === 'text' ? input.value : input.checked;
+      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+      if (input.value === '') {
+        modal?.classList.remove('show');
+        setToast({ msg: 'All fields must be filled.', status: 'danger' });
+        toastBtn.click();
+        modal?.classList.add('show');
+        setTimeout(() => {
+          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+        }, 5000);
+        return;
+      }
+    }
+    if (!isValidURL(data.image_link as string)) {
+      modal?.classList.remove('show');
+      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
+      toastBtn.click();
+      modal?.classList.add('show');
+      setTimeout(() => {
+        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      }, 5000);
+      return;
+    }
+    if (!isValidURL(data.link_address_1688 as string)) {
+      modal?.classList.remove('show');
+      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
+      toastBtn.click();
+      modal?.classList.add('show');
+      setTimeout(() => {
+        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      }, 5000);
+      return;
     }
     editProductRequest(editProduct?.id ?? 0, data)
       .then(res => {
+        modal?.classList.remove('show');
         if (res.status === 200) {
-          alert('Success to edit!');
+          handleFilterProduct();
+          setToast({ msg: 'Success to edit!', status: 'success' });
         } else {
-          alert('Failed to edit!');
+          setToast({ msg: 'Failed to edit!', status: 'success' });
         }
+        toastBtn.click();
+        modal?.classList.add('show');
+        setTimeout(() => {
+          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+        }, 5000);
       });
     const closeBtn = document.querySelector('#editProductModal .btn-close') as HTMLElement;
     closeBtn?.click();
     setEditProduct(undefined);
   }
-
   const handleFilterProduct = () => {
-    getAllProducts(currentPage, limit, selectedSuppliers.join(','))
+    const w = { from: parseFloat(weight.from), to: parseFloat(weight.to) };
+    const v = { from: parseFloat(vWeight.from), to: parseFloat(vWeight.to) };
+    if (!Number.isNaN(w.from && w.to && v.from && v.to) && w.from > w.to || v.from > v.to) return;
+    let shippingType = checkedMethods.join('%2C');
+    shippingType = shippingType.replace('Train', '1');
+    shippingType = shippingType.replace('Airplain', '2');
+    shippingType = shippingType.replace('Ship', '3');
+    getFilteredProducts(shippingType, w.from, w.to, v.from, v.to)
       .then(res => {
         setProducts(res.data);
       })
       .catch(err => console.log(err))
   }
-
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const startPage = Math.max(2, currentPage - 2);
@@ -480,6 +439,14 @@ export function Products() {
     }
     return pageNumbers;
   }
+  const handleChangeMethods = () => {
+    const inputs = document.querySelectorAll('.method-panel li input[type="checkbox"]') as unknown as HTMLInputElement[];
+    const checkedMethods = [];
+    if (inputs) for (const input of inputs) {
+      if (input.checked) checkedMethods.push(input.value);
+    }
+    setCheckedMethods(checkedMethods);
+  }
 
   return (
     <Content>
@@ -487,73 +454,66 @@ export function Products() {
         selectedProductID == -1 ?
           <>
             <div className="row py-2">
-              <div className="col-md-5">
-                <div className="dropdown">
-                  <div className="input-group" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    <span className="input-group-text" id="filter"><i className="bi bi-search"></i></span>
-                    <input type="text" className="form-control" name='filter' placeholder="Search products by supplier" onChange={(e) => filterSuppliers(e.target.value)} />
-                  </div>
-                  <form className="dropdown-menu p-4">
-                    <ul className="list-group supplier-panel">
-                      {suppliers.map(((supplier, index) => (
-                        <li className="list-group-item" key={`supplier${index}`}>
-                          <label className='d-flex align-items-center'>
-                            <div className="d-flex pe-3">
-                              <input type="checkbox" value={supplier.id} onChange={handleChangeSuppliers} />
-                            </div>
-                            <div className="d-flex text-nowrap ps-3 flex-column">
-                              <div className="d-flex">{supplier.name}</div>
-                              <div className="d-flex">{supplier.email}</div>
-                            </div>
-                          </label>
-                        </li>
-                      )))}
-                    </ul>
-                  </form>
-                </div>
-              </div>
-              <div className="col-md-5">
+              <div className="col-md-4">
                 <div className="dropdown">
                   <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    <input type="text" className="form-control" name='filter' placeholder="Select shipping type" readOnly value={getChangedMethods().join(', ')} />
+                    <input type="text" className="form-control" placeholder="Select shipping type" readOnly value={checkedMethods.join(', ')} />
                   </div>
-                  <form className="dropdown-menu p-4">
-                    <ul className="list-group">
-                      <li className="list-group-item">
-                        <label className='d-flex align-items-center'>
-                          <div className="d-flex pe-3">
-                            <input type="checkbox" value='Train' defaultChecked={true} onChange={handleChangeMethods} />
-                          </div>
-                          <div className="d-flex text-nowrap ps-3 flex-column">
-                            Train
-                          </div>
-                        </label>
-                      </li>
-                      <li className="list-group-item">
-                        <label className='d-flex align-items-center'>
-                          <div className="d-flex pe-3">
-                            <input type="checkbox" value='Airplain' defaultChecked={true} onChange={handleChangeMethods} />
-                          </div>
-                          <div className="d-flex text-nowrap ps-3 flex-column">
-                            Airplain
-                          </div>
-                        </label>
-                      </li>
-                      <li className="list-group-item">
-                        <label className='d-flex align-items-center'>
-                          <div className="d-flex pe-3">
-                            <input type="checkbox" value='Ship' defaultChecked={true} onChange={handleChangeMethods} />
-                          </div>
-                          <div className="d-flex text-nowrap ps-3 flex-column">
-                            Ship
-                          </div>
-                        </label>
-                      </li>
+                  <form className="dropdown-menu p-4 w-100">
+                    <ul className="list-group method-panel">
+                      {['Train', 'Airplain', 'Ship'].map((item, index) => (
+                        <li className="list-group-item" key={`method${index}`}>
+                          <label className='d-flex align-items-center cursor-pointer'>
+                            <div className="d-flex pe-3">
+                              <input type="checkbox" value={item} defaultChecked={true} onChange={handleChangeMethods} />
+                            </div>
+                            <div className="d-flex text-nowrap ps-3 flex-column">{item}</div>
+                          </label>
+                        </li>
+                      ))}
                     </ul>
                   </form>
                 </div>
               </div>
-              <div className="col-md-2">
+              <div className="col-md-3">
+                <div className="dropdown">
+                  <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <input type="text" className="form-control" readOnly value={`${weight.from} ~ ${weight.to} kg`} />
+                  </div>
+                  <form className="dropdown-menu p-4" style={{ width: '150%' }}>
+                    <div className="d-flex align-items-stretch flex-wrap w-100 h-100 weight-panel">
+                      <div className="d-flex align-items-center" style={{ width: '39%' }}>
+                        <input type="number" className='form-control' value={weight.from} onChange={(e) => setWeight({ ...weight, from: e.target.value })} />
+                      </div>
+                      <div className="d-flex align-items-center px-1 m-auto">~</div>
+                      <div className="d-flex align-items-center" style={{ width: '39%' }}>
+                        <input type="number" className='form-control' value={weight.to} onChange={(e) => setWeight({ ...weight, to: e.target.value })} />
+                      </div>
+                      <div className="d-flex align-items-center ps-1 m-auto">kg</div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="dropdown">
+                  <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <input type="text" className="form-control" readOnly value={`${vWeight.from} ~ ${vWeight.to} kg`} />
+                  </div>
+                  <form className="dropdown-menu p-4" style={{ width: '150%' }}>
+                    <div className="d-flex align-items-stretch flex-wrap w-100 h-100 vWeight-panel">
+                      <div className="d-flex align-items-center" style={{ width: '39%' }}>
+                        <input type="number" className='form-control' value={vWeight.from} onChange={(e) => setVWeight({ ...vWeight, from: e.target.value })} />
+                      </div>
+                      <div className="d-flex align-items-center px-1 m-auto">~</div>
+                      <div className="d-flex align-items-center" style={{ width: '39%' }}>
+                        <input type="number" className='form-control' value={vWeight.to} onChange={(e) => setVWeight({ ...vWeight, to: e.target.value })} />
+                      </div>
+                      <div className="d-flex align-items-center ps-1 m-auto">kg</div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="col-md-2 align-content-center">
                 <button type='button' className='btn btn-primary' onClick={handleFilterProduct}>
                   <i className="bi bi-funnel"></i>
                   Filter
@@ -596,53 +556,57 @@ export function Products() {
               </thead>
               <tbody>
                 {
-                  products.map((product, index) =>
-                    <tr key={`product${index}`}>
-                      <td className='align-content-center'>
-                        <input className="form-check-input" type="checkbox" value={index} />
-                      </td>
-                      <td className='align-content-center'>
-                        <div className="d-flex">
-                          <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
-                            {
-                              product.image_link
-                                ? <img className='rounded-2' width={80} height={80} src={product.image_link} alt={product.product_name} />
-                                : <div> No Image </div>
-                            }
-                          </div>
-                          <div className="d-flex flex-column ms-2">
-                            <div className="d-flex align-items-center">
-                              <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
+                  products.map((product, index) => {
+                    if (index < (currentPage - 1) * limit) return;
+                    if (index > currentPage * limit) return;
+                    return (
+                      <tr key={`product${index}`}>
+                        <td className='align-content-center'>
+                          <input className="form-check-input" type="checkbox" value={index} />
+                        </td>
+                        <td className='align-content-center'>
+                          <div className="d-flex">
+                            <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
+                              {
+                                product.image_link
+                                  ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
+                                  : <div> No Image </div>
+                              }
                             </div>
-                            <div className="d-flex" onClick={() => setSelectedProductID(index)}>{product.product_name}</div>
-                            <div className="d-flex"><a href={product.link_address_1688}>{product.link_address_1688}</a></div>
+                            <div className="d-flex flex-column ms-2">
+                              <div className="d-flex align-items-center">
+                                <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
+                              </div>
+                              <div className="d-flex" onClick={() => setSelectedProductID(index)}>{product.product_name}</div>
+                              <div className="d-flex"><a href={product.link_address_1688} target='_blank'>1688 Link</a></div>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} (0 days)</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
-                      {/* <td className='align-content-center'>
+                        </td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} ({product.day_stock} days)</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
+                        {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />
                         </div>
                       </td> */}
-                      <td className="align-content-center">
-                        <div className="d-flex align-items-center flex-column">
-                          <a href='#'
-                            onClick={() => {
-                              setEditProduct(product);
-                              setShowMore(false);
-                            }}
-                            data-bs-toggle="modal" data-bs-target="#editProductModal"
-                          >
-                            Edit
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  )
+                        <td className="align-content-center">
+                          <div className="d-flex align-items-center flex-column">
+                            <a href='#'
+                              onClick={() => {
+                                setEditProduct(product);
+                                setShowMore(false);
+                              }}
+                              data-bs-toggle="modal" data-bs-target="#editProductModal"
+                            >
+                              Edit
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
                 }
               </tbody>
             </table>
@@ -687,7 +651,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='price' defaultValue={parseFloat(editProduct.price)} placeholder="Price" aria-label="Price" aria-describedby="price" required />
+                            <input type="number" className="form-control" name='price' defaultValue={parseFloat(editProduct.price)} placeholder="Price" aria-label="Price" aria-describedby="price" required />
                           </div>
                         </div>
                       </div>
@@ -696,7 +660,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='image_link' defaultValue={editProduct.image_link} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
+                            <input type="url" className="form-control" name='image_link' defaultValue={editProduct.image_link} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
                         </div>
                       </div>
@@ -723,7 +687,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='link_address_1688' defaultValue={editProduct.link_address_1688} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
+                            <input type="url" className="form-control" name='link_address_1688' defaultValue={editProduct.link_address_1688} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
                           </div>
                         </div>
                       </div>
@@ -732,7 +696,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='price_1688' defaultValue={parseFloat(editProduct.price_1688)} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
+                            <input type="number" className="form-control" name='price_1688' defaultValue={parseFloat(editProduct.price_1688)} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
                           </div>
                         </div>
                       </div>
@@ -759,7 +723,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="text" className="form-control" name='weight' defaultValue={parseFloat(editProduct.weight)} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                            <input type="number" className="form-control" name='weight' defaultValue={parseFloat(editProduct.weight)} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
                           </div>
                         </div>
                       </div>
@@ -854,7 +818,7 @@ export function Products() {
                           <div className="d-flex ms-auto mr-0 w-75">
                             <div className="input-group">
                               <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                              <input type="text" className="form-control" name='production_time' defaultValue={editProduct.production_time} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
+                              <input type="number" className="form-control" name='production_time' defaultValue={parseFloat(editProduct.production_time)} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
                             </div>
                           </div>
                         </div>
@@ -922,7 +886,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='price' placeholder="Price" aria-label="Price" aria-describedby="price" required />
+                            <input type="number" className="form-control" name='price' placeholder="Price" aria-label="Price" aria-describedby="price" required />
                           </div>
                         </div>
                       </div>
@@ -931,7 +895,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='image_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
+                            <input type="url" className="form-control" name='image_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
                         </div>
                       </div>
@@ -958,7 +922,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='link_address_1688' placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
+                            <input type="url" className="form-control" name='link_address_1688' placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
                           </div>
                         </div>
                       </div>
@@ -967,7 +931,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='price_1688' defaultValue={0} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
+                            <input type="number" className="form-control" name='price_1688' defaultValue={0} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
                           </div>
                         </div>
                       </div>
@@ -994,7 +958,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="text" className="form-control" name='weight' defaultValue={0} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                            <input type="number" className="form-control" name='weight' defaultValue={0} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
                           </div>
                         </div>
                       </div>
@@ -1083,7 +1047,7 @@ export function Products() {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                            <input type="text" className="form-control" name='production_time' placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
+                            <input type="number" className="form-control" name='production_time' placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
                           </div>
                         </div>
                       </div>
@@ -1110,6 +1074,15 @@ export function Products() {
             <DetailedProduct product={products[selectedProductID]} setSelectedProductID={setSelectedProductID} />
           </>
       }
+      <a className='d-none' href="#" id='toastBtn' data-bs-toggle="modal" data-bs-target="#toast"></a>
+      <div className="modal fade" id='toast' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog rounded">
+          <div className="modal-content">
+            <div className={`modal-body text-white text-bg-${toast.status} rounded`}>{toast.msg}</div>
+            <button type="button" className="btn btn-secondary d-none" data-bs-dismiss="modal"></button>
+          </div>
+        </div>
+      </div>
     </Content>
   )
 }

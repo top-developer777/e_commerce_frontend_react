@@ -2,65 +2,59 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 const PRODUCTS_ENDPOINT = `${API_URL}/products`
-const SUPPLIERS_ENDPOINT = `${API_URL}/products`
+const SUPPLIERS_ENDPOINT = `${API_URL}/suppliers`
+const SHIPMENT_ENDPOINT = `${API_URL}/inventory/shipment`
 
-type Query = {
-    page: number,
-    supplier_ids?: string,
-    limit?: number,
-    data: never[],
-}
-
-const getAllProducts = (page: number, limit: number = 50, suppliers: string = ''): Promise<Query> => {
-    const query: Query = {
-        page: page,
-        supplier_ids: suppliers,
-        limit: limit,
-        data: []
-    }
+export const getAllProducts = () => {
     return axios
-        .get(PRODUCTS_ENDPOINT, {
-            params: query
-        })
+        .get(`${API_URL}/inventory/product`)
 }
 
-const addProductRequest = (data: { [key: string]: string | number | boolean }) => {
-    console.log(data);
+export const getFilteredProducts = (shipment_type: string, weight_min: number, weight_max: number, volumetric_weight_min: number, volumetric_weight_max: number) => {
+    let url = `${API_URL}/inventory/product/advance?shipment_type=${shipment_type}`;
+    if (weight_min) url += `&weight_min=${weight_min}`;
+    if (weight_max) url += `&weight_max=${weight_max}`;
+    if (volumetric_weight_min) url += `&volumetric_weight_min=${volumetric_weight_min}`;
+    if (volumetric_weight_max) url += `&volumetric_weight_max=${volumetric_weight_max}`;
+    return axios.get(url);
+}
+
+export const addProductRequest = (data: { [key: string]: string | number | boolean }) => {
     return axios.post(PRODUCTS_ENDPOINT, data)
 }
 
-const editProductRequest = (id: number, data: { [key: string]: string | number | boolean }) => {
-    console.log(id);
-    console.log(data);
+export const editProductRequest = (id: number, data: { [key: string]: string | number | boolean }) => {
     return axios.put(`${PRODUCTS_ENDPOINT}/${id}`, data);
 }
 
-const getProductAmout = () => {
-    return axios.get(`${API_URL}/products/count`)
-}
-
-const getAllSuppliers = (page: number, limit = 50) => {
-    return axios
-        .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
-}
-
-const getProductByID = (id: number) => {
+export const getProductByID = (id: number) => {
     return axios
         .get(`${PRODUCTS_ENDPOINT}/${id}`)
 }
 
-const getProductImageByID = async (id: number) => {
+export const getProductImageByID = async (id: number) => {
     const response = await axios.get(`${PRODUCTS_ENDPOINT}/${id}`);
     const images = JSON.parse(response.data.images);
     return images.length > 0 ? images[0]["url"] : [{ "url": "" }]
 }
 
-export {
-    addProductRequest,
-    editProductRequest,
-    getAllProducts,
-    getAllSuppliers,
-    getProductAmout,
-    getProductByID,
-    getProductImageByID,
+export const getAllSuppliers = (page: number, limit = 50) => {
+    return axios
+        .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
+}
+
+export const countSuppliers = () => {
+    return axios.get(`${SUPPLIERS_ENDPOINT}/count`);
+}
+
+export const getShipments = () => {
+    return axios.get(`${SHIPMENT_ENDPOINT}`)
+}
+
+export const createShipments = (data: { [key: string]: string | number | boolean }) => {
+    return axios.post(`${SHIPMENT_ENDPOINT}`, data);
+}
+
+export const updateShipments = (data: { [key: string]: string | number | boolean }) => {
+    return axios.put(`${SHIPMENT_ENDPOINT}`, data);
 }

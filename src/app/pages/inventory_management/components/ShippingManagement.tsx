@@ -1,26 +1,51 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
-import Select from 'react-select'
+import Select, { MultiValue } from 'react-select'
+import { createShipments, getAllProducts, getShipments } from './_request';
+import { Shipment } from '../../models/shipment';
 
-const fakeShipingType = [
+const shippingStatus = [
   {
-    "value": 1,
-    "label": "Standard Shipping"
+    "value": "Customs",
+    "label": "Customs"
   },
   {
-    "value": 2,
-    "label": "Express Shipping"
+    "value": "Arrived",
+    "label": "Arrived"
   },
   {
-    "value": 3,
-    "label": "Overnight Shipping"
+    "value": 'New',
+    "label": "New"
   },
   {
-    "value": 4,
-    "label": "International Shipping"
+    "value": 'Shipped',
+    "label": "Shipped"
   }
+];
+const fakeShipingType = [
+  { value: 'Train', label: 'Train' },
+  { value: 'Airplain', label: 'Airplain' },
+  { value: 'Sea', label: 'Sea' },
 ]
 
+// const fakeShipingType = [
+//   {
+//     "value": 1,
+//     "label": "Standard Shipping"
+//   },
+//   {
+//     "value": 2,
+//     "label": "Express Shipping"
+//   },
+//   {
+//     "value": 3,
+//     "label": "Overnight Shipping"
+//   },
+//   {
+//     "value": 4,
+//     "label": "International Shipping"
+//   }
+// ]
 const fakeAgent = [
   {
     "value": 1,
@@ -114,70 +139,6 @@ const fakeshippings = [
     "author": "Michael Brown"
   }
 ]
-
-const fakeShipments = [
-  {
-    "shipment_name": "Express Delivery",
-    "createAt": "2024-06-17",
-    "nr": 1,
-    "new": 0,
-    "awb": "AWB123456789",
-    "status": "Customs",
-    "note": "Handle with care",
-    "est_date": "2024-06-20"
-  },
-  {
-    "shipment_name": "Standard Shipping",
-    "createAt": "2024-06-15",
-    "nr": 2,
-    "new": 12,
-    "awb": "AWB987654321",
-    "status": "Customs",
-    "note": "Left at front door",
-    "est_date": "2024-06-18"
-  },
-  {
-    "shipment_name": "Overnight Express",
-    "createAt": "2024-06-16",
-    "nr": 3,
-    "new": 0,
-    "awb": "AWB456123789",
-    "status": "Arrived",
-    "note": "Urgent delivery",
-    "est_date": "2024-06-17"
-  },
-  {
-    "shipment_name": "International Cargo",
-    "createAt": "2024-06-14",
-    "nr": 4,
-    "new": 0,
-    "awb": "AWB321654987",
-    "status": "New",
-    "note": "Documents attached",
-    "est_date": "2024-06-22"
-  },
-  {
-    "shipment_name": "International Cargo",
-    "createAt": "2024-06-14",
-    "nr": 4,
-    "new": 0,
-    "awb": "AWB321654987",
-    "status": "Shipped",
-    "note": "Documents attached",
-    "est_date": "2024-06-22"
-  }
-];
-
-interface Shipment {
-  shipment_name: string;
-  createAt: string;
-  nr: number;
-  new: number;
-  awb: string;
-  status: string;
-  note: string;
-  est_date: string;
-}
 
 interface Shipping {
   id: number;
@@ -311,7 +272,7 @@ const TableProductPlanner: React.FC<{
       <tbody>
         {
           props.shippings.map((shipping, index) =>
-            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedProduct(props.shippings[index])}>
+            <tr key={`planner${index}`} className='py-1 cursor-pointer' onClick={() => props.setSelectedProduct(props.shippings[index])}>
               <td className='align-content-center text-center'>
                 {
                   shipping.shippingType
@@ -442,16 +403,16 @@ const TableProductPlanner: React.FC<{
 const TableShipment: React.FC<{
   shipments: Shipment[];
   setSelectedShipment: React.Dispatch<React.SetStateAction<number>>;
+  setEditShipement: React.Dispatch<React.SetStateAction<Shipment | undefined>>;
 }> = props => {
   return (
-    <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7">
+    <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7" id='table-shipment'>
       <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+          <th className='align-content-center'>Shipment ID</th>
           <th className='align-content-center'>Shipment Name</th>
+          <th className='align-content-center'>Shipping Type</th>
           <th className='text-center align-content-center px-1'>Created Date</th>
-          <th className='text-center align-content-center px-1 col-md-2'>Nr.</th>
-          <th className='text-center align-content-center px-0'>New</th>
-          <th className='text-center align-content-center px-1'>AWB</th>
           <th className='text-center align-content-center px-1'>Status</th>
           <th className='text-center align-content-center px-1'>Note</th>
           <th className='text-center align-content-center px-1'>Estimated Date</th>
@@ -461,47 +422,30 @@ const TableShipment: React.FC<{
       <tbody>
         {
           props.shipments.map((shipment, index) =>
-            <tr className='py-1 cursor-pointer' onClick={() => props.setSelectedShipment(index)} key={`shipment${index}`}>
-              <td className='align-content-center'>
+            <tr className='py-1 cursor-pointer' key={`shipment${index}`}>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{'Shipment ID'}</td>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.name}</td>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{'Shipment Type'}</td>
+              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 {
-                  shipment.shipment_name
+                  shipment.date.toLocaleString()
                 }
               </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipment.createAt.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipment.nr.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipment.new.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipment.awb
-                }
-              </td>
-              <td className='text-center align-content-center'>
+              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 <StatusBadge status={shipment.status} />
               </td>
-              <td className='text-center align-content-center'>
+              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 {
                   shipment.note
                 }
               </td>
-              <td className='text-center align-content-center'>
+              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 {
-                  shipment.est_date.toLocaleString()
+                  shipment.delivery_date.toLocaleString()
                 }
               </td>
               <td className='text-center align-content-center'>
-                <a className='btn btn-white btn-active-light-danger btn-sm p-2'>
+                <a className='btn btn-white btn-active-light-danger btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => props.setEditShipement(shipment)}>
                   <i className="bi text-danger bi-slash-circle fs-3 p-1"></i>
                 </a>
               </td>
@@ -516,29 +460,44 @@ const TableShipment: React.FC<{
 export function ShippingManagement() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shippings, setshippings] = useState<Shipping[]>([]);
-  const [shipingTypes, setShipingTypes] = useState<{ value: number; label: string; }[]>([]);
+  const [shipingTypes, setShipingTypes] = useState<{ value: string; label: string; }[]>([]);
   const [editID, setEditID] = useState<number>(-1);
   const [productName, setProductName] = useState<string>('');
   const [selectedShipment, setSelectedShipment] = useState<number>(-1);
+  const [editShipement, setEditShipement] = useState<Shipment>();
   const [selectedProductID, setSelectedProductID] = useState<number>(0);
   const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
+  const [products, setProducts] = useState<{ [key: string]: string }[]>([]);
+  const [totalProducts, setTotalProducts] = useState<{ [key: string]: string }[]>([]);
 
   useEffect(() => {
-    setShipments(fakeShipments);
     setShipingTypes(fakeShipingType);
     setshippings(fakeshippings);
     setSelectedProduct(fakeshippings[0]);
+    getShipments()
+      .then(res => setShipments(res.data))
+      .catch(e => console.error(e));
   }, [])
-
   useEffect(() => {
     if (editID != -1) {
       setProductName(shippings[editID]['productName'])
     }
-  }, [editID, shippings])
-
+  }, [editID, shippings]);
   useEffect(() => {
     setSelectedProductID(0);
-  }, [selectedShipment])
+  }, [selectedShipment]);
+  useEffect(() => {
+    getAllProducts()
+      .then(res => {
+        const data = res.data;
+        const products = data.map((datum: { [key: string]: string }) => {
+          return { value: datum.id, label: datum.product_name }
+        });
+        setTotalProducts(products);
+        setProducts(products.slice(0, 10));
+      })
+      .catch(e => console.error(e));
+  }, []);
 
   const confirm = () => {
     setshippings(shippings.map((shipping, index) => {
@@ -553,106 +512,382 @@ export function ShippingManagement() {
     ))
     setEditID(-1);
   }
+  const loadMoreProducts = () => {
+    const size = products.length;
+    const newProducts = totalProducts.slice(0, size + 10);
+    setProducts(newProducts);
+  }
+  const handleSave = () => {
+    const idComp = document.querySelector('#createShipmentModal input[name="shipment_id"]') as HTMLInputElement;
+    const nameComp = document.querySelector('#createShipmentModal input[name="name"]') as HTMLInputElement;
+    const delivery_dateComp = document.querySelector('#createShipmentModal input[name="delivery_date"]') as HTMLInputElement;
+    const typeComp = document.querySelectorAll('#createShipmentModal input[name="type"][type="hidden"]') as unknown as HTMLInputElement[];
+    const productsComp = document.querySelectorAll('#createShipmentModal input[name="products"][type="hidden"]') as unknown as HTMLInputElement[];
+    const statusComp = document.querySelector('#createShipmentModal input[name="status"][type="hidden"]') as HTMLInputElement;
+    const noteComp = document.querySelector('#createShipmentModal textarea[name="note"]') as HTMLInputElement;
+    const id = idComp.value;
+    const name = nameComp.value;
+    const delivery_date = delivery_dateComp.value;
+    const type: string[] = [];
+    const products: string[] = [];
+    if (typeComp.length)
+      typeComp.forEach(t => type.push(t.value));
+    if (productsComp.length)
+      productsComp.forEach(p => products.push(p.value));
+    const status = statusComp.value;
+    const note = noteComp.value;
+    const data = {
+      shipment_id: id,
+      name: name,
+      delivery_date: delivery_date,
+      type: type.join('%2C'),
+      products: products.join('%2C'),
+      status: status,
+      note: note,
+    }
+    createShipments(data)
+      .then()
+      .catch(e => console.error(e));
+  }
+  const filterByShippingType = (shippingType: MultiValue<{ value: string, label: string }> = []) => {
+    const values = shippingType.map(type => type.value);
+    const filter = shipingTypes.map(type => {
+      if (values.findIndex(value => value === type.label) >= 0) return type.label;
+    }).filter(value => value !== undefined).join(', ');
+    const trs = document.querySelectorAll('table#table-shipment > tbody > tr');
+    trs.forEach(tr => {
+      const type = tr.querySelector('td:nth-child(3)')?.textContent;
+      if (type && type.indexOf(filter) === -1) tr.setAttribute('style', 'display: none');
+      else tr.setAttribute('style', 'display: table-row');
+    });
+  }
 
   return (
     <Content>
       {
-        selectedShipment == -1 ?
-          <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} />
+        selectedShipment === -1 ?
+          <>
+            <div className="row">
+              <div className="col-md-6">
+                <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createShipmentModal">
+                  <i className="bi bi-plus"></i>Create Shipment
+                </button>
+              </div>
+              <div className="col-md-6">
+                <Select
+                  className='react-select-styled react-select-solid react-select-sm'
+                  options={shipingTypes}
+                  isMulti
+                  isSearchable={false}
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  onChange={(e, _) => filterByShippingType(e)}
+                  placeholder="Select shipping types"
+                />
+              </div>
+            </div>
+            <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} setEditShipement={setEditShipement} />
+          </>
           :
-          <div className='row'>
-            <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-              <div className="card-header pt-4 w-full">
-                <div>
-                  <h3 className="text-gray-800 card-title align-content-center">Order Dashboard</h3>
+          <>
+            <div className="row">
+              <div className="col-md-12">
+                <button className="btn btn-sm btn-primary" onClick={() => setSelectedShipment(-1)}>
+                  <i className="bi bi-backspace-fill"></i> Back to Shipment List
+                </button>
+              </div>
+            </div>
+            <div className='row'>
+              <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
+                <div className="card-header pt-4 w-full">
+                  <div>
+                    <h3 className="text-gray-800 card-title align-content-center">Order Dashboard</h3>
+                  </div>
+                  {/* <div>
+                    <button type='button' className='btn btn-light btn-light-primary p-3' onClick={() => setEditID(-2)}>
+                      <i className="bi bi-cloud-arrow-down"></i>
+                      Download Invoice
+                    </button>
+                    <button type='button' className='btn btn-light btn-light-primary mx-6' onClick={() => setEditID(-2)}>
+                      <i className="bi bi-diagram-2"></i>
+                      Generate Order Agent
+                    </button>
+                  </div> */}
                 </div>
-                <div>
-                  <button type='button' className='btn btn-light btn-light-primary p-3' onClick={() => setEditID(-2)}>
-                    <i className="bi bi-cloud-arrow-down"></i>
-                    Download Invoice
-                  </button>
-                  <button type='button' className='btn btn-light btn-light-primary mx-6' onClick={() => setEditID(-2)}>
-                    <i className="bi bi-diagram-2"></i>
-                    Generate Order Agent
-                  </button>
+                <div className="card-body p-6">
+                  <div className='row mb-2'>
+                    <div className='col-md-4'>
+                      <span className='text-gray-700'>Total Units</span><br />
+                      <h4 className='text-gray-900 text-hover-primary'>
+                        {
+                          selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()
+                        }
+                      </h4>
+                    </div>
+                    <div className='col-md-8'>
+                      <span className='text-gray-700'>Shiping Type</span><br />
+                      <div className='col-md-4'>
+                        <Select
+                          className='react-select-styled react-select-solid react-select-sm'
+                          classNamePrefix='react-select'
+                          options={shipingTypes}
+                          placeholder='Select Shiping Type'
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className='row mb-2'>
+                    <div className='col-md-4'>
+                      <span className='text-gray-700'>Total Boxes</span><br />
+                      <h4 className='text-gray-900 text-hover-primary'>
+                        {
+                          selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()
+                        }
+                      </h4>
+                    </div>
+                    <div className='col-md-8'>
+                      <span className='text-gray-700'>Agent</span><br />
+                      <div className='col-md-4'>
+                        <Select
+                          className='react-select-styled react-select-solid react-select-sm'
+                          classNamePrefix='react-select'
+                          options={fakeAgent}
+                          placeholder='Select an Agent'
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className='row mb-2'>
+                    <div className='col-md-4'>
+                      <span className='text-gray-700'>Total</span><br />
+                      <h4 className='text-gray-900 text-hover-primary'>
+                        {
+                          selectedProduct && formatCurrency(selectedProduct.total)
+                        }
+                      </h4>
+                    </div>
+                    <div className='col-md-8'>
+                      <span className='text-gray-700'>Tracking Number</span><br />
+                      <input
+                        type="text"
+                        className="form-control form-control-solid p-2"
+                        placeholder="Tracking Number"
+                        value={selectedProduct?.trackingNumber}
+                        onChange={e => setSelectedProduct({ ...selectedProduct, trackingNumber: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className='row'>
+                    <div className='col-md-4'>
+                      <span className='text-gray-700'>Total Volume</span><br />
+                      <h4 className='text-gray-900 text-hover-primary'>
+                        483,223,223
+                      </h4>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="card-body p-6">
-                <div className='row mb-2'>
-                  <div className='col-md-4'>
-                    <span className='text-gray-700'>Total Units</span><br />
-                    <h4 className='text-gray-900 text-hover-primary'>
-                      {
-                        selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()
-                      }
-                    </h4>
-                  </div>
-                  <div className='col-md-8'>
-                    <span className='text-gray-700'>Shiping Type</span><br />
-                    <div className='col-md-4'>
-                      <Select
-                        className='react-select-styled react-select-solid react-select-sm'
-                        classNamePrefix='react-select'
-                        options={shipingTypes}
-                        placeholder='Select Shiping Type'
-                      />
+              <div className="col-md-12 table-responsive">
+                <TableProductPlanner selectedProductID={selectedProductID} setSelectedProduct={setSelectedProduct} setSelectedProductID={setSelectedProductID} confirm={confirm} setEditID={setEditID} editID={editID} setProductName={setProductName} productName={productName} shippings={shippings} />
+              </div>
+            </div>
+          </>
+      }
+      <div className="modal fade" id='createShipmentModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Create Shipment</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form action="" method='post' id='editProductForm'>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='shipment_id' placeholder="Shipment ID" />
                     </div>
                   </div>
-                </div>
-                <div className='row mb-2'>
-                  <div className='col-md-4'>
-                    <span className='text-gray-700'>Total Boxes</span><br />
-                    <h4 className='text-gray-900 text-hover-primary'>
-                      {
-                        selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()
-                      }
-                    </h4>
-                  </div>
-                  <div className='col-md-8'>
-                    <span className='text-gray-700'>Agent</span><br />
-                    <div className='col-md-4'>
-                      <Select
-                        className='react-select-styled react-select-solid react-select-sm'
-                        classNamePrefix='react-select'
-                        options={fakeAgent}
-                        placeholder='Select an Agent'
-                      />
+                </label>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='name' placeholder="Shipment Name" />
                     </div>
                   </div>
-                </div>
-                <div className='row mb-2'>
-                  <div className='col-md-4'>
-                    <span className='text-gray-700'>Total</span><br />
-                    <h4 className='text-gray-900 text-hover-primary'>
-                      {
-                        selectedProduct && formatCurrency(selectedProduct.total)
-                      }
-                    </h4>
-                  </div>
-                  <div className='col-md-8'>
-                    <span className='text-gray-700'>Tracking Number</span><br />
-                    <input
-                      type="text"
-                      className="form-control form-control-solid p-2"
-                      placeholder="Tracking Number"
-                      value={selectedProduct?.trackingNumber}
-                      onChange={e => setSelectedProduct({ ...selectedProduct, trackingNumber: e.target.value })}
+                </label>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipping Type:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='type'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={shipingTypes}
+                      placeholder='Select shipping type'
+                      isMulti
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more shipping type${e.inputValue}`}
                     />
                   </div>
                 </div>
-                <div className='row'>
-                  <div className='col-md-4'>
-                    <span className='text-gray-700'>Total Volume</span><br />
-                    <h4 className='text-gray-900 text-hover-primary'>
-                      483,223,223
-                    </h4>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Products:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='products'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={products}
+                      placeholder='Select products'
+                      isMulti
+                      onMenuScrollToBottom={loadMoreProducts}
+                      noOptionsMessage={e => `No product starts with "${e.inputValue}"`}
+                      hideSelectedOptions
+                    />
                   </div>
                 </div>
-              </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment Status:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='status'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={shippingStatus}
+                      placeholder='Select shipment status'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more shipping status${e.inputValue}`}
+                      defaultValue={shippingStatus[2]}
+                    />
+                  </div>
+                </div>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Expected Delivery Date:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" />
+                    </div>
+                  </div>
+                </label>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Note (Optional):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <textarea className="form-control" name='note' placeholder="Note" rows={3} />
+                    </div>
+                  </div>
+                </label>
+              </form>
             </div>
-            <TableProductPlanner selectedProductID={selectedProductID} setSelectedProduct={setSelectedProduct} setSelectedProductID={setSelectedProductID} confirm={confirm} setEditID={setEditID} editID={editID} setProductName={setProductName} productName={productName} shippings={shippings} />
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-cross"></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
+            </div>
           </div>
-      }
+        </div>
+      </div>
+      <div className="modal fade" id='editShipmentModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Create Shipment</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              {editShipement && <form action="" method='post' id='editProductForm'>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='shipment_id' placeholder="Shipment ID" defaultValue={editShipement.shipment_id} />
+                    </div>
+                  </div>
+                </label>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='name' placeholder="Shipment Name" defaultValue={editShipement.name} />
+                    </div>
+                  </div>
+                </label>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipping Type:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='type'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={shipingTypes}
+                      placeholder='Select shipping type'
+                      isSearchable={false}
+                      defaultValue={fakeShipingType.filter(type => editShipement.type.findIndex(item => item === type.value))}
+                      noOptionsMessage={e => `No more shipping type${e.inputValue}`}
+                      isMulti
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Products:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='products'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={products}
+                      placeholder='Select products'
+                      isMulti
+                      onMenuScrollToBottom={loadMoreProducts}
+                      noOptionsMessage={e => `No product starts with "${e.inputValue}"`}
+                      hideSelectedOptions
+                      defaultValue={products.filter(type => editShipement.products.findIndex(item => `${item.id ?? -1}` === type.value))}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Shipment Status:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='status'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={shippingStatus}
+                      placeholder='Select shipment status'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more shipping status${e.inputValue}`}
+                      defaultValue={shippingStatus.filter(status => status.value === editShipement.status)}
+                    />
+                  </div>
+                </div>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Expected Delivery Date:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" defaultValue={editShipement.delivery_date} />
+                    </div>
+                  </div>
+                </label>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Note (Optional):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <textarea className="form-control" name='note' placeholder="Note" rows={3} defaultValue={editShipement.note} />
+                    </div>
+                  </div>
+                </label>
+              </form>}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-cross"></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </Content>
   )
 }
