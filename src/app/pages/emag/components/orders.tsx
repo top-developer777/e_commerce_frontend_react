@@ -16,10 +16,11 @@ export const EmagOrders = () => {
   
   useEffect(() => {
     getEmagOrders()
-      .then(res => setEmagOrders(res.data));
-    // setEmagOrders([{
-    //   id: "13213465"
-    // }])
+      .then(res => setEmagOrders(res.data))
+      .catch(e => console.error(e));
+    setEmagOrders([{
+      id: "This is fake Order"
+    }])
   }, []);
   
   const handleFilter = () => {
@@ -50,9 +51,9 @@ export const EmagOrders = () => {
             </thead>
             <tbody>
               {
-                emagOrders.map(order => {
+                emagOrders.map((order, index) => {
                   return (
-                    <tr>
+                    <tr key={`emagOrder${index}`}>
                       <td>{order.id}</td>
                       <td>
                         <a href="#" data-bs-toggle="modal" data-bs-target="#generateModal" onClick={() => setOrderID(parseInt(order.id))}>
@@ -97,8 +98,7 @@ export const EmagOrders = () => {
                       isMulti
                       noOptionsMessage={e => `No more observations${e.inputValue}`}
                       defaultValue={[observations[0]]}
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      onChange={(values, _) => setObservation(values.map(value => value.value))}
+                      onChange={values => setObservation(values.map(value => value.value))}
                     />
                   </div>
                 </div>
@@ -106,8 +106,8 @@ export const EmagOrders = () => {
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => { setObservation(['EAN']); setOrderID(-1) }}><i className="bi bi-cross"></i>Close</button>
-              <button type="button" className="btn btn-primary" onClick={handleGenerate}><i className="bi bi-save"></i>Save changes</button>
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => { setObservation(['EAN']); setOrderID(-1) }}><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleGenerate}><i className="bi bi-hammer"></i>Create AWB</button>
             </div>
           </div>
         </div>

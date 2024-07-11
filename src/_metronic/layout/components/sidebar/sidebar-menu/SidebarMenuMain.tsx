@@ -40,10 +40,10 @@ const SidebarMenuMain = () => {
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Inventory management</span>
         </div>
       </div>
-      <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/inventory-management/products' title='Products' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/inventory-management/products' title='Inventory Calculator' hasBullet={false} />
       {currentUser && (parseInt(currentUser.role ?? '') > 1) && (
         <>
-          <SidebarMenuItem icon='bi bi-list-check' to='/inventory-management/planner' title='Planner' hasBullet={false} />
+          {/* <SidebarMenuItem icon='bi bi-list-check' to='/inventory-management/planner' title='Planner' hasBullet={false} /> */}
         </>
       )}
       {currentUser && [1, 3, 4].includes(parseInt(currentUser.role ?? '')) && (
@@ -53,7 +53,7 @@ const SidebarMenuMain = () => {
       )}
       {currentUser && [0, 3, 4].includes(parseInt(currentUser.role ?? '')) && (
         <>
-          <SidebarMenuItem icon='bi bi-database-fill' to='/inventory-management/warehouse' title='Warehouse Management' hasBullet={false} />
+          {/* <SidebarMenuItem icon='bi bi-database-fill' to='/inventory-management/warehouse' title='Warehouse Management' hasBullet={false} /> */}
         </>
       )}
       <SidebarMenuItem icon='bi bi-lightning-fill' to='/inventory-management/suppliers' title='Suppliers' hasBullet={false} />

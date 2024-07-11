@@ -25,4 +25,5 @@ export interface Product {
   discontinued: boolean,
   stock: number,
   day_stock: number,
+  internal_shipping_price: string,
 }

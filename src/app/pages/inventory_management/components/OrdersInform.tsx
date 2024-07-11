@@ -1,51 +1,30 @@
 
-import { useEffect, useRef, FC } from 'react'
-import ApexCharts, { ApexOptions } from 'apexcharts'
-import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
-import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
-import Select from 'react-select';
-import { Product } from './Products';
+import { useEffect, FC, useState } from 'react'
+import { getOrdersInfo } from '../../dashboard/components/_request';
+import { Product } from '../../models/product';
 
 type Props = {
   className: string,
-  series: string,
-  categories: string,
   product: Product,
 }
+type Order = {
+  order_id: number,
+  order_date: string,
+  customer_name: string,
+  quantity_orders: string,
+  order_status: string,
+}
 
-const OrdersInformation: FC<Props> = ({ className, series, categories, product }) => {
-  const options = [
-    { value: 'ncx_rate', label: 'NCX rate' },
-    { value: 'total_orders', label: 'Total Orders' },
-    { value: 'ncx_orders', label: 'NCX Orders' },
-  ]
-  const chartRef = useRef<HTMLDivElement | null>(null)
-  const { mode } = useThemeMode()
-  const refreshChart = () => {
-    if (!chartRef.current) {
-      return
-    }
-
-    const height = parseInt(getCSS(chartRef.current, 'height'))
-
-    const chart = new ApexCharts(chartRef.current, getChartOptions(height, series, categories))
-    if (chart) {
-      chart.render()
-    }
-
-    return chart
-  }
+const OrdersInformation: FC<Props> = ({ className, product }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const chart = refreshChart()
-
-    return () => {
-      if (chart) {
-        chart.destroy()
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartRef, mode])
+    getOrdersInfo(product.id ?? 0)
+      .then(res => {
+        setOrders(res.data);
+      })
+      .catch(e => console.error(e));
+  }, [product.id])
 
   return (
     <div className={`card ${className}`}>
@@ -56,9 +35,7 @@ const OrdersInformation: FC<Props> = ({ className, series, categories, product }
       </div>
       <div className='card-body'>
         <div className='row'>
-          <h4>
-            Mini Umidificator de aer cu difuzor aromaterapie si lumini LED, portabil, USB, rezervor 220 ml, 2 moduri de functionare, lumini de noapte, umidificator camera si masina auto, Alb
-          </h4>
+          <h4>{product.product_name}</h4>
         </div>
         <div className='row align-content-center'>
           <div className='col-xl-2'>
@@ -69,173 +46,49 @@ const OrdersInformation: FC<Props> = ({ className, series, categories, product }
           <div className='col-xl-10'>
             <div className='row'>
               <div className='col-md-4'>
-                <span>Model Name</span><br />
+                <span>Model Name</span>
                 <span>{product.model_name}</span>
               </div>
               <div className='col-md-4'>
-                <span>SKU</span><br />
+                <span>SKU</span>
                 <span>{product.sku}</span>
               </div>
             </div>
             <div className="separator my-10"></div>
-            <div className='row'>
-              <div className='col-md-1'>
-                <span>Total orders</span><br />
-                <span>417</span>
-              </div>
-              <div className='col-md-3'>
-                <span>Negative Customer Experience (NCX) orders</span><br />
-                <span>3</span>
-              </div>
-              <div className='col-md-1'>
-                <span>NCX rate</span><br />
-                <span>0.72%</span>
-              </div>
-              <div className='col-md-2'>
-                <span>NCX Review Rate</span><br />
-                <span>0%</span>
-              </div>
-              <div className='col-md-1'>
-                <span>NCX Return Rate</span><br />
-                <span>0.48%</span>
-              </div>
-              <div className='col-md-1'>
-                <span>Last updated</span><br />
-                <span>2024-06-17</span>
-              </div>
-              <div className='col-md-3'>
-                <span>Customer Experience (CX) Health</span><br />
-                <span className='badge badge-light-success fw-bold fs-7 p-2'>Good</span>
-              </div>
-            </div>
           </div>
         </div>
-        <div className='d-flex'>
-          <span className='align-content-center fw-bold text-gray-800 fs-5 px-2'>Parameter</span>
-          <Select
-            className='react-select-styled react-select-solid'
-            classNamePrefix='react-select'
-            options={options}
-            placeholder='Select an option'
-          />
+        <div className="row">
+          <div className="col-md-12">
+            <table className="table table-rounded table-bordered border gy-7 gs-7 cursor-pointer table-hover text-center">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Order Date</th>
+                  <th>Customer Name</th>
+                  <th>Quantity Ordered</th>
+                  <th>Order Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order, index) => {
+                  return (
+                    <tr key={`order${index}`}>
+                      <td>{order.order_id}</td>
+                      <td>{order.order_date}</td>
+                      <td>{order.customer_name}</td>
+                      <td>{order.quantity_orders}</td>
+                      <td>{order.order_status}</td>
+                    </tr>
+                  )
+                })}
+                {orders.length === 0 && <tr><td colSpan={5}>No Orders for this product.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
       </div>
     </div>
   )
 }
 
 export { OrdersInformation }
-
-function getChartOptions(height: number, series: string, categories: string): ApexOptions {
-  const labelColor = getCSSVariableValue('--bs-gray-500')
-  const borderColor = getCSSVariableValue('--bs-gray-200')
-
-  const baseColor = getCSSVariableValue('--bs-primary')
-  const baseLightColor = getCSSVariableValue('--bs-primary-light')
-  const secondaryColor = getCSSVariableValue('--bs-info')
-
-  return {
-    series: JSON.parse(series),
-    chart: {
-      fontFamily: 'inherit',
-      stacked: true,
-      height: height,
-      toolbar: {
-        show: false,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        borderRadius: 5,
-        columnWidth: '12%',
-      },
-    },
-    legend: {
-      show: false,
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      curve: 'straight',
-      show: true,
-      width: 2,
-    },
-    xaxis: {
-      categories: JSON.parse(categories),
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-      labels: {
-        style: {
-          colors: labelColor,
-          fontSize: '12px',
-        },
-      },
-    },
-    yaxis: {
-      max: 3,
-      labels: {
-        style: {
-          colors: labelColor,
-          fontSize: '12px',
-        },
-      },
-    },
-    fill: {
-      opacity: 1,
-    },
-    states: {
-      normal: {
-        filter: {
-          type: 'none',
-          value: 0,
-        },
-      },
-      hover: {
-        filter: {
-          type: 'none',
-          value: 0,
-        },
-      },
-      active: {
-        allowMultipleDataPointsSelection: false,
-        filter: {
-          type: 'none',
-          value: 0,
-        },
-      },
-    },
-    tooltip: {
-      style: {
-        fontSize: '12px',
-      },
-      y: {
-        formatter: function (val) {
-          return '$' + val + ' thousands'
-        },
-      },
-    },
-    colors: [baseColor, secondaryColor, baseLightColor],
-    grid: {
-      borderColor: borderColor,
-      strokeDashArray: 4,
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-      padding: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      },
-    },
-  }
-}

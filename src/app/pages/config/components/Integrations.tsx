@@ -9,12 +9,12 @@ const flags = {
   "bg": "bulgaria",
   "hu": "hungary"
 }
+const API_URL = import.meta.env.VITE_APP_API_URL
 
 const DragDropFileUpload: React.FC<{
   setImg: React.Dispatch<React.SetStateAction<string>>
 }> = (props) => {
   const onDrop = useCallback(async (acceptedFile: File[]) => {
-    // Handle the dropped files
     const formData = new FormData();
     formData.append('file', acceptedFile[0]);
 
@@ -33,7 +33,7 @@ const DragDropFileUpload: React.FC<{
 
   return (
     <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
-      <input {...getInputProps()} />
+      <input {...getInputProps()} accept='image/*' />
       {
         isDragActive ?
           <p>Drop the files here ...</p> :
@@ -43,65 +43,97 @@ const DragDropFileUpload: React.FC<{
   );
 };
 
+interface interCred {
+  type: string, firstKey: string, secondKey: string
+}
+interface interProdCrud {
+  endpoint: string, create: string, read: string, update: string, delete: string, count: string
+}
+interface interOrderCrud {
+  endpoint: string, create: string, read: string, update: string, delete: string, count: string
+}
+interface interMKP {
+  id?: number,
+  country: 'bg' | 'ro' | 'hu',
+  credentials: interCred,
+  products_crud: interProdCrud,
+  orders_crud: interOrderCrud,
+  title: string,
+  baseURL: string,
+  baseAPIURL: string,
+  marketplaceDomain: string,
+  owner: string,
+  image_url?: string,
+}
+
 export function Integrations() {
   const [editID, setEditID] = useState(-1);
   const [editImg, setEditImg] = useState('');
-  const [addCountry, setAddCountry] = useState('');
-  const [addCredWay, setAddCredentials] = useState('');
-  const [addMarketplace, setAddMarketPlace] = useState({});
-  const [addcredentials, setCredentials] = useState({});
-  const [addproductsCURD, setProductsCURD] = useState({});
-  const [addordersCRUD, setOrdersCRUD] = useState({});
-  const [allMarketplaces, setAllMarketPlaces] = useState([]);
-  const options_cred = [
+  const [addCredWay, setAddCredentials] = useState('user_pass');
+  const [addcredentials, setCredentials] = useState<interCred>({ type: 'user_pass', firstKey: '', secondKey: '' });
+  const [addproductsCURD, setProductsCURD] = useState<interProdCrud>({ endpoint: '/product_offer', create: '/create', read: '/read', update: '/update', delete: '/delete', count: '/count' });
+  const [addordersCRUD, setOrdersCRUD] = useState<interOrderCrud>({ endpoint: '/order', create: '/create', read: '/read', update: '/update', delete: '/delete', count: '/count' });
+  const [addMarketplace, setAddMarketPlace] = useState<interMKP>({
+    country: 'ro',
+    credentials: addcredentials,
+    products_crud: addproductsCURD,
+    orders_crud: addordersCRUD,
+    title: 'eMAG Marketplace (Romania)',
+    baseURL: 'https://marketplace.emag.ro',
+    baseAPIURL: 'https://marketplace-api.emag.ro/api-3',
+    marketplaceDomain: 'eMAG.ro',
+    owner: '',
+  });
+  const [allMarketplaces, setAllMarketPlaces] = useState<interMKP[]>([]);
+  
+  const optionsCred = [
     { value: 'user_pass', label: 'Username (email) / Password' },
     { value: 'pub_priv', label: 'Public Key / Private Key' },
-  ]
-  const options_country = [
+  ];
+  const optionsCountry = [
     { value: 'ro', label: 'Romania' },
     { value: 'bg', label: 'Bulgaria' },
-    { value: 'hu', label: 'hungary' },
+    { value: 'hu', label: 'Hungary' },
+  ];
+  const optionsMKP = [
+    { value: 'eMAG.ro', label: 'eMAG.ro' },
+    { value: 'eMAG.bg', label: 'eMAG.bg' },
+    { value: 'eMAG.hu', label: 'eMAG.hu' },
+    { value: 'altex.ro', label: 'altex.ro' },
+    { value: 'woocommerce.com', label: 'woocommerce.com' },
   ]
 
   useEffect(() => {
     getAllMarketplaces()
       .then(res => {
         setAllMarketPlaces(res.data)
-        console.log(res)
       })
-  }, [])
+      .catch(e => console.error(e));
+  }, []);
 
   const onEdit = (index: number) => {
     setEditID(index);
     setAddMarketPlace(allMarketplaces[index]);
-    setCredentials(allMarketplaces[index]["credentials"]);
-    setProductsCURD(allMarketplaces[index]["products_crud"]);
-    setOrdersCRUD(allMarketplaces[index]["orders_crud"]);
-    setAddCountry(allMarketplaces[index]["country"]);
-    setAddCredentials(allMarketplaces[index]["credentials"]["type"]);
+    setCredentials(allMarketplaces[index].credentials);
+    setProductsCURD(allMarketplaces[index].products_crud);
+    setOrdersCRUD(allMarketplaces[index].orders_crud);
+    setAddCredentials(allMarketplaces[index].credentials.type);
   }
 
   const onRemove = (index: number) => {
-    removeMarketplace(allMarketplaces[index]["id"])
+    removeMarketplace(allMarketplaces[index].id ?? 0)
       .then(res => {
         if (res.data.msg)
-          setAllMarketPlaces(allMarketplaces.filter((marketplace, idx) => idx != index))
+          setAllMarketPlaces(allMarketplaces.filter((_, idx) => idx != index))
       })
   }
 
   const onSubmit = async () => {
-    setCredentials({ ...addcredentials, "type": addCredWay })
-    setAddMarketPlace({ ...addMarketplace, "country": addCountry, "products_crud": addproductsCURD, "orders_crud": addordersCRUD })
+    setCredentials({ ...addcredentials, type: addCredWay })
+    setAddMarketPlace({ ...addMarketplace, products_crud: addproductsCURD, orders_crud: addordersCRUD, credentials: addcredentials })
     const data = {
-      "image_url": editImg,
       ...addMarketplace,
-      "country": addCountry,
-      "products_crud": addproductsCURD,
-      "orders_crud": addordersCRUD,
-      "credentials": {
-        ...addcredentials,
-        "type": addCredWay
-      },
+      image_url: editImg,
     }
     const res = await createMarketplace(data)
     if (res.msg == "success") {
@@ -115,20 +147,14 @@ export function Integrations() {
           Marketplace Integration
         </h3>
         <div>
-          <button type='button' className='btn btn-light btn-light-primary' onClick={() => setEditID(999)}>Add</button>
+          <button type='button' className='btn btn-light btn-light-primary' onClick={() => setEditID(0)}>Add</button>
         </div>
       </div>
       {
         editID == -1 ?
           <div className="row g-5 mb-4">
             {
-              allMarketplaces.map((marketplace: {
-                title: string;
-                image_url: string;
-                country: 'ro' | 'bg' | 'hu';
-                marketplaceDomain: string;
-                owner: string;
-              }, index) =>
+              allMarketplaces.map((marketplace: interMKP, index) =>
                 <div className='col-lg-3' key={index}>
                   <div className="card card-custom card-flush">
                     <div className="card-header px-6">
@@ -145,7 +171,7 @@ export function Integrations() {
                     <div className="card-body py-10 mb-2">
                       <div className="row">
                         <div className="d-flex flex-center">
-                          <img className="rounded" height={45} alt='eMag image' src={marketplace.image_url} />
+                          <img className="rounded" height={45} alt='eMag image' src={marketplace.image_url ?? ''} />
                         </div>
                       </div>
                     </div>
@@ -166,63 +192,123 @@ export function Integrations() {
             <div className="card-body py-5">
               <div className='row'>
                 <div className='col-lg-4'>
-                  {editImg == '' ?
+                  {editImg === '' ?
                     <DragDropFileUpload setImg={setEditImg} />
                     :
-                    <img className='w-100' src={editImg} />
+                    <img className='w-100' src={`${API_URL}/utils/${editImg}`} />
                   }
                 </div>
-                <div className='col-lg-4'>
-                  <div className="mb-8">
-                    <label className="form-label">Marketplace Title</label>
-                    <input
-                      type="text"
-                      className="form-control form-control-solid"
-                      placeholder="eMAG Marketplace"
-                      onChange={e => setAddMarketPlace({ ...addMarketplace, "title": e.target.value })}
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label className="form-label">Base URL</label>
-                    <input
-                      type="text"
-                      className="form-control form-control-solid"
-                      placeholder="https://marketplace.emag.ro/"
-                      onChange={e => setAddMarketPlace({ ...addMarketplace, "baseURL": e.target.value })}
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label className="form-label">Base API URL</label>
-                    <input
-                      type="text"
-                      className="form-control form-control-solid"
-                      placeholder="https://marketplace-api.emag.ro/api-3"
-                      onChange={e => setAddMarketPlace({ ...addMarketplace, "baseAPIURL": e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className='col-lg-4'>
-                  <div className='row mb-8'>
-                    <div className='col-md-6'>
+                <div className='col-lg-8'>
+                  <div className="row mb-8">
+                    <div className="col-md-6">
                       <label className="form-label">Marketplace Domain</label>
-                      <input
-                        type="text"
-                        className="form-control form-control-solid"
-                        placeholder="eMAG.ro"
-                        onChange={e => setAddMarketPlace({ ...addMarketplace, "marketplaceDomain": e.target.value })}
+                      <Select
+                        className='react-select-styled'
+                        options={optionsMKP}
+                        placeholder='Select Domain'
+                        value={optionsMKP.filter(optionsMKP => optionsMKP.value === addMarketplace.marketplaceDomain)}
+                        isSearchable={false}
+                        onChange={e => {
+                          if (e && e.value === 'eMAG.ro') {
+                            setAddMarketPlace({
+                              ...addMarketplace,
+                              marketplaceDomain: 'eMAG.ro',
+                              country: 'ro',
+                              baseAPIURL: 'https://marketplace-api.emag.ro/api-3',
+                              baseURL: 'https://marketplace.emag.ro/',
+                              title: 'eMAG Marketplace (Romania)'
+                            });
+                          }
+                          if (e && e.value === 'eMAG.bg') {
+                            setAddMarketPlace({
+                              ...addMarketplace,
+                              marketplaceDomain: 'eMAG.bg',
+                              country: 'bg',
+                              baseAPIURL: 'https://marketplace-api.emag.bg/api-3',
+                              baseURL: 'https://marketplace.emag.bg/',
+                              title: 'eMAG Marketplace (Bulgaria)'
+                            });
+                          }
+                          if (e && e.value === 'eMAG.hu') {
+                            setAddMarketPlace({
+                              ...addMarketplace,
+                              marketplaceDomain: 'eMAG.hu',
+                              country: 'hu',
+                              baseAPIURL: 'https://marketplace-api.emag.hu/api-3',
+                              baseURL: 'https://marketplace.emag.hu/',
+                              title: 'eMAG Marketplace (Hungary)'
+                            });
+                          }
+                          if (e && e.value === 'altex.ro') {
+                            setAddMarketPlace({
+                              ...addMarketplace,
+                              marketplaceDomain: 'altex.ro',
+                              country: 'ro',
+                              baseAPIURL: '',
+                              baseURL: '',
+                              title: 'Altex Marketplace (Romania)'
+                            });
+                          }
+                          if (e && e.value === 'woocommerce.com') {
+                            setAddMarketPlace({
+                              ...addMarketplace,
+                              marketplaceDomain: 'woocommerce.com',
+                              baseAPIURL: '',
+                              baseURL: '',
+                              title: 'Woocommerce Marketplace'
+                            });
+                          }
+                        }}
                       />
                     </div>
-                    <div className='col-md-6'>
+                    <div className="col-md-6">
                       <label className="form-label">Country</label>
                       <Select
                         className='react-select-styled'
-                        classNamePrefix='react-select'
-                        options={options_country}
+                        options={optionsCountry}
                         placeholder='Select Country'
-                        onChange={e => setAddCountry(e ? e.value : '')}
+                        isSearchable={false}
+                        value={optionsCountry.filter(country => country.value === addMarketplace.country)}
+                        onChange={e => setAddMarketPlace({ ...addMarketplace, country: (e?.value ?? 'ro') as 'ro' | 'bg' | 'hu' })}
                       />
                     </div>
                   </div>
+                  <div className="row mb-8">
+                    <div className="col-md-6">
+                      <label className="form-label">Marketplace Title</label>
+                      <input
+                        type="text"
+                        className="form-control form-control-solid"
+                        placeholder="eMAG Marketplace"
+                        value={addMarketplace.title}
+                        onChange={e => setAddMarketPlace({ ...addMarketplace, title: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Base URL</label>
+                      <input
+                        type="text"
+                        className="form-control form-control-solid"
+                        placeholder="https://marketplace.emag.ro/"
+                        value={addMarketplace.baseURL}
+                        onChange={e => setAddMarketPlace({ ...addMarketplace, baseURL: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-md-6">
+                      <label className="form-label">Base API URL</label>
+                      <input
+                        type="text"
+                        className="form-control form-control-solid"
+                        placeholder="https://marketplace-api.emag.ro/api-3"
+                        onChange={e => setAddMarketPlace({ ...addMarketplace, baseAPIURL: e.target.value })}
+                        value={addMarketplace.baseAPIURL}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* <div className='col-lg-4'>
                   <div className="mb-8">
                     <label className="form-label">Owner</label>
                     <input
@@ -230,6 +316,7 @@ export function Integrations() {
                       className="form-control form-control-solid"
                       placeholder="admin@admin.com"
                       onChange={e => setAddMarketPlace({ ...addMarketplace, "owner": e.target.value })}
+                      defaultValue={addMarketplace.owner}
                     />
                   </div>
                   <div className="mb-8">
@@ -239,19 +326,22 @@ export function Integrations() {
                       className="form-control form-control-solid"
                       placeholder="http://username:password@ipadress:port"
                       onChange={e => setAddMarketPlace({ ...addMarketplace, "owner": e.target.value })}
+                      defaultValue={addMarketplace.owner}
                     />
                   </div>
-                </div>
+                </div> */}
               </div>
               <div className="row mb-10">
                 <div className='col-lg-2'>
                   <label className="form-label">Credential Method</label>
                   <Select
                     className='react-select-styled'
-                    classNamePrefix='react-select'
-                    options={options_cred}
+                    options={optionsCred}
                     placeholder='Select Credential Method'
-                    onChange={e => setAddCredentials(e ? e.value : '')}
+                    onChange={e => setAddCredentials(e?.value ?? '')}
+                    defaultValue={optionsCred.filter(cred => cred.value === addcredentials.type)}
+                    isSearchable={false}
+                    isClearable={false}
                   />
                 </div>
                 <div className='col-lg-5'>
@@ -260,7 +350,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="Username or Email"
-                    onChange={e => setCredentials({ ...addcredentials, "firstKey": e.target.value })}
+                    onChange={e => setCredentials({ ...addcredentials, firstKey: e.target.value })}
+                    defaultValue={addcredentials.firstKey}
                   />
                 </div>
                 <div className='col-lg-5'>
@@ -269,7 +360,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="Password for marketplace"
-                    onChange={e => setCredentials({ ...addcredentials, "secondKey": e.target.value })}
+                    onChange={e => setCredentials({ ...addcredentials, secondKey: e.target.value })}
+                    defaultValue={addcredentials.secondKey}
                   />
                 </div>
               </div>
@@ -280,7 +372,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/product_offer"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "endpoint": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, endpoint: e.target.value })}
+                    defaultValue={addproductsCURD.endpoint}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -289,7 +382,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/create"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "create": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, create: e.target.value })}
+                    defaultValue={addproductsCURD.create}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -298,7 +392,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/read"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "read": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, read: e.target.value })}
+                    defaultValue={addproductsCURD.read}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -307,7 +402,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/update"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "update": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, update: e.target.value })}
+                    defaultValue={addproductsCURD.update}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -316,7 +412,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/delete"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "delete": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, delete: e.target.value })}
+                    defaultValue={addproductsCURD.delete}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -325,7 +422,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/count"
-                    onChange={e => setProductsCURD({ ...addproductsCURD, "count": e.target.value })}
+                    onChange={e => setProductsCURD({ ...addproductsCURD, count: e.target.value })}
+                    defaultValue={addproductsCURD.count}
                   />
                 </div>
               </div>
@@ -336,7 +434,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/product_offer"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "endpoint": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, endpoint: e.target.value })}
+                    defaultValue={addordersCRUD.endpoint}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -345,7 +444,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/create"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "create": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, create: e.target.value })}
+                    defaultValue={addordersCRUD.create}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -354,7 +454,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/read"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "read": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, read: e.target.value })}
+                    defaultValue={addordersCRUD.read}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -363,7 +464,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/update"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "update": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, update: e.target.value })}
+                    defaultValue={addordersCRUD.update}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -372,7 +474,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/delete"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "delete": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, delete: e.target.value })}
+                    defaultValue={addordersCRUD.delete}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -381,7 +484,8 @@ export function Integrations() {
                     type="text"
                     className="form-control form-control-solid"
                     placeholder="/count"
-                    onChange={e => setOrdersCRUD({ ...addordersCRUD, "count": e.target.value })}
+                    onChange={e => setOrdersCRUD({ ...addordersCRUD, count: e.target.value })}
+                    defaultValue={addordersCRUD.count}
                   />
                 </div>
               </div>

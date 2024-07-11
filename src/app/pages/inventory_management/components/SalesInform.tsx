@@ -1,9 +1,11 @@
 
-import { useEffect, useRef, FC } from 'react'
+import { useEffect, useRef, FC, useState } from 'react'
+import Select from 'react-select';
 import ApexCharts, { ApexOptions } from 'apexcharts'
 import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
 import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
-import { Product } from './Products'
+import { Product } from '../../models/product'
+import { getSalesInfo } from '../../dashboard/components/_request';
 
 type Props = {
   className: string,
@@ -12,42 +14,57 @@ type Props = {
   product: Product,
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(value);
-};
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SalesInformation: FC<Props> = ({ className, series, categories, product }) => {
+  const [seriesSales, setSeriesSales] = useState<string>(series);
+  const [categories1, setCategories] = useState<string>(categories);
+  const [salesPeriod, setSalesPeriod] = useState<number>(1);
+  const salesPeriodOptions = [
+    { value: 1, label: 'Last 12 months by month' },
+    { value: 2, label: 'Last 3 months by week' },
+    { value: 3, label: 'Last month by day' },
+  ];
+
   const chartRef = useRef<HTMLDivElement | null>(null)
   const { mode } = useThemeMode()
   const refreshChart = () => {
     if (!chartRef.current) {
-      return
+      return;
     }
-
-    const height = parseInt(getCSS(chartRef.current, 'height'))
-
-    const chart = new ApexCharts(chartRef.current, getChartOptions(height, series, categories))
+    const height = parseInt(getCSS(chartRef.current, 'height'));
+    const chart = new ApexCharts(chartRef.current, getChartOptions(height, seriesSales, categories1));
     if (chart) {
-      chart.render()
+      chart.render();
     }
-
-    return chart
+    return chart;
   }
 
   useEffect(() => {
+    getSalesInfo(product.id ?? 0, salesPeriod)
+      .then(res => {
+        if (res.data !== '') {
+          const data = res.data as [{ date_string: string, sales: number }];
+          const catigories: string[] = [];
+          const series: number[] = [];
+          data.forEach(datum => {
+            catigories.push(datum.date_string);
+            series.push(datum.sales);
+          });
+          setSeriesSales(JSON.stringify([{ name: 'Sales', data: series }]));
+          setCategories(JSON.stringify(catigories));
+        }
+      })
+      .catch(e => console.error(e));
+  }, [product.id, salesPeriod])
+  useEffect(() => {
     const chart = refreshChart()
-
     return () => {
       if (chart) {
         chart.destroy()
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartRef, mode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartRef, mode, seriesSales, categories1]);
 
   return (
     <div className={`card ${className}`}>
@@ -59,94 +76,21 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
       <div className='card-body py-0'>
         <div className='row'>
           <div className='col-xl-4'>
-            <div className='mb-2 text-gray-800 fw-bold'>
-              View sales data for:
-            </div>
-            <div className='mb-2'>
-              <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
-                SKU
-              </button>
-              <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
-                ASIN
-              </button>
-            </div>
-            <div className='row mb-2'>
-              <div className='col-md-6 text-gray-800 fw-bold'>
-                Sales rank
-              </div>
-              <div className='col-md-6 text-gray-800 fw-bold'>
-                Category
-              </div>
-            </div>
-            <div className='row mb-4'>
-              <div className='col-md-6 fw-bold'>
-                4,349
-              </div>
-              <div className='col-md-6 fw-bold'>
-                Home & Kitcken
-              </div>
-            </div>
+            <Select
+              className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+              options={salesPeriodOptions}
+              defaultValue={salesPeriodOptions[0]}
+              onChange={value => setSalesPeriod(value?.value ?? 1)}
+              isClearable={false}
+              isSearchable={false}
+            />
           </div>
-          <div className='col-xl-8'>
-            <div className='row mb-2'>
-              <div className='col-md-3'>
-
-              </div>
-              <div className='col-md-3 text-gray-800 fw-bold'>
-                Last 7 days
-              </div>
-              <div className='col-md-3 text-gray-800 fw-bold'>
-                Last 30 days
-              </div>
-              <div className='col-md-3 text-gray-800 fw-bold'>
-                Last 90 days
-              </div>
-            </div>
-            <div className='row mb-2'>
-              <div className='col-md-3 text-end text-gray-800 fw-bold align-content-center'>
-                Units ordered
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                4
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                17
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                17
-              </div>
-            </div>
-            <div className='row mb-2'>
-              <div className='col-md-3 text-end text-gray-800 fw-bold align-content-center'>
-                Avg units per order
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                1.00
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                1.00
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                1.00
-              </div>
-            </div>
-            <div className='row mb-2'>
-              <div className='col-md-3 text-end text-gray-800 fw-bold align-content-center'>
-                Avg selling price
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                {formatCurrency(27.33)}
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                {formatCurrency(27.03)}
-              </div>
-              <div className='col-md-3 fw-bold fs-5'>
-                {formatCurrency(27.03)}
-              </div>
-            </div>
+          <div className='col-xl-4'></div>
+          <div className='col-xl-4 align-content-center' style={{ fontSize: 18, fontWeight: 600 }}>
+            Total orders: {JSON.parse(seriesSales)[0].data.reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0)}
           </div>
         </div>
-        <div className='row'>
+        {/* <div className='row'>
           <div className="col-md-12">
             <button type="button" className="btn btn-sm btn-light btn-light-primary fs-6 w-60px p-1">
               Sales
@@ -155,8 +99,7 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
               Units
             </button>
           </div>
-          
-        </div>
+        </div> */}
         <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
       </div>
     </div>
@@ -216,7 +159,6 @@ function getChartOptions(height: number, series: string, categories: string): Ap
       },
     },
     yaxis: {
-      max: 120,
       labels: {
         style: {
           colors: labelColor,

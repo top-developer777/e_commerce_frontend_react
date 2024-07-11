@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts, editProductRequest, addProductRequest, getFilteredProducts } from './_request'
+import { getAllProducts, getFilteredProducts } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 import { Product } from '../../models/product'
@@ -81,15 +81,6 @@ const formatCurrency = (value: number) => {
     style: 'currency',
     currency: 'USD'
   }).format(value);
-}
-
-const isValidURL = (url: string) => {
-  try {
-    new URL(url);
-    return true;
-  } catch (e) {
-    return false;
-  }
 }
 
 const ReturnsInformation: React.FC<{
@@ -259,7 +250,6 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 }
 
 export function Products() {
-  const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
   const [products, setProducts] = useState<Product[]>([]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
@@ -267,14 +257,9 @@ export function Products() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(50);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [editProduct, setEditProduct] = useState<Product>();
-  const [showMore, setShowMore] = useState<boolean>(false);
   const [checkedMethods, setCheckedMethods] = useState<string[]>(['Train', 'Airplain', 'Ship']);
   const [weight, setWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
   const [vWeight, setVWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
-
-  const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
-  const toastClose = document.querySelector('#toast button') as HTMLElement;
 
   useEffect(() => {
     getAllProducts()
@@ -287,119 +272,6 @@ export function Products() {
   }, [limit]);
 
 
-  const handleAddProduct = () => {
-    const modal = document.querySelector('#addProductModal');
-    const form = document.querySelector('#addProductModal form');
-    const data: { [key: string]: string | number | boolean } = {};
-    const inputs = form?.querySelectorAll('input');
-    if (inputs) for (const input of inputs) {
-      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
-      if (input.value === '') {
-        modal?.classList.remove('show');
-        setToast({ msg: 'All fields must be filled.', status: 'danger' });
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-        return;
-      }
-    }
-    if (!isValidURL(data.image_link as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
-      return;
-    }
-    if (!isValidURL(data.link_address_1688 as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
-      return;
-    }
-    addProductRequest(data)
-      .then(res => {
-        modal?.classList.remove('show');
-        if (res.status === 200) {
-          handleFilterProduct();
-          setToast({ msg: 'Success to create!', status: 'success' });
-        } else {
-          setToast({ msg: 'Failed to create!', status: 'success' });
-        }
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-      });
-    const closeBtn = document.querySelector('#addProductModal .btn-close') as HTMLElement;
-    closeBtn?.click();
-  }
-  const handleEditProduct = () => {
-    const modal = document.querySelector('#editProductModal');
-    const form = document.querySelector('#editProductModal form');
-    const data: { [key: string]: string | number | boolean } = {};
-    const inputs = form?.querySelectorAll('input');
-    if (inputs) for (const input of inputs) {
-      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
-      if (input.value === '') {
-        modal?.classList.remove('show');
-        setToast({ msg: 'All fields must be filled.', status: 'danger' });
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-        return;
-      }
-    }
-    if (!isValidURL(data.image_link as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
-      return;
-    }
-    if (!isValidURL(data.link_address_1688 as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
-      return;
-    }
-    editProductRequest(editProduct?.id ?? 0, data)
-      .then(res => {
-        modal?.classList.remove('show');
-        if (res.status === 200) {
-          handleFilterProduct();
-          setToast({ msg: 'Success to edit!', status: 'success' });
-        } else {
-          setToast({ msg: 'Failed to edit!', status: 'success' });
-        }
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-      });
-    const closeBtn = document.querySelector('#editProductModal .btn-close') as HTMLElement;
-    closeBtn?.click();
-    setEditProduct(undefined);
-  }
   const handleFilterProduct = () => {
     const w = { from: parseFloat(weight.from), to: parseFloat(weight.to) };
     const v = { from: parseFloat(vWeight.from), to: parseFloat(vWeight.to) };
@@ -533,12 +405,6 @@ export function Products() {
                   Total: {totalProducts}
                 </div>
               </div>
-              <div>
-                <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7' data-bs-toggle="modal" data-bs-target="#addProductModal">
-                  <i className="bi bi-cart-plus"></i>
-                  Add Product
-                </button>
-              </div>
             </div>
             <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
               <thead>
@@ -551,7 +417,6 @@ export function Products() {
                   <th>Stock (Days Left in Stock)</th>
                   <th>Barcode Title</th>
                   <th>Masterbox Title</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -591,498 +456,18 @@ export function Products() {
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />
                         </div>
                       </td> */}
-                        <td className="align-content-center">
-                          <div className="d-flex align-items-center flex-column">
-                            <a href='#'
-                              onClick={() => {
-                                setEditProduct(product);
-                                setShowMore(false);
-                              }}
-                              data-bs-toggle="modal" data-bs-target="#editProductModal"
-                            >
-                              Edit
-                            </a>
-                          </div>
-                        </td>
                       </tr>
                     )
                   })
                 }
               </tbody>
             </table>
-            <div className="modal fade" id='editProductModal' tabIndex={-1} aria-hidden="true">
-              <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Product for {editProduct?.product_name}</h1>
-                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div className="modal-body">
-                    {editProduct && <form action="" method='post' id='editProductForm'>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Product Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='product_name' defaultValue={editProduct.product_name} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Model Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='model_name' defaultValue={editProduct.model_name} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">SKU:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' defaultValue={editProduct.sku} placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Price:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="number" className="form-control" name='price' defaultValue={parseFloat(editProduct.price)} placeholder="Price" aria-label="Price" aria-describedby="price" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Temp Image Link:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="url" className="form-control" name='image_link' defaultValue={editProduct.image_link} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Barcode Title:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='barcode_title' defaultValue={editProduct.barcode_title} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Masterbox Title:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='masterbox_title' defaultValue={editProduct.masterbox_title} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Link Address:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="url" className="form-control" name='link_address_1688' defaultValue={editProduct.link_address_1688} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Price:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="number" className="form-control" name='price_1688' defaultValue={parseFloat(editProduct.price_1688)} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Variation Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
-                            <input type="text" className="form-control" name='variation_name_1688' defaultValue={editProduct.variation_name_1688} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">PCS/CTN:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
-                            <input type="text" className="form-control" name='pcs_ctn' defaultValue={editProduct.pcs_ctn} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Weight:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="number" className="form-control" name='weight' defaultValue={parseFloat(editProduct.weight)} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Dimensions:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
-                            <input type="text" className="form-control" name='dimensions' defaultValue={editProduct.dimensions} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='supplier_id' defaultValue={editProduct.supplier_id} placeholder="Supplier" aria-label="Supplier" aria-describedby="supplier-id" required />
-                          </div>
-                        </div>
-                      </div>
-                      {!showMore && <div className="d-flex align-items-center py-1 flex-column">
-                        <button type='button' className='btn btn-light btn-light-primary btn-pull-right p-2 px-3 mx-1 fs-7' onClick={() => setShowMore(true)}>
-                          <i className="bi bi-plus-circle"></i> More
-                        </button>
-                      </div>}
-                      <span style={{ display: showMore ? 'block' : 'none' }}>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">English Name:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='english_name' defaultValue={editProduct.english_name} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Romanian Name:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='romanian_name' defaultValue={editProduct.romanian_name} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Material Name (EN):</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='material_name_en' defaultValue={editProduct.material_name_en} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Material Name (RO):</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='material_name_ro' defaultValue={editProduct.material_name_ro} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">HS Code:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='hs_code' defaultValue={editProduct.hs_code} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Battery:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="form-check form-switch form-check-custom form-check-solid">
-                              <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={editProduct.battery} />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Default Usage:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
-                              <input type="text" className="form-control" name='default_usage' defaultValue={editProduct.default_usage} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Estimated Production Time:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                              <input type="number" className="form-control" name='production_time' defaultValue={parseFloat(editProduct.production_time)} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Discontinued:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="form-check form-switch form-check-custom form-check-solid">
-                              <input className="form-check-input" type="checkbox" id="discontinued" name='discontinued' defaultChecked={editProduct.discontinued} />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center py-1 flex-column">
-                          <button type='button' className='btn btn-light btn-light-primary btn-pull-right p-2 px-3 mx-1 fs-7' onClick={() => setShowMore(false)}>
-                            <i className="bi bi-dash-circle"></i> Less
-                          </button>
-                        </div>
-                      </span>
-                    </form>}
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setEditProduct(undefined)}>Close</button>
-                    <button type="button" className="btn btn-primary" onClick={handleEditProduct}>Save changes</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="modal fade" id='addProductModal' tabIndex={-1} aria-hidden="true">
-              <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h1 className="modal-title fs-5">Add Product</h1>
-                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div className="modal-body">
-                    <form action="" method='post' id='addProductForm'>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Product Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='product_name' placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Model Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='model_name' placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">SKU:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Price:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                            <input type="number" className="form-control" name='price' placeholder="Price" aria-label="Price" aria-describedby="price" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Temp Image Link:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                            <input type="url" className="form-control" name='image_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Barcode Title:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='barcode_title' placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Masterbox Title:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='masterbox_title' placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Link Address:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                            <input type="url" className="form-control" name='link_address_1688' placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Price:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                            <input type="number" className="form-control" name='price_1688' defaultValue={0} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">1688 Variation Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
-                            <input type="text" className="form-control" name='variation_name_1688' placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">PCS/CTN:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
-                            <input type="text" className="form-control" name='pcs_ctn' placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Weight:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="number" className="form-control" name='weight' defaultValue={0} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Dimensions:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
-                            <input type="text" className="form-control" name='dimensions' placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Supplier:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='supplier_id' defaultValue={1} placeholder="Supplier" aria-label="Supplier" aria-describedby="supplier-id" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">English Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='english_name' placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Romanian Name:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='romanian_name' placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Material Name (EN):</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='material_name_en' placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Material Name (RO):</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='material_name_ro' placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">HS Code:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='hs_code' placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Battery:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="form-check form-switch form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" id="battery" name='battery' defaultChecked={false} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Default Usage:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
-                            <input type="text" className="form-control" name='default_usage' placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Estimated Production Time:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                            <input type="number" className="form-control" name='production_time' placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Discontinued:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="form-check form-switch form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" id="discontinued" name='discontinued' defaultChecked={false} />
-                          </div>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" className="btn btn-primary" onClick={handleAddProduct}>Add Product</button>
-                  </div>
-                </div>
-              </div>
-            </div>
           </>
           :
           <>
             <DetailedProduct product={products[selectedProductID]} setSelectedProductID={setSelectedProductID} />
           </>
       }
-      <a className='d-none' href="#" id='toastBtn' data-bs-toggle="modal" data-bs-target="#toast"></a>
-      <div className="modal fade" id='toast' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog rounded">
-          <div className="modal-content">
-            <div className={`modal-body text-white text-bg-${toast.status} rounded`}>{toast.msg}</div>
-            <button type="button" className="btn btn-secondary d-none" data-bs-dismiss="modal"></button>
-          </div>
-        </div>
-      </div>
     </Content>
   )
 }

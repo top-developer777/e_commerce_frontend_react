@@ -38,9 +38,13 @@ export const getProductImageByID = async (id: number) => {
     return images.length > 0 ? images[0]["url"] : [{ "url": "" }]
 }
 
-export const getAllSuppliers = (page: number, limit = 50) => {
+export const getAllSuppliers = async (page: number, limit = 50) => {
     return axios
         .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
+}
+
+export const createSupplier = async (data: { name: string, group: string, wechat: string }) => {
+    return axios.post(SUPPLIERS_ENDPOINT, data);
 }
 
 export const countSuppliers = () => {

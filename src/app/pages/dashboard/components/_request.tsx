@@ -47,11 +47,31 @@ const getProductAmount = (suppliers: string = '') => {
     return axios.get(`${API_URL}/products/count?supplier_ids=${suppliers}`)
 }
 
+const getSalesInfo = async (productId: number, type: number = 1) => {
+    return axios.get(`${API_URL}/products/sales_info/${productId}?type=${type}`)
+}
+
+const getOrdersInfo = async (productId: number) => {
+    return axios.get(`${API_URL}/products/orders_info/${productId}`)
+}
+
+const getRefundedInfo = async (productId: number) => {
+    return axios.get(`${API_URL}/products/refunded_info/${productId}`)
+}
+
+const getShipmentInfo = async (productId: number) => {
+    return axios.get(`${API_URL}/products/shipment_info/${productId}`)
+}
+
 export {
-    getDashboardInfo,
-    getProductsDay,
-    getChartInfo,
-    getPLInfo,
     getAllProducts,
+    getChartInfo,
+    getDashboardInfo,
+    getOrdersInfo,
+    getPLInfo,
     getProductAmount,
+    getProductsDay,
+    getRefundedInfo,
+    getSalesInfo,
+    getShipmentInfo,
 }

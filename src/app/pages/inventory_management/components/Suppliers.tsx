@@ -1,76 +1,30 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { countSuppliers, getAllSuppliers } from './_request';
+import { countSuppliers, createSupplier, getAllSuppliers } from './_request';
+import { type Suppliers as InterSuplier } from '../../models/supplier';
 
-const fakeSuppliers = [
-  {
-    "name": "ABC",
-    "currency": "RON",
-    "email": "abc@test.com",
-    "wechat": "wxid_1234567890",
-    "website": "http://localhost:8000",
-    "numOfproducts": 10,
-    "numOfOrders": 100,
-    "author": "Victor Sava",
-    "author_email": "victor@admin.com",
-  },
-  {
-    "name": "BBB",
-    "currency": "RON",
-    "email": "BBB@test.com",
-    "wechat": "wxid_1234567890",
-    "website": "http://localhost:8000",
-    "numOfproducts": 10,
-    "numOfOrders": 100,
-    "author": "Admin",
-    "author_email": "admin@dev.com",
-  },
-]
-
-const ColorForAvatar = [
-  {
-    "background": "#302024",
-    "text": "#e42855"
-  },
-  {
-    "background": "#242320",
-    "text": "#c59a00"
-  },
-  {
-    "background": "#172331",
-    "text": "#006ae6"
-  },
-  {
-    "background": "#25202f",
-    "text": "#dd00e9"
-  }
-]
-
-interface Supplier {
-  name: string;
-  currency: string;
-  email: string;
-  wechat: string;
-  website: string;
-  numOfproducts: number;
-  numOfOrders: number;
-  author: string;
-  author_email: string;
+interface ShowSupplers extends InterSuplier {
+  numOfproducts: number,
+  numOfOrders: number
 }
 
-export function Suppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+export const Suppliers = () => {
+  const [suppliers, setSuppliers] = useState<ShowSupplers[]>([]);
   const [totalSuppliers, setTotalSuppliers] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
+
+  const modal = document.querySelector('#addProductModal');
+  const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
+  const toastClose = document.querySelector('#toast button') as HTMLElement;
 
   useEffect(() => {
     getAllSuppliers(currentPage, limit)
       .then(res => {
-        // setSuppliers(res.data);
-        setSuppliers(fakeSuppliers)
+        setSuppliers(res.data);
       })
       .catch(e => console.error(e));
     countSuppliers()
@@ -80,7 +34,7 @@ export function Suppliers() {
         setTotalPages(len ? Math.ceil(len / limit) : 1);
       })
       .catch(e => console.error(e));
-  });
+  }, [currentPage, limit]);
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -106,6 +60,27 @@ export function Suppliers() {
       );
     }
     return pageNumbers;
+  }
+  const handleSave = () => {
+    const nameEle = document.querySelector('#addSupplierModal input[name="name"]') as HTMLInputElement;
+    const groupEle = document.querySelector('#addSupplierModal input[name="group"]') as HTMLInputElement;
+    const wechatEle = document.querySelector('#addSupplierModal input[name="wechat"]') as HTMLInputElement;
+    const name = nameEle.value;
+    const group = groupEle.value;
+    const wechat = wechatEle.value;
+    const data = { name, group, wechat };
+    createSupplier(data)
+      .then(res => {
+        console.log(res.data);
+        modal?.classList.remove('show');
+        setToast({ msg: 'Successfully created.', status: 'success' });
+        toastBtn.click();
+        modal?.classList.add('show');
+        setTimeout(() => {
+          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+        }, 5000);
+      })
+      .catch(e => console.log(e));
   }
 
   return (
@@ -133,73 +108,24 @@ export function Suppliers() {
       <table className="table table-rounded table-row-bordered border gy-7 gs-7">
         <thead>
           <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-            <th className='col-md-2'>Name</th>
-            <th className='col-md-1'>Currency</th>
-            <th className='col-md-2'>Email</th>
-            <th className='col-md-2'>WeChat</th>
-            <th className='col-md-2'>Website</th>
-            <th className='col-md-2'>Author</th>
-            <th className='col-md-1 text-center'>Number<br />(Products)</th>
-            <th className='col-md-1 text-center'>Number<br />(Orders)</th>
+            <th className='text-center'>No</th>
+            <th className='text-center'>Name</th>
+            <th className='text-center'>Group</th>
+            <th className='text-center'>WeChat</th>
+            <th className='text-center'>Number<br />(Products)</th>
+            <th className='text-center'>Number<br />(Orders)</th>
           </tr>
         </thead>
         <tbody>
           {
             suppliers.map((supplier, index) =>
               <tr key={index}>
-                <td className='align-content-center'>
-                  {
-                    supplier.name
-                  }
-                </td>
-                <td className='align-content-center'>
-                  {
-                    supplier.currency
-                  }
-                </td>
-                <td className='align-content-center'>
-                  {
-                    supplier.email
-                  }
-                </td>
-                <td className='align-content-center'>
-                  {
-                    supplier.wechat
-                  }
-                </td>
-                <td className='align-content-center'>
-                  {
-                    supplier.website
-                  }
-                </td>
-                <td className='align-content-center p-2'>
-                  <div className='d-flex align-items-center'>
-                    <div className='symbol symbol-circle symbol-50px overflow-hidden me-3' style={{ backgroundColor: ColorForAvatar[supplier.author[0].charCodeAt(0) % 4]['background'] }}>
-                      <div className='symbol-label fs-3' style={{ color: ColorForAvatar[supplier.author[0].charCodeAt(0) % 4]['text'] }}>
-                        {
-                          supplier.author.split(' ').length > 1 ?
-                            supplier.author.split(' ')[0][0] + supplier.author.split(' ')[1][0]
-                            :
-                            supplier.author[0]
-                        }
-                      </div>
-                    </div>
-                    <div className='d-flex flex-column text-gray-800'>
-                      <span className='text-gray-800'><b>{supplier.author}</b></span>
-                      <span>{supplier.author_email}</span>
-                    </div>
-                  </div>
-                </td>
-                <td className='text-center align-content-center'>
-                  {
-                    supplier.numOfproducts
-                  }
-                </td>
-                <td className='text-center align-content-center'>
-                  {
-                    supplier.numOfOrders
-                  }
-                </td>
+                <td className='text-center align-content-center'>{index + 1}</td>
+                <td className='text-center align-content-center'>{supplier.name}</td>
+                <td className='text-center align-content-center'>{supplier.group}</td>
+                <td className='text-center align-content-center'>{supplier.wechat}</td>
+                <td className='text-center align-content-center'>{supplier.numOfproducts ?? 123}</td>
+                <td className='text-center align-content-center'>{supplier.numOfOrders ?? 456}</td>
               </tr>
             )
           }
@@ -219,16 +145,43 @@ export function Suppliers() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="supplier-name"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='product_name' defaultValue={'name'} placeholder="Supplier Name" aria-label="Supplier Name" aria-describedby="supplier-name" required />
+                      <input type="text" className="form-control" name='name' placeholder="Supplier Name" autoComplete='off' />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Supplier Group:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="supplier-group"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='group' placeholder="Supplier Group" autoComplete='off' />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Supplier Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="supplier-wechat"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='wechat' placeholder="Supplier Wechat" autoComplete='off' />
                     </div>
                   </div>
                 </div>
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" className="btn btn-primary">Save changes</button>
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-x'></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}><i className='bi bi-save'></i>Save changes</button>
             </div>
+          </div>
+        </div>
+      </div>
+      <a className='d-none' href="#" id='toastBtn' data-bs-toggle="modal" data-bs-target="#toast"></a>
+      <div className="modal fade" id='toast' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog rounded">
+          <div className="modal-content">
+            <div className={`modal-body text-white text-bg-${toast.status} rounded`}>{toast.msg}</div>
+            <button type="button" className="btn btn-secondary d-none" data-bs-dismiss="modal"></button>
           </div>
         </div>
       </div>

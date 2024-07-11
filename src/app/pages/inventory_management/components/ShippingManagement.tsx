@@ -518,14 +518,12 @@ export function ShippingManagement() {
     setProducts(newProducts);
   }
   const handleSave = () => {
-    const idComp = document.querySelector('#createShipmentModal input[name="shipment_id"]') as HTMLInputElement;
     const nameComp = document.querySelector('#createShipmentModal input[name="name"]') as HTMLInputElement;
     const delivery_dateComp = document.querySelector('#createShipmentModal input[name="delivery_date"]') as HTMLInputElement;
     const typeComp = document.querySelectorAll('#createShipmentModal input[name="type"][type="hidden"]') as unknown as HTMLInputElement[];
     const productsComp = document.querySelectorAll('#createShipmentModal input[name="products"][type="hidden"]') as unknown as HTMLInputElement[];
     const statusComp = document.querySelector('#createShipmentModal input[name="status"][type="hidden"]') as HTMLInputElement;
     const noteComp = document.querySelector('#createShipmentModal textarea[name="note"]') as HTMLInputElement;
-    const id = idComp.value;
     const name = nameComp.value;
     const delivery_date = delivery_dateComp.value;
     const type: string[] = [];
@@ -537,7 +535,6 @@ export function ShippingManagement() {
     const status = statusComp.value;
     const note = noteComp.value;
     const data = {
-      shipment_id: id,
       name: name,
       delivery_date: delivery_date,
       type: type.join('%2C'),
@@ -579,8 +576,7 @@ export function ShippingManagement() {
                   options={shipingTypes}
                   isMulti
                   isSearchable={false}
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  onChange={(e, _) => filterByShippingType(e)}
+                  onChange={e => filterByShippingType(e)}
                   placeholder="Select shipping types"
                 />
               </div>
@@ -702,15 +698,6 @@ export function ShippingManagement() {
             <div className="modal-body">
               <form action="" method='post' id='editProductForm'>
                 <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Shipment ID:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='shipment_id' placeholder="Shipment ID" />
-                    </div>
-                  </div>
-                </label>
-                <label className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Shipment Name:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
@@ -730,6 +717,7 @@ export function ShippingManagement() {
                       isMulti
                       isSearchable={false}
                       noOptionsMessage={e => `No more shipping type${e.inputValue}`}
+                      defaultValue={{ value: 'Train', label: 'Train' }}
                     />
                   </div>
                 </div>
@@ -743,7 +731,7 @@ export function ShippingManagement() {
                       placeholder='Select products'
                       isMulti
                       onMenuScrollToBottom={loadMoreProducts}
-                      noOptionsMessage={e => `No product starts with "${e.inputValue}"`}
+                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
                       hideSelectedOptions
                     />
                   </div>
@@ -783,7 +771,7 @@ export function ShippingManagement() {
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-cross"></i>Close</button>
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
             </div>
           </div>
@@ -882,7 +870,7 @@ export function ShippingManagement() {
               </form>}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-cross"></i>Close</button>
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
             </div>
           </div>
