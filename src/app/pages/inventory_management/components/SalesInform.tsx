@@ -87,7 +87,7 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
           </div>
           <div className='col-xl-4'></div>
           <div className='col-xl-4 align-content-center' style={{ fontSize: 18, fontWeight: 600 }}>
-            Total orders: {JSON.parse(seriesSales)[0].data.reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0)}
+            Total orders: {JSON.parse(seriesSales).length > 0 && JSON.parse(seriesSales)[0].data.reduce((accumulator: number, currentValue: number) => accumulator + currentValue, 0)}
           </div>
         </div>
         {/* <div className='row'>

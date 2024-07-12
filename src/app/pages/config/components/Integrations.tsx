@@ -2,7 +2,7 @@ import { Content } from '../../../../_metronic/layout/components/content'
 import React, { useState, useCallback, useEffect } from 'react'
 import Select from 'react-select'
 import { useDropzone } from 'react-dropzone'
-import { createMarketplace, getAllMarketplaces, removeMarketplace, uploadImage } from "./_request";
+import { createMarketplace, editMarketplace, getAllMarketplaces, removeMarketplace, uploadImage } from "./_request";
 
 const flags = {
   "ro": "romania",
@@ -25,14 +25,14 @@ const DragDropFileUpload: React.FC<{
     } catch (error) {
       console.error('Error uploading file:', error);
     }
-    props.setImg(res.filepath)
+    props.setImg(res.filepath.replace('uploads/', 'upload/'))
     console.log(acceptedFile);
   }, [props]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
-    <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`}>
+    <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''} h-100 align-content-center`}>
       <input {...getInputProps()} accept='image/*' />
       {
         isDragActive ?
@@ -67,7 +67,7 @@ interface interMKP {
 }
 
 export function Integrations() {
-  const [editID, setEditID] = useState(-1);
+  const [editID, setEditID] = useState(-2);
   const [editImg, setEditImg] = useState('');
   const [addCredWay, setAddCredentials] = useState('user_pass');
   const [addcredentials, setCredentials] = useState<interCred>({ type: 'user_pass', firstKey: '', secondKey: '' });
@@ -109,10 +109,11 @@ export function Integrations() {
         setAllMarketPlaces(res.data)
       })
       .catch(e => console.error(e));
-  }, []);
+  }, [editID]);
 
   const onEdit = (index: number) => {
-    setEditID(index);
+    setEditID(allMarketplaces[index].id ?? -1);
+    setEditImg(allMarketplaces[index].image_url ?? '')
     setAddMarketPlace(allMarketplaces[index]);
     setCredentials(allMarketplaces[index].credentials);
     setProductsCURD(allMarketplaces[index].products_crud);
@@ -121,7 +122,7 @@ export function Integrations() {
   }
 
   const onRemove = (index: number) => {
-    removeMarketplace(allMarketplaces[index].id ?? 0)
+    removeMarketplace(allMarketplaces[index].id ?? -1)
       .then(res => {
         if (res.data.msg)
           setAllMarketPlaces(allMarketplaces.filter((_, idx) => idx != index))
@@ -135,9 +136,12 @@ export function Integrations() {
       ...addMarketplace,
       image_url: editImg,
     }
-    const res = await createMarketplace(data)
-    if (res.msg == "success") {
-      setEditID(-1);
+    if (editID === -1) {
+      const res = await createMarketplace(data)
+      if (res.msg === 'success') setEditID(-2);
+    } else {
+      const res = await editMarketplace(editID, data);
+      if (res.status === 200) setEditID(-2);
     }
   }
   return (
@@ -147,11 +151,11 @@ export function Integrations() {
           Marketplace Integration
         </h3>
         <div>
-          <button type='button' className='btn btn-light btn-light-primary' onClick={() => setEditID(0)}>Add</button>
+          <button type='button' className='btn btn-light btn-light-primary' onClick={() => { setEditID(-1); setEditImg('') }}>Add</button>
         </div>
       </div>
       {
-        editID == -1 ?
+        editID === -2 ?
           <div className="row g-5 mb-4">
             {
               allMarketplaces.map((marketplace: interMKP, index) =>
@@ -168,16 +172,16 @@ export function Integrations() {
                         </button>
                       </div>
                     </div>
-                    <div className="card-body py-10 mb-2">
+                    <div className="card-body py-5 mb-2">
                       <div className="row">
-                        <div className="d-flex flex-center">
-                          <img className="rounded" height={45} alt='eMag image' src={marketplace.image_url ?? ''} />
+                        <div className="d-flex flex-center overflow-hidden" style={{ height: '100px' }}>
+                          <img className="rounded" style={{ width: '75%' }} alt={marketplace.marketplaceDomain} src={`${API_URL}/utils/${marketplace.image_url ?? ''}`} />
                         </div>
                       </div>
                     </div>
                     <div className="card-footer p-4">
-                      <img className="w-15px h-15px rounded-1 ms-2" src={`/media/flags/${flags[marketplace.country]}.svg`} alt="metronic" />
-                      &nbsp;&nbsp;{marketplace.marketplaceDomain} : {marketplace.owner}
+                      <img className="w-15px h-15px rounded-1 ms-2" src={`/media/flags/${flags[marketplace.country]}.svg`} alt={marketplace.country} />
+                      &nbsp;&nbsp;{marketplace.marketplaceDomain}
                     </div>
                   </div>
                 </div>
@@ -191,11 +195,12 @@ export function Integrations() {
             </div>
             <div className="card-body py-5">
               <div className='row'>
-                <div className='col-lg-4'>
+                <div className='d-flex col-lg-4 p-2'>
                   {editImg === '' ?
                     <DragDropFileUpload setImg={setEditImg} />
-                    :
-                    <img className='w-100' src={`${API_URL}/utils/${editImg}`} />
+                    : <div className='d-flex align-content-center w-100 h-100'>
+                      <img className='d-flex mh-100 mw-100 m-auto' src={`${API_URL}/utils/${editImg}`} />
+                    </div>
                   }
                 </div>
                 <div className='col-lg-8'>
@@ -345,21 +350,21 @@ export function Integrations() {
                   />
                 </div>
                 <div className='col-lg-5'>
-                  <label className="form-label">Username or Email</label>
+                  <label className="form-label">{addCredWay === 'user_pass' ? 'Username or Email' : 'Public Key'}</label>
                   <input
                     type="text"
                     className="form-control form-control-solid"
-                    placeholder="Username or Email"
+                    placeholder={addCredWay === 'user_pass' ? 'Username or Email' : 'Public Key'}
                     onChange={e => setCredentials({ ...addcredentials, firstKey: e.target.value })}
                     defaultValue={addcredentials.firstKey}
                   />
                 </div>
                 <div className='col-lg-5'>
-                  <label className="form-label">Password</label>
+                  <label className="form-label">{addCredWay === 'user_pass' ? 'Password' : 'Private Key'}</label>
                   <input
                     type="text"
                     className="form-control form-control-solid"
-                    placeholder="Password for marketplace"
+                    placeholder={addCredWay === 'user_pass' ? 'Password for marketplace' : 'Private Key'}
                     onChange={e => setCredentials({ ...addcredentials, secondKey: e.target.value })}
                     defaultValue={addcredentials.secondKey}
                   />
@@ -495,7 +500,7 @@ export function Integrations() {
                 <button type="button" onClick={() => onSubmit()} className="btn btn-sm btn-light btn-light-primary mx-4">
                   Save
                 </button>
-                <button type="button" onClick={() => setEditID(-1)} className="btn btn-sm btn-light btn-light-danger">
+                <button type="button" onClick={() => setEditID(-2)} className="btn btn-sm btn-light btn-light-danger">
                   Discard
                 </button>
               </div>

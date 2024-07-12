@@ -15,6 +15,11 @@ const getAllMarketplaces = async () => {
         .get(MARKETPLACE_ENDPOINT, { params: { limit: 1000 } })
 }
 
+const editMarketplace = async (id: number, data: object) => {
+    return axios
+        .put(`${MARKETPLACE_ENDPOINT}/${id}`, data)
+}
+
 const removeMarketplace = async (id: number) => {
     return axios
         .delete(`${MARKETPLACE_ENDPOINT}/${id}`)
@@ -30,7 +35,8 @@ const uploadImage = async (data: object) => {
 
 export {
     createMarketplace,
-    uploadImage,
+    editMarketplace,
     getAllMarketplaces,
-    removeMarketplace
+    removeMarketplace,
+    uploadImage,
 }
