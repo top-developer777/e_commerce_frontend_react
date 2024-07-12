@@ -135,6 +135,7 @@ export function Integrations() {
     const data = {
       ...addMarketplace,
       image_url: editImg,
+      credentials: addcredentials
     }
     if (editID === -1) {
       const res = await createMarketplace(data)
