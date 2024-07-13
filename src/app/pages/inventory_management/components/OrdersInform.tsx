@@ -37,7 +37,7 @@ const OrdersInformation: FC<Props> = ({ className, product }) => {
         <div className='row'>
           <h4>{product.product_name}</h4>
         </div>
-        <div className='row align-content-center'>
+        <div className='row align-content-center mt-5'>
           <div className='col-xl-2'>
             <a href={product.image_link}>
               {product.image_link ? <img src={product.image_link} alt={product.product_name} className='w-150px h-150px' /> : 'No Image'}
@@ -46,11 +46,11 @@ const OrdersInformation: FC<Props> = ({ className, product }) => {
           <div className='col-xl-10'>
             <div className='row'>
               <div className='col-md-4'>
-                <span>Model Name</span>
+                <span className='me-3'><b>Model Name</b></span>
                 <span>{product.model_name}</span>
               </div>
               <div className='col-md-4'>
-                <span>SKU</span>
+                <span className='me-3'><b>SKU</b></span>
                 <span>{product.sku}</span>
               </div>
             </div>

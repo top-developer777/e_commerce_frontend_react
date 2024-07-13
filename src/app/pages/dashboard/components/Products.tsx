@@ -104,6 +104,7 @@ const ReturnsInformation: React.FC<{
                 </tr>
               )
             }
+            {props.returns.length === 0 && <tr><td className='align-content-center text-center' colSpan={2}>There are no returns.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -147,7 +148,7 @@ const ShipmentInformation: React.FC<{
                 <td className='align-content-center'>{shipment.shipment_product_quantity}</td>
               </tr>
             )}
-            {props.shipments.length === 0 && <tr><td colSpan={5}>No shipments for this product.</td></tr>}
+            {props.shipments.length === 0 && <tr><td colSpan={6}>No shipments for this product.</td></tr>}
           </tbody>
         </table>
       </div>
