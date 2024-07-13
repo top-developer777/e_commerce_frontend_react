@@ -211,7 +211,7 @@ const OrderTable: React.FC<{
           <tbody>
             {
               props.orders.map((order: Order, index: number) =>
-                <tr key={index}>
+                <tr key={`order${index}`}>
                   <td className='align-content-center'>
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td>

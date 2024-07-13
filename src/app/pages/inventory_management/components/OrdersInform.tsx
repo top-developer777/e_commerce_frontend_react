@@ -50,8 +50,8 @@ const OrdersInformation: FC<Props> = ({ className, product }) => {
                 <span>{product.model_name}</span>
               </div>
               <div className='col-md-4'>
-                <span className='me-3'><b>SKU</b></span>
-                <span>{product.sku}</span>
+                <span className='me-3'><b>EAN</b></span>
+                <span>{product.ean}</span>
               </div>
             </div>
             <div className="separator my-10"></div>

@@ -60,15 +60,6 @@ const fakeSeriesSales = [
 
 const fakeCategoriesSales = ['19/05/2024', '21/05/2024', '23/05/2024', '25/05/2024', '27/05/2024', '29/05/2024', '31/05/2024', '02/06/2024', '04/06/2024', '06/06/2024', '08/06/2024', '10/06/2024']
 
-const fakeSeriesOrders = [
-  {
-    name: 'average',
-    data: [1.6, 1.8, 1.2, 1.3, 1.9, 1.8, 2.2, 2.3, 1.9, 1.2, 1.8, 1.6],
-  },
-]
-
-const fakeCategoriesOrders = ['19/05/2024', '21/05/2024', '23/05/2024', '25/05/2024', '27/05/2024', '29/05/2024', '31/05/2024', '02/06/2024', '04/06/2024', '06/06/2024', '08/06/2024', '10/06/2024']
-
 interface Return {
   return_type: string;
   rate: number;
@@ -183,7 +174,7 @@ const ShipmentInformation: React.FC<{
           <tbody>
             {
               props.shipments.map((shipment, index) =>
-                <tr key={index}>
+                <tr key={`inventorycalcproductlist${index}`}>
                   <td className='align-content-center'>{shipment.shipment_id}</td>
                   <td className='align-content-center'>{shipment.shipment_name}</td>
                   <td className='align-content-center'>{shipment.destination}</td>
@@ -242,7 +233,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
         </div>
       </div>
       <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(fakeSeriesSales)} product={product} categories={JSON.stringify(fakeCategoriesSales)} />
-      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(fakeSeriesOrders)} product={product} categories={JSON.stringify(fakeCategoriesOrders)} />
+      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
       <ReturnsInformation returns={returns} />
       <ShipmentInformation shipments={shipments} />
     </div>

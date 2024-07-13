@@ -2,7 +2,7 @@ export interface Product {
   id?: number;
   product_name: string,
   model_name: string,
-  sku: string,
+  ean: string,
   price: string,
   image_link: string,
   barcode_title: string,

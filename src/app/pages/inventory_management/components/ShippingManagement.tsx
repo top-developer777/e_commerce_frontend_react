@@ -494,7 +494,7 @@ export function ShippingManagement() {
           return { value: datum.id, label: datum.product_name }
         });
         setTotalProducts(products);
-        setProducts(products.slice(0, 10));
+        setProducts(products);
       })
       .catch(e => console.error(e));
   }, []);
@@ -727,7 +727,7 @@ export function ShippingManagement() {
                     <Select
                       name='products'
                       className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={products}
+                      options={[...products]}
                       placeholder='Select products'
                       isMulti
                       onMenuScrollToBottom={loadMoreProducts}

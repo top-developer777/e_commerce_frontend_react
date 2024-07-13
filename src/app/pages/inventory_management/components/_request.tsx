@@ -11,7 +11,9 @@ export const getAllProducts = () => {
 }
 
 export const getFilteredProducts = (shipment_type: string, weight_min: number, weight_max: number, volumetric_weight_min: number, volumetric_weight_max: number) => {
-    let url = `${API_URL}/inventory/product/advance?shipment_type=${shipment_type}`;
+    let url = `${API_URL}/inventory/product/advance`;
+    if (shipment_type) url += `?shipment_type=${shipment_type}`;
+    else url += '?';
     if (weight_min) url += `&weight_min=${weight_min}`;
     if (weight_max) url += `&weight_max=${weight_max}`;
     if (volumetric_weight_min) url += `&volumetric_weight_min=${volumetric_weight_min}`;

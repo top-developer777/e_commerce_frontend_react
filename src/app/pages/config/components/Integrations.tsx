@@ -12,6 +12,7 @@ const flags = {
 const API_URL = import.meta.env.VITE_APP_API_URL
 
 const DragDropFileUpload: React.FC<{
+  isShow: boolean,
   setImg: React.Dispatch<React.SetStateAction<string>>
 }> = (props) => {
   const onDrop = useCallback(async (acceptedFile: File[]) => {
@@ -32,7 +33,7 @@ const DragDropFileUpload: React.FC<{
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
-    <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''} h-100 align-content-center`}>
+    <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''} h-100 align-content-center`} style={{ display: props.isShow ? 'block' : 'none' }}>
       <input {...getInputProps()} accept='image/*' />
       {
         isDragActive ?
@@ -85,7 +86,7 @@ export function Integrations() {
     owner: '',
   });
   const [allMarketplaces, setAllMarketPlaces] = useState<interMKP[]>([]);
-  
+
   const optionsCred = [
     { value: 'user_pass', label: 'Username (email) / Password' },
     { value: 'pub_priv', label: 'Public Key / Private Key' },
@@ -145,6 +146,10 @@ export function Integrations() {
       if (res.status === 200) setEditID(-2);
     }
   }
+  const changeImage = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fileInput.click();
+  }
   return (
     <Content>
       <div className='d-flex flex-wrap flex-stack mb-6'>
@@ -152,7 +157,7 @@ export function Integrations() {
           Marketplace Integration
         </h3>
         <div>
-          <button type='button' className='btn btn-light btn-light-primary' onClick={() => { setEditID(-1); setEditImg('') }}>Add</button>
+          {editID === -2 && <button type='button' className='btn btn-light btn-light-primary' onClick={() => { setEditID(-1); setEditImg('') }}>Add</button>}
         </div>
       </div>
       {
@@ -197,12 +202,14 @@ export function Integrations() {
             <div className="card-body py-5">
               <div className='row'>
                 <div className='d-flex col-lg-4 p-2'>
-                  {editImg === '' ?
-                    <DragDropFileUpload setImg={setEditImg} />
-                    : <div className='d-flex align-content-center w-100 h-100'>
-                      <img className='d-flex mh-100 mw-100 m-auto' src={`${API_URL}/utils/${editImg}`} />
+                  <DragDropFileUpload setImg={setEditImg} isShow={editImg === ''} />
+                  <div className='align-content-center w-100 h-100 flex-column' style={{ display: editImg === '' ? 'none' : 'flex' }}>
+                    <img className='d-flex mh-100 mw-100 m-auto' src={`${API_URL}/utils/${editImg}`} />
+                    <div className="d-flex m-auto mb-0">
+                      <button className="btn btn-sm btn-primary me-2" onClick={changeImage}>Change</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => setEditImg('')}>Remove</button>
                     </div>
-                  }
+                  </div>
                 </div>
                 <div className='col-lg-8'>
                   <div className="row mb-8">

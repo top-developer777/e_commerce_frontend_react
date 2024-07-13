@@ -497,7 +497,7 @@ export const Products = () => {
                     <ul className="list-group supplier-panel">
                       {suppliers.length === 0 && <li className='list-group-item cursor-not-allowed'>No supplier</li>}
                       {suppliers.map(((supplier, index) => (
-                        <li className="list-group-item" key={`supplier${index}`}>
+                        <li className="list-group-item" key={`productsupplier${index}`}>
                           <label className='d-flex align-items-center cursor-pointer'>
                             <div className="d-flex pe-3">
                               <input type="checkbox" value={supplier.id} onChange={handleChangeSuppliers} />
@@ -556,7 +556,7 @@ export const Products = () => {
               <tbody>
                 {
                   products.map((product, index) =>
-                    <tr key={`product${index}`}>
+                    <tr key={`productlist${index}`}>
                       <td className='align-content-center'>
                         <input className="form-check-input" type="checkbox" value={index} />
                       </td>
@@ -629,11 +629,11 @@ export const Products = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">SKU:</div>
+                        <div className="d-flex fw-bold w-25">EAN:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
-                            <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' defaultValue={editProduct.sku} placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
+                            <span className="input-group-text" id="ean"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='ean' defaultValue={editProduct.ean} placeholder="EAN" aria-label="EAN" aria-describedby="ean" required />
                           </div>
                         </div>
                       </div>
@@ -882,11 +882,11 @@ export const Products = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">SKU:</div>
+                        <div className="d-flex fw-bold w-25">EAN:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
-                            <span className="input-group-text" id="sku"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='sku' placeholder="SKU" aria-label="SKU" aria-describedby="sku" required />
+                            <span className="input-group-text" id="ean"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='ean' placeholder="EAN" aria-label="EAN" aria-describedby="ean" required />
                           </div>
                         </div>
                       </div>
