@@ -1,13 +1,11 @@
-import { Product } from "./product";
-
 export interface Shipment {
   id?: number;
-  shipment_id: string;
   date: string;
-  name: string;
-  type: Array<'Airplain' | 'Sea' | 'Train'>;
-  products: Product[],
+  supplier_name: string;
+  type: 'Airplain' | 'Sea' | 'Train';
+  product_name_list: string[],
+  quantity_list: number[],
   status: string;
-  delivery_date: string;
+  expect_date: string;
   note?: string;
 }

@@ -99,7 +99,7 @@ const ReturnsInformation: React.FC<{
           <tbody>
             {
               props.returns.map((_return, index) =>
-                <tr key={index}>
+                <tr key={`invenvReturns${index}`}>
                   <td className='align-content-center text-center'>
                     {
                       _return.return_type
@@ -174,7 +174,7 @@ const ShipmentInformation: React.FC<{
           <tbody>
             {
               props.shipments.map((shipment, index) =>
-                <tr key={`inventorycalcproductlist${index}`}>
+                <tr key={`inventorycalcshipmentlist${index}`}>
                   <td className='align-content-center'>{shipment.shipment_id}</td>
                   <td className='align-content-center'>{shipment.shipment_name}</td>
                   <td className='align-content-center'>{shipment.destination}</td>
@@ -325,7 +325,7 @@ export function Products() {
                   <form className="dropdown-menu p-4 w-100">
                     <ul className="list-group method-panel">
                       {['Train', 'Airplain', 'Ship'].map((item, index) => (
-                        <li className="list-group-item" key={`method${index}`}>
+                        <li className="list-group-item" key={`delivMethod${index}`}>
                           <label className='d-flex align-items-center cursor-pointer'>
                             <div className="d-flex pe-3">
                               <input type="checkbox" value={item} defaultChecked={true} onChange={handleChangeMethods} />
@@ -416,7 +416,7 @@ export function Products() {
                     if (index < (currentPage - 1) * limit) return;
                     if (index > currentPage * limit) return;
                     return (
-                      <tr key={`product${index}`}>
+                      <tr key={`inventCalc${index}`}>
                         <td className='align-content-center'>
                           <input className="form-check-input" type="checkbox" value={index} />
                         </td>

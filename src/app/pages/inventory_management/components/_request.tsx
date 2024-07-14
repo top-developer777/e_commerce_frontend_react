@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_APP_API_URL
 const PRODUCTS_ENDPOINT = `${API_URL}/products`
 const SUPPLIERS_ENDPOINT = `${API_URL}/suppliers`
-const SHIPMENT_ENDPOINT = `${API_URL}/inventory/shipment`
+const SHIPMENT_ENDPOINT = `${API_URL}/shipment`
 
 export const getAllProducts = () => {
     return axios
@@ -57,7 +57,7 @@ export const getShipments = () => {
     return axios.get(`${SHIPMENT_ENDPOINT}`)
 }
 
-export const createShipments = (data: { [key: string]: string | number | boolean }) => {
+export const createShipments = (data: { [key: string]: string | number | boolean | string[] | number[] }) => {
     return axios.post(`${SHIPMENT_ENDPOINT}`, data);
 }
 
