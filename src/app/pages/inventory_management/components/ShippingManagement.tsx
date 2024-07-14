@@ -483,7 +483,6 @@ export function ShippingManagement() {
     getAllProducts()
       .then(res => {
         const data = res.data;
-        console.log(data);
         const products = data.map((datum: { [key: string]: string }) => {
           return { value: datum.ean, label: datum.product_name }
         });
@@ -746,12 +745,12 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75 flex-column">
                     {numProducts.map(ean => (
                       <div className="d-flex w-100" key={`numProduct${ean}`}>
-                        <div className="d-flex align-items-center p-2 w-auto me-auto">
+                        <div className="d-flex align-items-center p-2 me-auto" style={{ width: '75%' }}>
                           <div className="d-block overflow-hidden" style={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {products.find(p => p.value === ean)?.label}
                           </div>
                         </div>
-                        <div className="d-flex m-0" style={{ width: '20%' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
+                        <div className="d-flex m-0" style={{ width: '20%', minWidth: '50px' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
                         <div className="d-flex m-0">
                           <button className="btn btn-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-dash-circle"></i></button>
                         </div>
