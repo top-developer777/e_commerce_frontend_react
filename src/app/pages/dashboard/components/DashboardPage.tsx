@@ -92,7 +92,7 @@ const DashboardPage: FC = () => {
             &nbsp;P&L
           </a>
         </li>
-        {/* <li className="nav-item">
+        <li className="nav-item">
           <a
             className="nav-link"
             data-bs-toggle="tab"
@@ -101,7 +101,7 @@ const DashboardPage: FC = () => {
             <i className="bi bi-rocket-takeoff-fill"></i>
             &nbsp;Trends
           </a>
-        </li> */}
+        </li>
       </ul>
       <div className="tab-content" id="myTabContent">
         <div

@@ -569,8 +569,8 @@ export function ShippingManagement() {
           <>
             <div className="row">
               <div className="col-md-6">
-                <button className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createShipmentModal">
-                  <i className="bi bi-plus"></i>Create Shipment
+                <button className="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createShipmentModal">
+                  <i className="bi bi-plus-circle"></i>Create Shipment
                 </button>
               </div>
               <div className="col-md-6">
@@ -752,7 +752,7 @@ export function ShippingManagement() {
                         </div>
                         <div className="d-flex m-0" style={{ width: '20%', minWidth: '50px' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
                         <div className="d-flex m-0">
-                          <button className="btn btn-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-dash-circle"></i></button>
+                          <button className="btn btn-light-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-dash-circle"></i></button>
                         </div>
                       </div>
                     ))}

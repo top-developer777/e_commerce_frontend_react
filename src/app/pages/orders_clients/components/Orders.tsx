@@ -115,10 +115,15 @@ const OrderTable: React.FC<{
 }> = props => {
   const { currentPage, setCurrentPage } = props;
   const [totalPages, setTotalPages] = useState<number>(0);
-  getOrderAmout()
-    .then(res => {
-      setTotalPages(res.data > 0 ? Math.floor(res.data / props.limit) : 1);
-    })
+  const [totalOrders, setTotalOrders] = useState<number>(0);
+
+  useEffect(() => {
+    getOrderAmout()
+      .then(res => {
+        setTotalOrders(res.data);
+        setTotalPages(res.data > 0 ? Math.floor(res.data / props.limit) : 1);
+      })
+  }, [props.limit]);
 
   const { currentUser } = useAuth();
   const handleEdit = (id: number) => {
@@ -126,7 +131,6 @@ const OrderTable: React.FC<{
       props.setEditID(id);
     }
   }
-
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const startPage = Math.max(2, currentPage - 2);
@@ -165,7 +169,7 @@ const OrderTable: React.FC<{
             <i className="bi bi-chevron-double-right"></i>
           </button>
           <div className='align-content-center mx-10'>
-            Total: {props.orders.length}
+            Total: {totalOrders}
           </div>
         </div>
         <div>

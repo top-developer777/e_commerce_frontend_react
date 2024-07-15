@@ -238,7 +238,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
     const element = scrollRef.current;
     if (element) {
       const { scrollTop, scrollHeight, clientHeight } = element;
-      if (scrollTop + clientHeight >= scrollHeight) {
+      if (scrollTop + clientHeight >= scrollHeight - 10) {
         setAmount(amount + 1);
       }
     }
@@ -365,18 +365,16 @@ export const ChartComponent: FC<Props> = ({ className }) => {
               <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
                 {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
                 {products.map((product, index) => {
-                  if (index >= amount * 10) return;
-                  if ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts) < 0) return;
                   return (
-                    <li className="list-group-item" key={`product${index}`}>
-                      <label className='d-flex align-items-center'>
+                    <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
+                      <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
                           <input type="checkbox" value={product.id} onClick={checkSelected} />
                         </div>
                         <div className="d-flex">
-                          <img src={product.image_link} className='rounded-lg' alt={product.product_name} style={{ width: '36px' }} />
+                          <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />
                         </div>
-                        <div className="d-flex text-nowrap ps-3">
+                        <div className="d-block text-nowrap ps-3 overflow-hidden" style={{ textOverflow: 'ellipsis', flex: 1 }}>
                           {product.product_name} / {product.model_name}
                         </div>
                       </label>

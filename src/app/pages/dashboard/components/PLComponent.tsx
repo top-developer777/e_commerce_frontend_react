@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Select from 'react-select'
 import { getPLInfo } from "./_request";
 import { Product } from "../../models/product";
-import { getAllProducts } from "../../inventory_management/components/_request";
+import { getAllProducts } from "./_request";
 
 const periods = [
   {
@@ -24,7 +24,6 @@ export const PLComponent = () => {
   const [PLPeriod, setPLPeriod] = useState<string>('1');
   const [searchPLProducts, setSearchPLProducts] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
-  const [amount, setAmount] = useState<number>(1);
   const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const scrollRef = useRef<HTMLUListElement | null>(null);
@@ -40,10 +39,9 @@ export const PLComponent = () => {
         if (res.status === 200) {
           const data = res.data.PL_data;
           setPLDdata(data);
-        } else {
-          console.error(res);
         }
-      });
+      })
+      .catch(res => console.error(res));
   }
   const checkSelected = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
@@ -60,54 +58,22 @@ export const PLComponent = () => {
       input.checked = false;
     }
   }
-  const handleScroll = useCallback(() => {
-    const element = scrollRef.current;
-    if (element) {
-      const { scrollTop, scrollHeight, clientHeight } = element;
-      if (scrollTop + clientHeight >= scrollHeight) {
-        setAmount(amount + 1);
-      }
-    }
-  }, [amount]);
   const checkAll = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
     if (inputs) for (const input of inputs) {
-      if (!isAllChecked) {
-        input.checked = true;
-        setIsAllChecked(true);
-      } else {
-        input.checked = false;
-        setIsAllChecked(false);
-      }
+      input.checked = !isAllChecked;
+      setIsAllChecked(!isAllChecked);
       checkSelected();
     }
   }
 
   useEffect(() => {
-    getPLInfo()
-      .then(res => {
-        if (res.status === 200) {
-          const data = res.data.PL_data;
-          setPLDdata(data);
-        } else {
-          console.error(res);
-        }
-      });
-    getAllProducts()
+    getAllProducts(1, 10000)
       .then(res => {
         setProducts(res.data);
       })
       .catch(err => console.log(err));
   }, []);
-  useEffect(() => {
-    const element = scrollRef.current;
-    if (element) {
-      element.addEventListener('scroll', handleScroll);
-      return () => {
-        element.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, [handleScroll]);
 
   return (
     <div className="tab-pane fade" id="dashboard-pl" role="tabpanel">
@@ -151,18 +117,16 @@ export const PLComponent = () => {
               <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
                 {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
                 {products.map((product, index) => {
-                  if (index >= amount * 10) return;
-                  if ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchPLProducts) < 0) return;
                   return (
-                    <li className="list-group-item" key={`product${index}`}>
-                      <label className='d-flex align-items-center cursor-pointer'>
+                    <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchPLProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
+                      <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} />
+                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={true} />
                         </div>
                         <div className="d-flex">
-                          <img src={product.image_link} className='rounded-lg' alt={product.product_name} style={{ width: '36px' }} />
+                          <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />
                         </div>
-                        <div className="d-flex text-nowrap ps-3">
+                        <div className="d-block text-nowrap ps-3 overflow-hidden" style={{ textOverflow: 'ellipsis', flex: 1 }}>
                           {product.product_name} / {product.model_name}
                         </div>
                       </label>

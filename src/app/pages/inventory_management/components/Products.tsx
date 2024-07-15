@@ -274,6 +274,8 @@ export function Products() {
     getFilteredProducts(shippingType, w.from, w.to, v.from, v.to)
       .then(res => {
         setProducts(res.data);
+        setTotalProducts(res.data.length);
+        setTotalPages(res.data.length ? Math.ceil(res.data.length / limit) : 1);
       })
       .catch(err => console.log(err))
   }
@@ -359,10 +361,13 @@ export function Products() {
               </div>
               <div className="col-md-3">
                 <div className="dropdown">
-                  <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    <input type="text" className="form-control" readOnly value={`${vWeight.from} ~ ${vWeight.to} kg`} />
+                  <div data-bs-toggle="dropdown" style={{ display: 'flex' }} aria-expanded="false" data-bs-auto-close="outside">
+                    <div className="d-flex align-items-center pe-3 text-nowrap">Volumetric Weight:</div>
+                    <div className="d-flex">
+                      <input type="text" className="form-control" readOnly value={`${vWeight.from} ~ ${vWeight.to} kg`} />
+                    </div>
                   </div>
-                  <form className="dropdown-menu p-4" style={{ width: '150%' }}>
+                  <form className="dropdown-menu p-4" style={{ width: '120%' }}>
                     <div className="d-flex align-items-stretch flex-wrap w-100 h-100 vWeight-panel">
                       <div className="d-flex align-items-center" style={{ width: '39%' }}>
                         <input type="number" className='form-control' value={vWeight.from} onChange={(e) => setVWeight({ ...vWeight, from: e.target.value })} />
@@ -439,7 +444,7 @@ export function Products() {
                           </div>
                         </td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} ({product.day_stock} days)</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} ({product.day_stock === null ? 0 : product.day_stock} days)</td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
                         {/* <td className='align-content-center'>
