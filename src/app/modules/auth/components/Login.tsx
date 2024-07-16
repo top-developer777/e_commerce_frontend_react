@@ -1,5 +1,6 @@
 
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import * as Yup from 'yup'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
@@ -45,7 +46,8 @@ export function Login() {
         saveAuth(auth)
         const { data: user } = await getUserByToken(auth.access_token)
         setCurrentUser(user)
-        if (user.role == '-1') {
+        if (user.role?.toString() === '-1') {
+          toast.error('You are not allowed to sign in.')
           logout();
         }
       } catch (error) {

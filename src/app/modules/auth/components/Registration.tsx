@@ -53,7 +53,7 @@ const registrationSchema = Yup.object().shape({
 
 export function Registration() {
   const [loading, setLoading] = useState(false)
-  const {saveAuth, setCurrentUser} = useAuth()
+  const {saveAuth, setCurrentUser, logout} = useAuth()
   const formik = useFormik({
     initialValues,
     validationSchema: registrationSchema,
@@ -70,6 +70,7 @@ export function Registration() {
         saveAuth(auth)
         const {data: user} = await getUserByToken(auth.access_token)
         setCurrentUser(user)
+        logout();
       } catch (error) {
         console.error(error)
         saveAuth(undefined)
