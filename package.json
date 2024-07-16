@@ -41,6 +41,7 @@
     "react-router-dom": "6.3.0",
     "react-select": "^5.8.0",
     "react-table": "^7.7.0",
+    "react-toastify": "^10.0.5",
     "react-topbar-progress-indicator": "4.1.1",
     "socicon": "3.0.5",
     "yup": "^1.0.0"

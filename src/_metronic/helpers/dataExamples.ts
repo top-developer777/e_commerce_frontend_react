@@ -202,10 +202,11 @@ export interface AlertModel {
   description: string
   time: string
   icon: string
-  state: 'primary' | 'danger' | 'warning' | 'success' | 'info'
+  state: 'primary' | 'danger' | 'warning' | 'success' | 'info',
+  read: boolean
 }
 
-const defaultAlerts: Array<AlertModel> = [
+const defaultAlerts = [
   {
     title: 'Project Alice',
     description: 'Phase 1 development',

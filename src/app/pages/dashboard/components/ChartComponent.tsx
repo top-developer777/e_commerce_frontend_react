@@ -148,6 +148,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
   const [amount, setAmount] = useState<number>(1);
   const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [orders, setOrders] = useState<Order[]>([]);
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -322,6 +323,10 @@ export const ChartComponent: FC<Props> = ({ className }) => {
       };
     }
   }, [handleScroll]);
+  useEffect(() => {
+    if (mappingCompleted) handleChartFilter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mappingCompleted]);
 
   return (
     <div className="tab-pane fade" id="dashboard-chart" role="tabpanel">
@@ -364,12 +369,13 @@ export const ChartComponent: FC<Props> = ({ className }) => {
               </div>
               <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
                 {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
-                {products.map((product, index) => {
+                {products.length > 0 && products.map((product, index) => {
+                  if (index === products.length - 1 && !mappingCompleted) setTimeout(() => setMappingCompleted(true), 0);
                   return (
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} />
+                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={true} />
                         </div>
                         <div className="d-flex">
                           <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />

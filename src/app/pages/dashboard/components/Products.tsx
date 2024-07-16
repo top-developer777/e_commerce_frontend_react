@@ -308,7 +308,7 @@ export const Products = () => {
       <button key='page1' type='button' className={`btn ${currentPage === 1 ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(1)}>1</button>
     );
     if (startPage > 2) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='start-elipsis'>...</span>);
     }
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
@@ -316,7 +316,7 @@ export const Products = () => {
       );
     }
     if (endPage < totalPages - 1) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='end-elipsis'>...</span>);
     }
     if (totalPages > 1) {
       pageNumbers.push(
@@ -556,7 +556,7 @@ export const Products = () => {
               <tbody>
                 {
                   products.map((product, index) =>
-                    <tr key={`productlist${index}`}>
+                    <tr key={`productlist${product.id}`}>
                       <td className='align-content-center'>
                         <input className="form-check-input" type="checkbox" value={index} />
                       </td>

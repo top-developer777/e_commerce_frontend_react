@@ -139,7 +139,7 @@ const OrderTable: React.FC<{
       <button key='page1' type='button' className={`btn ${currentPage === 1 ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(1)}>1</button>
     );
     if (startPage > 2) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='start-elipsis'>...</span>);
     }
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
@@ -147,7 +147,7 @@ const OrderTable: React.FC<{
       );
     }
     if (endPage < totalPages - 1) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='end-elipsis'>...</span>);
     }
     if (totalPages > 1) {
       pageNumbers.push(

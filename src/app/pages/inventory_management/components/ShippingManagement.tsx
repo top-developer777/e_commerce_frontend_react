@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import Select, { MultiValue } from 'react-select'
-import { createShipments, getAllProducts, getShipments } from './_request';
+import { createShipments, getAllProducts, getAllSuppliers, getShipments } from './_request';
 import { Shipment } from '../../models/shipment';
+import { Suppliers } from '../../models/supplier';
 
 const shippingStatus = [
   {
@@ -462,6 +463,7 @@ export function ShippingManagement() {
   const [products, setProducts] = useState<{ [key: string]: string }[]>([]);
   const [totalProducts, setTotalProducts] = useState<{ [key: string]: string }[]>([]);
   const [numProducts, setNumProducts] = useState<string[]>([]);
+  const [suppliers, setSuppliers] = useState<{ value: string; label: string; }[]>([]);
 
   useEffect(() => {
     setShipingTypes(fakeShipingType);
@@ -470,6 +472,10 @@ export function ShippingManagement() {
     getShipments()
       .then(res => setShipments(res.data))
       .catch(e => console.error(e));
+    getAllSuppliers(1, 100)
+      .then(res => {
+        setSuppliers(res.data.map((dat: Suppliers) => { return { value: dat.name, label: `${dat.group} / ${dat.name}`} }))
+      })
   }, [])
   useEffect(() => {
     if (editID != -1) {
@@ -573,7 +579,8 @@ export function ShippingManagement() {
                   <i className="bi bi-plus-circle"></i>Create Shipment
                 </button>
               </div>
-              <div className="col-md-6">
+              <div className="col-md-3 align-content-center text-end">Filter By Shipping Type:</div>
+              <div className="col-md-3">
                 <Select
                   className='react-select-styled react-select-solid react-select-sm'
                   options={shipingTypes}
@@ -703,10 +710,14 @@ export function ShippingManagement() {
                 <label className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Supplier Name:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='name' placeholder="Supplier Name" />
-                    </div>
+                    <Select
+                      name='name'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={suppliers}
+                      placeholder='Select a supplier'
+                      noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
+                      defaultValue={suppliers[0] ?? null}
+                    />
                   </div>
                 </label>
                 <div className="d-flex align-items-center py-1">
@@ -811,10 +822,14 @@ export function ShippingManagement() {
                 <label className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Supplier Name:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='name' placeholder="Supplier Name" defaultValue={editShipement.supplier_name} />
-                    </div>
+                    <Select
+                      name='name'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={suppliers}
+                      placeholder='Select a supplier'
+                      noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
+                      defaultValue={suppliers.find(sup => sup.value === editShipement.supplier_name)}
+                    />
                   </div>
                 </label>
                 <div className="d-flex align-items-center py-1">

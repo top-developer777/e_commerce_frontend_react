@@ -109,10 +109,10 @@ const DashboardPage: FC = () => {
           id="dashboard-tiles"
           role="tabpanel"
         >
-          <div className='row d-flex'>
+          <div className='row'>
             {
               dashboardinfos.map((dashboardinfo, index) =>
-                <div className='custom-col-5' key={`tile${index}`}>
+                <div className='d-table-cell' style={{ flex: 1 }} key={`tile${index}`}>
                   <TileComponent dashboardinfo={dashboardinfo} setOrders={setOrders} />
                 </div>
               )

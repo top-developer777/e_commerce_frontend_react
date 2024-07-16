@@ -44,7 +44,7 @@ export const Suppliers = () => {
       <button key='page1' type='button' className={`btn ${currentPage === 1 ? 'btn-primary' : 'btn-light'} p-2 px-3 mx-1 fs-7`} onClick={() => setCurrentPage(1)}>1</button>
     );
     if (startPage > 2) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='start-elipsis'>...</span>);
     }
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
@@ -52,7 +52,7 @@ export const Suppliers = () => {
       );
     }
     if (endPage < totalPages - 1) {
-      pageNumbers.push(<>...</>);
+      pageNumbers.push(<span key='end-elipsis'>...</span>);
     }
     if (totalPages > 1) {
       pageNumbers.push(
@@ -159,7 +159,7 @@ export const Suppliers = () => {
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Supplier Name:</div>
+                  <div className="d-flex fw-bold w-25">Supplier WeChat:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="supplier-wechat"><i className="bi bi-link-45deg"></i></span>

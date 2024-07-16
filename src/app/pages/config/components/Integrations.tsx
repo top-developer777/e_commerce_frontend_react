@@ -138,6 +138,28 @@ export function Integrations() {
       image_url: editImg,
       credentials: addcredentials
     }
+    if ((
+      data.baseAPIURL
+      && data.baseURL
+      && data.marketplaceDomain
+      && data.title
+      && data.credentials.firstKey
+      && data.credentials.secondKey
+      && data.orders_crud.create
+      && data.orders_crud.count
+      && data.orders_crud.delete
+      && data.orders_crud.endpoint
+      && data.orders_crud.delete
+      && data.orders_crud.read
+      && data.orders_crud.update
+      && data.products_crud.create
+      && data.products_crud.count
+      && data.products_crud.delete
+      && data.products_crud.endpoint
+      && data.products_crud.delete
+      && data.products_crud.read
+      && data.products_crud.update
+    ) === '') return;
     if (editID === -1) {
       const res = await createMarketplace(data)
       if (res.msg === 'success') setEditID(-2);
@@ -318,6 +340,8 @@ export function Integrations() {
                         onChange={e => setAddMarketPlace({ ...addMarketplace, baseAPIURL: e.target.value })}
                         value={addMarketplace.baseAPIURL}
                       />
+                    </div>
+                    <div className="col-md-6">
                     </div>
                   </div>
                 </div>

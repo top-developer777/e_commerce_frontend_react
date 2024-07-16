@@ -26,8 +26,9 @@ export const TrendComponent = () => {
   const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const scrollRef = useRef<HTMLUListElement | null>(null);
+  const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
 
-  const handlePLFilter = () => {
+  const handleTrendFilter = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
     const productIds = [];
     if (inputs) for (const input of inputs) {
@@ -88,6 +89,10 @@ export const TrendComponent = () => {
       })
       .catch(err => console.log(err));
   }, []);
+  useEffect(() => {
+    if (mappingCompleted) handleTrendFilter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mappingCompleted]);
 
   return (
     <div className="tab-pane fade" id="dashboard-trends" role="tabpanel">
@@ -131,6 +136,7 @@ export const TrendComponent = () => {
               <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
                 {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
                 {products.map((product, index) => {
+                  if (index === products.length - 1 && !mappingCompleted) setTimeout(() => setMappingCompleted(true), 0);
                   return (
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchTrendProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
@@ -161,7 +167,7 @@ export const TrendComponent = () => {
           />
         </div>
         <div className="col-md-2">
-          <button type='button' className='btn btn-primary' onClick={handlePLFilter}>
+          <button type='button' className='btn btn-primary' onClick={handleTrendFilter}>
             <i className="bi bi-funnel"></i>
             Filter
           </button>

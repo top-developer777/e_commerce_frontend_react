@@ -1,29 +1,93 @@
-
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import clsx from 'clsx'
-import {FC} from 'react'
-import {Link} from 'react-router-dom'
+import { FC, useEffect, useState } from 'react'
+// import { Link } from 'react-router-dom'
 import {
-  defaultAlerts,
-  defaultLogs,
+  // defaultLogs,
   KTIcon,
   toAbsoluteUrl,
-  useIllustrationsPath,
+  // useIllustrationsPath,
 } from '../../../helpers'
+import { getNotifications, updateNotifications } from './_request';
+import { useAuth } from '../../../../app/modules/auth';
 
-const HeaderNotificationsMenu: FC = () => (
-  <div
-    className='menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px'
-    data-kt-menu='true'
-  >
+export interface AlertModel {
+  id: number
+  title: string
+  description: string
+  time: string
+  icon: string
+  state: 'success' | 'info' | 'warning' | 'error',
+  read: boolean
+  user_id: number
+}
+
+const HeaderNotificationsMenu: FC = () => {
+  const [alerts, setAlerts] = useState<AlertModel[]>([]);
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    getNotifications()
+      .then(res => {
+        const data = res.data.reverse().filter((dat: AlertModel) => dat.user_id === currentUser?.id);
+        const alerts = data.map((dat: { [key: string]: string | number | boolean }) => {
+          const alert = { ...dat };
+          if (dat.state === 'warning') alert['icon'] = 'cloud-change';
+          if (dat.state === 'info') alert['icon'] = 'information-5';
+          if (dat.state === 'success') alert['icon'] = 'information-5';
+          if (dat.state === 'error') alert['icon'] = 'information-5';
+          return alert;
+        });
+        setAlerts(alerts);
+        setTimeout(() => {
+          for (const alert of alerts) {
+            if (!alert.read) {
+              toast(<div>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{alert.title}</div>
+                <div>{alert.description}</div>
+              </div>, {
+                autoClose: 500000,
+                closeOnClick: true,
+                draggable: true,
+                hideProgressBar: false,
+                onClick: () => checkReadNotification(alert.id as number),
+                pauseOnFocusLoss: true,
+                pauseOnHover: true,
+                position: 'top-right',
+                progress: undefined,
+                type: alert.state as ('success' | 'info' | 'warning' | 'error')
+              });
+            }
+          }
+        }, 5000);
+      })
+      .catch(e => console.error(e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkReadNotification = (id: number) => {
+    const newAlerts = [...alerts];
+    const index = newAlerts.findIndex(alert => alert.id === id);
+    newAlerts[index].read = true;
+    setAlerts(newAlerts);
+    updateNotifications(id, newAlerts[index]);
+  }
+
+  return (
     <div
-      className='d-flex flex-column bgi-no-repeat rounded-top'
-      style={{backgroundImage: `url('${toAbsoluteUrl('media/misc/menu-header-bg.jpg')}')`}}
+      className='menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px'
+      data-kt-menu='true'
     >
-      <h3 className='text-white fw-bold px-9 mt-10 mb-6'>
-        Notifications <span className='fs-8 opacity-75 ps-3'>24 reports</span>
-      </h3>
+      <div
+        className='d-flex flex-column bgi-no-repeat rounded-top'
+        style={{ backgroundImage: `url('${toAbsoluteUrl('media/misc/menu-header-bg.jpg')}')` }}
+      >
+        <h3 className='text-white fw-bold px-9 mt-10 mb-6'>
+          Notifications <span className='fs-8 opacity-75 ps-3'>{alerts.length} {alerts.length === 1 ? 'report' : 'reports'}</span>
+        </h3>
 
-      <ul className='nav nav-line-tabs nav-line-tabs-2x nav-stretch fw-bold px-9'>
+        {/* <ul className='nav nav-line-tabs nav-line-tabs-2x nav-stretch fw-bold px-9 active'>
         <li className='nav-item'>
           <a
             className='nav-link text-white opacity-75 opacity-state-100 pb-4'
@@ -34,9 +98,9 @@ const HeaderNotificationsMenu: FC = () => (
           </a>
         </li>
 
-        <li className='nav-item'>
+        {/* <li className='nav-item'>
           <a
-            className='nav-link text-white opacity-75 opacity-state-100 pb-4 active'
+            className='nav-link text-white opacity-75 opacity-state-100 pb-4'
             data-bs-toggle='tab'
             href='#kt_topbar_notifications_2'
           >
@@ -53,46 +117,44 @@ const HeaderNotificationsMenu: FC = () => (
             Logs
           </a>
         </li>
-      </ul>
-    </div>
+      </ul> */}
+      </div>
 
-    <div className='tab-content'>
-      <div className='tab-pane fade' id='kt_topbar_notifications_1' role='tabpanel'>
-        <div className='scroll-y mh-325px my-5 px-8'>
-          {defaultAlerts.map((alert, index) => (
-            <div key={`alert${index}`} className='d-flex flex-stack py-4'>
-              <div className='d-flex align-items-center'>
-                <div className='symbol symbol-35px me-4'>
-                  <span className={clsx('symbol-label', `bg-light-${alert.state}`)}>
-                    {' '}
-                    <KTIcon iconName={alert.icon} className={`fs-2 text-${alert.state}`} />
-                  </span>
+      <div className='tab-content'>
+        <div className='tab-pane fade show active' id='kt_topbar_notifications_1' role='tabpanel'>
+          <div className='scroll-y mh-325px my-5 px-8'>
+            {!!alerts.length && alerts.map((alert, index) => (
+              <div key={`alert${index}`} className='d-flex flex-stack py-4'>
+                <div className='d-flex align-items-center'>
+                  <div className='symbol symbol-35px me-4'>
+                    <span className={clsx('symbol-label', `bg-light-${alert.state}`)}>
+                      {' '}
+                      <KTIcon iconName={alert.icon} className={`fs-2 text-${alert.state}`} />
+                    </span>
+                  </div>
+                  <div className='mb-0 me-2'>
+                    <a href='#' className='fs-6 text-gray-800 text-hover-primary fw-bolder'>
+                      {alert.title}
+                    </a>
+                    <div className='text-gray-500 fs-7'>{alert.description}</div>
+                  </div>
                 </div>
-
-                <div className='mb-0 me-2'>
-                  <a href='#' className='fs-6 text-gray-800 text-hover-primary fw-bolder'>
-                    {alert.title}
-                  </a>
-                  <div className='text-gray-500 fs-7'>{alert.description}</div>
-                </div>
+                <span className='badge badge-light fs-8'>{(new Date(alert.time).toDateString())}</span>
               </div>
+            ))}
+          </div>
 
-              <span className='badge badge-light fs-8'>{alert.time}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className='py-3 text-center border-top'>
+          {/* <div className='py-3 text-center border-top'>
           <Link
             to='/crafted/pages/profile'
             className='btn btn-color-gray-600 btn-active-color-primary'
           >
             View All <KTIcon iconName='arrow-right' className='fs-5' />
           </Link>
+        </div> */}
         </div>
-      </div>
 
-      <div className='tab-pane fade show active' id='kt_topbar_notifications_2' role='tabpanel'>
+        {/* <div className='tab-pane fade show active' id='kt_topbar_notifications_2' role='tabpanel'>
         <div className='d-flex flex-column px-9'>
           <div className='pt-10 pb-0'>
             <h3 className='text-gray-900 text-center fw-bolder'>Get Pro Access</h3>
@@ -145,9 +207,10 @@ const HeaderNotificationsMenu: FC = () => (
             View All <KTIcon iconName='arrow-right' className='fs-5' />
           </Link>
         </div>
+      </div> */}
       </div>
     </div>
-  </div>
-)
+  )
+}
 
-export {HeaderNotificationsMenu}
+export { HeaderNotificationsMenu }

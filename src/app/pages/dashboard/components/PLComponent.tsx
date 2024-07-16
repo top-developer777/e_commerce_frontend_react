@@ -26,6 +26,7 @@ export const PLComponent = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   const scrollRef = useRef<HTMLUListElement | null>(null);
 
   const handlePLFilter = () => {
@@ -68,12 +69,16 @@ export const PLComponent = () => {
   }
 
   useEffect(() => {
-    getAllProducts(1, 10000)
+    getAllProducts(1, 1000)
       .then(res => {
         setProducts(res.data);
       })
       .catch(err => console.log(err));
   }, []);
+  useEffect(() => {
+    if (mappingCompleted) handlePLFilter();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mappingCompleted]);
 
   return (
     <div className="tab-pane fade" id="dashboard-pl" role="tabpanel">
@@ -117,6 +122,7 @@ export const PLComponent = () => {
               <ul className="list-group overflow-auto" ref={scrollRef} style={{ maxHeight: '400px', minWidth: '400px' }}>
                 {products.length === 0 && <li className='list-group-item cursor-not-allowed'>No product</li>}
                 {products.map((product, index) => {
+                  if (index === products.length - 1 && !mappingCompleted) setTimeout(() => setMappingCompleted(true), 0);
                   return (
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchPLProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>

@@ -1,6 +1,11 @@
 import clsx from 'clsx'
 import {KTIcon, toAbsoluteUrl} from '../../../helpers'
-import {HeaderNotificationsMenu, HeaderUserMenu, Search, ThemeModeSwitcher} from '../../../partials'
+import {
+  HeaderNotificationsMenu,
+  HeaderUserMenu,
+  // Search,
+  ThemeModeSwitcher
+} from '../../../partials'
 import {useLayout} from '../../core'
 
 const itemClass = 'ms-1 ms-md-4'
@@ -13,7 +18,7 @@ const Navbar = () => {
   const {config} = useLayout()
   return (
     <div className='app-navbar flex-shrink-0'>
-      <div className={clsx('app-navbar-item align-items-stretch', itemClass)}>
+      {/* <div className={clsx('app-navbar-item align-items-stretch', itemClass)}>
         <Search />
       </div>
 
@@ -21,7 +26,7 @@ const Navbar = () => {
         <div id='kt_activities_toggle' className={btnClass}>
           <KTIcon iconName='chart-simple' className={btnIconClass} />
         </div>
-      </div>
+      </div> */}
 
       <div className={clsx('app-navbar-item', itemClass)}>
         <div
@@ -35,12 +40,12 @@ const Navbar = () => {
         <HeaderNotificationsMenu />
       </div>
 
-      <div className={clsx('app-navbar-item', itemClass)}>
+      {/* <div className={clsx('app-navbar-item', itemClass)}>
         <div className={clsx('position-relative', btnClass)} id='kt_drawer_chat_toggle'>
           <KTIcon iconName='message-text-2' className={btnIconClass} />
           <span className='bullet bullet-dot bg-success h-6px w-6px position-absolute translate-middle top-0 start-50 animation-blink' />
         </div>
-      </div>
+      </div> */}
 
       <div className={clsx('app-navbar-item', itemClass)}>
         <ThemeModeSwitcher toggleBtnClass={clsx('btn-active-light-primary btn-custom')} />

@@ -20,7 +20,7 @@ export const TableProductsOrders: FC<{ orders: Order[] }> = props => (
     </thead>
     <tbody>
       {
-        props.orders.map((order, index) =>
+        !!props.orders && props.orders.map((order, index) =>
           <tr key={`tr${index}`}>
             <td className='p-2'>
               <div className='row'>

@@ -22,11 +22,11 @@ export const TileComponent: FC<{
       <div className='row mb-2'>
         <div className='col-md-6'>
           <span className='text-gray-700'>Orders / Units</span><br />
-          <h4 className='text-gray-900 text-hover-primary'>{`${props.dashboardinfo.total_orders} / ${props.dashboardinfo.total_units}`}</h4>
+          <h4 className='text-gray-900 text-hover-primary'>{`${props.dashboardinfo.total_orders} / ${props.dashboardinfo.total_units ?? 0}`}</h4>
         </div>
         <div className='col-md-6'>
           <span className='text-gray-700'>Refunds</span><br />
-          <h4 className='text-gray-900 text-hover-primary'>{ props.dashboardinfo.total_refund }</h4>
+          <h4 className='text-gray-900 text-hover-primary'>{ props.dashboardinfo.total_refund ?? 0 }</h4>
         </div>
       </div>
       <div className="separator my-4"></div>
@@ -37,17 +37,17 @@ export const TileComponent: FC<{
         </div>
         <div className='col-md-6'>
           <span className='text-gray-700'>Est. payout</span><br />
-          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_payout)) }</h4>
+          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_payout ?? 0)) }</h4>
         </div>
       </div>
       <div className='row'>
         <div className='col-md-6'>
           <span className='text-gray-700'>Gross profit</span><br />
-          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_gross_profit)) }</h4>
+          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_gross_profit ?? 0)) }</h4>
         </div>
         <div className='col-md-6'>
           <span className='text-gray-700'>Net profit</span><br />
-          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_net_profit)) }</h4>
+          <h4 className='text-gray-900 text-hover-primary'>{ formatCurrency(parseFloat(props.dashboardinfo.total_net_profit ?? 0)) }</h4>
         </div>
       </div>
     </div>

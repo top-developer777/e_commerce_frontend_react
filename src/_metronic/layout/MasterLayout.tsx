@@ -1,5 +1,6 @@
 import {useEffect} from 'react'
 import {Outlet, useLocation} from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
 import {HeaderWrapper} from './components/header'
 import {RightToolbar} from '../partials/layout/RightToolbar'
 import {ScrollTop} from './components/scroll-top'
@@ -25,6 +26,7 @@ const MasterLayout = () => {
             <div className='app-main flex-column flex-row-fluid' id='kt_app_main'>
               <div className='d-flex flex-column flex-column-fluid'>
                 <Outlet />
+                <ToastContainer />
               </div>
               <FooterWrapper />
             </div>
@@ -47,4 +49,4 @@ const MasterLayout = () => {
   )
 }
 
-export {MasterLayout}
+export { MasterLayout }
