@@ -39,7 +39,7 @@ export function Login() {
   const formik = useFormik({
     initialValues,
     validationSchema: loginSchema,
-    onSubmit: async (values, { setStatus, setSubmitting }) => {
+    onSubmit: async (values, { setSubmitting }) => {
       setLoading(true)
       try {
         const { data: auth } = await login(values.email, values.password)
@@ -49,11 +49,13 @@ export function Login() {
         if (user.role?.toString() === '-1') {
           toast.error('You are not allowed to sign in.')
           logout();
+          setSubmitting(false)
+          setLoading(false)
         }
       } catch (error) {
         console.error(error)
         saveAuth(undefined)
-        setStatus('The login details are incorrect')
+        toast.error('The login details are incorrect.')
         setSubmitting(false)
         setLoading(false)
       }

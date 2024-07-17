@@ -4,6 +4,7 @@ import {KTIcon} from '../../../../../../_metronic/helpers'
 import {deactivateAccount, IDeactivateAccount} from '../SettingsModel'
 import * as Yup from 'yup'
 import {useFormik} from 'formik'
+import { toast } from 'react-toastify'
 
 const deactivateAccountSchema = Yup.object().shape({
   confirm: Yup.boolean().oneOf([true], 'Please check the box to deactivate your account'),
@@ -21,7 +22,7 @@ const DeactivateAccount: FC = () => {
       setTimeout(() => {
         setLoading(false)
       }, 1000)
-      alert('Account has been successfully deleted!')
+      toast.success('Account has been successfully deleted!')
     },
   })
 

@@ -1,18 +1,18 @@
 import { Product } from "./product";
 
 export interface Order {
+  id?: number;
   vendor_name: string;
   type: number;
-  parent_id: number;
   date: string;
   payment_mode: string;
   detailed_payment_method: string;
   delivery_mode: string;
-  observation: string;
   status: number;
   payment_status: number;
   customer_id: number;
-  product: Product;
+  product_id: number[];
+  quantity: number[];
   shipping_tax: number;
   shipping_tax_voucher_split: string;
   vouchers: string;
@@ -20,11 +20,9 @@ export interface Order {
   attachments: string;
   cashed_co: number;
   cashed_cod: number;
-  cancellation_request: string;
-  has_editable_products: boolean;
   refunded_amount: string;
   is_complete: boolean;
-  reason_cancellation: string;
+  cancellation_reason: string;
   refund_status: string;
   maximum_date_for_shipment: string;
   late_shipment: number;
@@ -32,6 +30,6 @@ export interface Order {
   emag_club: boolean;
   finalization_date: string;
   details: string;
-  weekend_delivery: boolean;
   payment_mode_id: number;
+  market_place: string;
 }

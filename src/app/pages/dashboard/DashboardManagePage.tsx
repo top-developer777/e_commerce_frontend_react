@@ -5,18 +5,12 @@ import { DashboardPage } from './components/DashboardPage'
 import { Products } from './components/Products'
 
 const dashboardManBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Dashboard',
-    path: '/dashboard/main',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Products',
-    path: '/dashboard/products',
-    isSeparator: false,
-    isActive: false,
-  },
+  // {
+  //   title: 'Products',
+  //   path: '/dashboard/products',
+  //   isSeparator: false,
+  //   isActive: false,
+  // },
 ];
 
 const DashboardManagePage = () => (

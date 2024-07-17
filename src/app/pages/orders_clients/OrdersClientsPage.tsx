@@ -8,36 +8,6 @@ import { OrdersClientsHeader } from './OrdersClientsHeader'
 import { CustomerAction } from './components/CustomerAction'
 
 const ocBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Orders',
-    path: '/orders/orders',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Returns',
-    path: '/orders/returns',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Order Processing',
-    path: '/orders/order-processing',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Product Reviews',
-    path: '/orders/product-reviews',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Customers & Actions',
-    path: '/orders/customers_actions',
-    isSeparator: false,
-    isActive: false,
-  },
 ]
 
 const OrdersClientsPage = () => (

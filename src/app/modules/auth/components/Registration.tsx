@@ -7,6 +7,7 @@ import {Link} from 'react-router-dom'
 import {toAbsoluteUrl} from '../../../../_metronic/helpers'
 import {PasswordMeterComponent} from '../../../../_metronic/assets/ts/components'
 import {useAuth} from '../core/Auth'
+import { toast } from 'react-toastify'
 
 interface ErrorResponse {
   response: {
@@ -57,7 +58,7 @@ export function Registration() {
   const formik = useFormik({
     initialValues,
     validationSchema: registrationSchema,
-    onSubmit: async (values, {setStatus, setSubmitting}) => {
+    onSubmit: async (values, { setSubmitting}) => {
       setLoading(true)
       try {
         console.log(values)
@@ -70,12 +71,13 @@ export function Registration() {
         saveAuth(auth)
         const {data: user} = await getUserByToken(auth.access_token)
         setCurrentUser(user)
+        toast.info('Please wait while the administrator allowes you.')
         logout();
       } catch (error) {
         console.error(error)
         saveAuth(undefined)
         const errResponse = error as ErrorResponse;
-        setStatus((errResponse.response.data) == null ? "Unknown Error" : errResponse.response.data.detail)
+        toast.error((errResponse.response.data) == null ? "Unknown Error" : errResponse.response.data.detail)
         setSubmitting(false)
         setLoading(false)
       }

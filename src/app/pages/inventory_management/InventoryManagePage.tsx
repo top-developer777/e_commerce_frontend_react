@@ -8,36 +8,6 @@ import { Suppliers } from './components/Suppliers'
 import { InventoryManageHeader } from './InventoryManageHeader'
 
 const inventoryManBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Products',
-    path: '/inventory-management/products',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Planner',
-    path: '/inventory-management/planner',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Shipping Management',
-    path: '/inventory-management/shipping-management',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Warehouse Management',
-    path: '/inventory-management/warehouse',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Suppliers',
-    path: '/inventory-management/suppliers',
-    isSeparator: false,
-    isActive: false,
-  },
 ]
 
 const InventoryManagePage = () => (

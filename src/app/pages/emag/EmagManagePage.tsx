@@ -4,12 +4,6 @@ import { EmagManageHeader } from './EmagManageHeader'
 import { EmagOrders } from './components/orders'
 
 const inventoryManBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Products',
-    path: '/emag/orders',
-    isSeparator: false,
-    isActive: false,
-  },
 ]
 
 const EmagManagePage = () => (

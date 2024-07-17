@@ -6,24 +6,6 @@ import { Orders } from './components/Orders'
 import { AutoResponderHeader } from './AutoResponderHeader'
 
 const autoResponderBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Campaigns',
-    path: '/auto-respender/campaigns',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Products',
-    path: '/auto-respender/products',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Orders',
-    path: '/auto-respender/orders',
-    isSeparator: false,
-    isActive: false,
-  }
 ]
 
 const InventoryManagePage = () => (

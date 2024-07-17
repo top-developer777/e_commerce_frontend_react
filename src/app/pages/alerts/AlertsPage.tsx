@@ -5,18 +5,6 @@ import { Settings } from './components/Settings'
 import { AlertsHeader } from './AlertsHeader'
 
 const alertsBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Dashboard',
-    path: '/alerts/dashboard',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Settings',
-    path: '/alerts/settings',
-    isSeparator: false,
-    isActive: false,
-  }
 ]
 
 const InventoryManagePage = () => (

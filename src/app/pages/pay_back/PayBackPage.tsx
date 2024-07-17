@@ -5,18 +5,6 @@ import { Returns } from './components/Returns'
 import { PayBackHeader } from './PayBackHeader'
 
 const paybackBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Lost & Damaged',
-    path: '/pay-back/lost-damaged',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Returns',
-    path: '/pay-back/returns',
-    isSeparator: false,
-    isActive: false,
-  }
 ]
 
 const PayBackPage = () => (

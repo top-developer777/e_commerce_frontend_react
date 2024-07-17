@@ -25,7 +25,7 @@ const Content = ({children}: WithChildren) => {
       {appContentContainer ? (
         <div
           id='kt_app_content_container'
-          className={clsx('app-container', classes.contentContainer.join(' '), {
+          className={clsx('app-container d-flex h-100 flex-column', classes.contentContainer.join(' '), {
             'container-xxl': appContentContainer === 'fixed',
             'container-fluid': appContentContainer === 'fluid',
           })}

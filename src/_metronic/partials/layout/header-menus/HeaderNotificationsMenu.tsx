@@ -33,10 +33,10 @@ const HeaderNotificationsMenu: FC = () => {
         const data = res.data.reverse().filter((dat: AlertModel) => dat.user_id === currentUser?.id);
         const alerts = data.map((dat: { [key: string]: string | number | boolean }) => {
           const alert = { ...dat };
-          if (dat.state === 'warning') alert['icon'] = 'cloud-change';
+          if (dat.state === 'warning') alert['icon'] = 'notification-on';
           if (dat.state === 'info') alert['icon'] = 'information-5';
-          if (dat.state === 'success') alert['icon'] = 'information-5';
-          if (dat.state === 'error') alert['icon'] = 'information-5';
+          if (dat.state === 'success') alert['icon'] = 'rocket';
+          if (dat.state === 'error') alert['icon'] = 'cross-circle';
           return alert;
         });
         setAlerts(alerts);

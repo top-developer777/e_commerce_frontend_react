@@ -7,14 +7,10 @@ import { SalesInformation } from '../../inventory_management/components/SalesInf
 import { OrdersInformation } from '../../inventory_management/components/OrdersInform'
 import { addProductRequest, editProductRequest, getAllSuppliers } from '../../inventory_management/components/_request'
 import { Suppliers } from '../../models/supplier'
+import { getAllMarketplaces } from '../../config/components/_request'
+import { interMKP } from '../../config/components/Integrations'
 
-// const Pagination = (props) => {
-//   return (
-//     <div className='pagination'>
-
-//     </div>
-//   )
-// }
+const API_URL = import.meta.env.VITE_APP_API_URL
 
 // const fakeShipments = [
 //   {
@@ -228,7 +224,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
         </div>
       </div>
       <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(seriesSales)} product={product} categories={JSON.stringify(categories)} />
-      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product}  />
+      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
       <ReturnsInformation returns={returns} />
       <ShipmentInformation shipments={shipments} />
     </div>
@@ -236,9 +232,38 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 }
 
 export const Products = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([{
+    product_name: '2341235',
+    model_name: '21362',
+    ean: '13262361',
+    price: '2134',
+    image_link: '512',
+    barcode_title: '1235',
+    masterbox_title: '1235',
+    link_address_1688: '1325',
+    price_1688: '1235123',
+    variation_name_1688: '1263',
+    pcs_ctn: '1236',
+    weight: '12',
+    dimensions: '2314',
+    supplier_id: 0,
+    english_name: '1253',
+    romanian_name: '1235',
+    material_name_en: '135',
+    material_name_ro: '1235',
+    hs_code: '1352',
+    battery: false,
+    default_usage: '1325',
+    production_time: '1235',
+    discontinued: false,
+    stock: 0,
+    day_stock: 0,
+    internal_shipping_price: '1235',
+    market_places: ['eMAG.ro'],
+  }]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
+  const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(50);
@@ -247,10 +272,11 @@ export const Products = () => {
   const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
   const [totalPages, setTotalPages] = useState<number>(0);
   const [suppliers, setSuppliers] = useState<{ [key: string]: string | number }[]>([]);
-  const [supplierOptions, setSupplierOptions] = useState<{ value: string, label: string}[]>([]);
+  const [supplierOptions, setSupplierOptions] = useState<{ value: string, label: string }[]>([]);
   const [selectedSuppliers, setSelectedSuppliers] = useState<string[]>([]);
   const [addSupplier, setAddSupplier] = useState<string>('');
   const [editSupplier, setEditSupplier] = useState<string>('');
+  const [marketPlaces, setMarketPlaces] = useState<interMKP[]>([]);
 
   const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
   const toastClose = document.querySelector('#toast button') as HTMLElement;
@@ -273,12 +299,18 @@ export const Products = () => {
     getAllSuppliers(1, 1000)
       .then(res => {
         setSuppliers(res.data);
+        if (!res.data.length) return;
         setAddSupplier(res.data[0].id);
         setSupplierOptions(res.data.map((datum: Suppliers) => {
           return { value: `${datum.id}`, label: `${datum.group} / ${datum.name} (${datum.wechat})` }
         }))
       })
-      .catch(e => console.log(e));
+      .catch(e => console.error(e));
+    getAllMarketplaces()
+      .then(res => {
+        setMarketPlaces(res.data)
+      })
+      .catch(e => console.error(e));
   }, []);
 
   const filterSuppliers = (str: string) => {
@@ -298,7 +330,7 @@ export const Products = () => {
       .then(res => {
         setProducts(res.data);
       })
-      .catch(err => console.log(err))
+      .catch(err => console.error(err))
   }
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -539,68 +571,72 @@ export const Products = () => {
                 </button>
               </div>
             </div>
-            <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
-              <thead>
-                <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                  <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
-                    <input className="form-check-input" type="checkbox" value="" />
-                  </div></th>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Stock (Days Left in Stock)</th>
-                  <th>Barcode Title</th>
-                  <th>Masterbox Title</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  products.map((product, index) =>
-                    <tr key={`productlist${product.id}`}>
-                      <td className='align-content-center'>
-                        <input className="form-check-input" type="checkbox" value={index} />
-                      </td>
-                      <td className='align-content-center'>
-                        <div className="d-flex">
-                          <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
-                            {
-                              product.image_link
-                                ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
-                                : <div> No Image </div>
-                            }
-                          </div>
-                          <div className="d-flex flex-column ms-2">
-                            <div className="d-flex align-items-center">
-                              <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
-                            </div>
-                            <div className="d-flex" onClick={() => setSelectedProductID(index)}>{product.product_name}</div>
-                            <div className="d-flex"><a href={product.link_address_1688} target='_blank'>1688 Link</a></div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} ({product.day_stock} days)</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
-                      <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
-                      <td className="align-content-center">
-                        <div className="d-flex align-items-center flex-column">
-                          <a href='#'
-                            onClick={() => {
-                              setEditProduct(product);
-                              setShowMore(false);
-                              setEditSupplier(`${product.supplier_id}`)
-                            }}
-                            data-bs-toggle="modal" data-bs-target="#editProductModal"
-                          >
-                            Edit
-                          </a>
-                        </div>
-                      </td>
+            <div className="row flex-shrink-1">
+              <div className="col-md-12 table-responsive d-flex h-100">
+                <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
+                  <thead>
+                    <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+                      <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
+                        <input className="form-check-input" type="checkbox" value="" />
+                      </div></th>
+                      <th>Product</th>
+                      <th>Price</th>
+                      <th>Stock (Days Left in Stock)</th>
+                      <th>Barcode Title</th>
+                      <th>Masterbox Title</th>
+                      <th>Action</th>
                     </tr>
-                  )
-                }
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {
+                      products.map((product, index) =>
+                        <tr key={`productlist${product.id}`}>
+                          <td className='align-content-center'>
+                            <input className="form-check-input" type="checkbox" value={index} />
+                          </td>
+                          <td className='align-content-center'>
+                            <div className="d-flex">
+                              <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
+                                {
+                                  product.image_link
+                                    ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
+                                    : <div> No Image </div>
+                                }
+                              </div>
+                              <div className="d-flex flex-column ms-2">
+                                <div className="d-flex align-items-center">
+                                  <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
+                                </div>
+                                <div className="d-flex">{product.product_name}</div>
+                                <div className="d-flex"><a href={product.link_address_1688} target='_blank'>1688 Link</a></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
+                          <td className='align-content-center'>{product.stock} ({product.day_stock} days)</td>
+                          <td className='align-content-center'>{product.barcode_title}</td>
+                          <td className='align-content-center'>{product.masterbox_title}</td>
+                          <td className="align-content-center">
+                            <div className="dropdown d-flex">
+                              <i className="bi bi-three-dots-vertical btn btn-sm btn-secondary" style={{ borderRadius: '100%', paddingLeft: '0.6rem', paddingRight: '0.7rem', paddingTop: '0.8rem' }} data-bs-toggle="dropdown" aria-expanded="false"></i>
+                              <ul className="dropdown-menu">
+                                <li><a className="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" onClick={() => {
+                                  setEditProduct(product);
+                                  setShowMore(false);
+                                  setEditSupplier(`${product.supplier_id}`)
+                                }}>Edit Product</a></li>
+                                <li><a className="dropdown-item" href="#" onClick={() => setSelectedProductID(index)}>Details</a></li>
+                                <li><a className="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#marketplaceModal" onClick={() => setSelectedProduct(product)}>Offer</a></li>
+                              </ul>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div className="modal fade" id='editProductModal' tabIndex={-1} aria-hidden="true">
               <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                 <div className="modal-content">
@@ -848,7 +884,7 @@ export const Products = () => {
                     </form>}
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setEditProduct(undefined)}><i className='bi bi-x'></i>Close</button>
+                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setEditProduct(undefined)}><i className='bi bi-trash'></i>Close</button>
                     <button type="button" className="btn btn-primary" onClick={handleEditProduct}><i className='bi bi-save'></i>Save changes</button>
                   </div>
                 </div>
@@ -1088,8 +1124,29 @@ export const Products = () => {
                     </form>
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-x'></i>Close</button>
+                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
                     <button type="button" className="btn btn-primary" onClick={handleAddProduct}><i className='bi bi-save'></i>Add Product</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal fade" id='marketplaceModal' tabIndex={-1} aria-hidden="true">
+              <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h1 className="modal-title fs-5">{selectedProduct?.product_name}</h1>
+                    <button type="button" className="btn-close" onClick={() => setSelectedProduct(undefined)} data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div className="modal-body">
+                    {!!selectedProduct && marketPlaces.filter(market => selectedProduct.market_places.findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
+                      <div className="d-flex flex-center overflow-hidden" style={{ height: '50px', minWidth: '100px' }}>
+                        <img className="rounded" style={{ width: '75%' }} alt={marketplace.marketplaceDomain} src={`${API_URL}/utils/${marketplace.image_url ?? ''}`} />
+                      </div>
+                      <div className="d-flex">{marketplace.title}</div>
+                    </div>)}
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={() => setSelectedProduct(undefined)} data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
                   </div>
                 </div>
               </div>

@@ -53,7 +53,7 @@ interface interProdCrud {
 interface interOrderCrud {
   endpoint: string, create: string, read: string, update: string, delete: string, count: string
 }
-interface interMKP {
+export interface interMKP {
   id?: number,
   country: 'bg' | 'ro' | 'hu',
   credentials: interCred,

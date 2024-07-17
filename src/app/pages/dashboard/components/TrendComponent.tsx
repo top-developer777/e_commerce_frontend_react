@@ -23,7 +23,7 @@ export const TrendComponent = () => {
   const [trendPeriod, setTrendPeriod] = useState<string>('1');
   const [searchTrendProducts, setSearchTrendProducts] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
-  const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
+  const [isAllChecked, setIsAllChecked] = useState<boolean>(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const scrollRef = useRef<HTMLUListElement | null>(null);
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);

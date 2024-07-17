@@ -49,7 +49,7 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
       },
     },
     legend: {
-      show: false,
+      show: true,
     },
     dataLabels: {
       enabled: false,
@@ -63,8 +63,8 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
     stroke: {
       curve: 'smooth',
       show: true,
-      width: [2, 0, 2, 0],
-      colors: ['#4e91ff', '#fff', '#f00', '#fff'],
+      width: [0, 2, 0, 2],
+      colors: ['#fff', '#1bc5bd', '#fff', '#4e91ff'],
     },
     xaxis: {
       categories: JSON.parse(categories),
@@ -114,11 +114,23 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
       style: {
         fontSize: '12px',
       },
-      y: {
+      y: [{
         formatter: function (val) {
-          return '$' + val + ' thousands'
+          return `${val}`;
         },
-      },
+      },{
+        formatter: function (val) {
+          return `$${val}`;
+        },
+      },{
+        formatter: function (val) {
+          return `${val}`;
+        },
+      },{
+        formatter: function (val) {
+          return `$${val}k`;
+        },
+      },]
     },
     colors: ['rgba(137,80,252,1)', 'rgba(27,197,189,1)', 'rgba(246,78,96,1)', 'rgba(105,147,255,1)'],
     grid: {
@@ -146,7 +158,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
   const [searchChartProducts, setSearchChartProducts] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
   const [amount, setAmount] = useState<number>(1);
-  const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
+  const [isAllChecked, setIsAllChecked] = useState<boolean>(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -176,31 +188,31 @@ export const ChartComponent: FC<Props> = ({ className }) => {
           const series: Series[] = [
             {
               name: 'Units sold',
-              type: 'line',
+              type: 'bar',
               data: [],
             },
             {
               name: 'Advertising cost',
-              type: 'bar',
-              data: [],
-            },
-            {
-              name: 'Refunds',
               type: 'line',
               data: [],
             },
             {
-              name: 'Net Profit',
+              name: 'Refunds',
               type: 'bar',
+              data: [],
+            },
+            {
+              name: 'Net Profit',
+              type: 'line',
               data: [],
             },
           ];
           for (const datum of data) {
             categories.push(datum.date_string);
-            series[0].data.push(datum.total_units);
-            series[1].data.push(0);
-            series[2].data.push(datum.total_refund);
-            series[3].data.push(datum.total_net_profit);
+            series[0].data.push(parseFloat(datum.total_units));
+            series[1].data.push(100);
+            series[2].data.push(parseFloat(datum.total_refund));
+            series[3].data.push(parseFloat((parseFloat(datum.total_net_profit) / 1000).toPrecision(2)));
           }
           setSeries(JSON.stringify(series));
           setCategories(JSON.stringify(categories));
@@ -259,46 +271,46 @@ export const ChartComponent: FC<Props> = ({ className }) => {
   }
 
   useEffect(() => {
-    getChartInfo()
-      .then(res => {
-        if (res.status === 200) {
-          const data = res.data.chart_data;
-          const categories = [];
-          const series: Series[] = [
-            {
-              name: 'Units sold',
-              type: 'line',
-              data: [],
-            },
-            {
-              name: 'Advertising cost',
-              type: 'bar',
-              data: [],
-            },
-            {
-              name: 'Refunds',
-              type: 'line',
-              data: [],
-            },
-            {
-              name: 'Net Profit',
-              type: 'bar',
-              data: [],
-            },
-          ];
-          for (const datum of data) {
-            categories.push(datum.date_string);
-            series[0].data.push(datum.total_units);
-            series[1].data.push(0);
-            series[2].data.push(datum.total_refund);
-            series[3].data.push(datum.total_net_profit);
-          }
-          setSeries(JSON.stringify(series));
-          setCategories(JSON.stringify(categories));
-        } else {
-          console.error(res);
-        }
-      });
+    // getChartInfo()
+    //   .then(res => {
+    //     if (res.status === 200) {
+    //       const data = res.data.chart_data;
+    //       const categories = [];
+    //       const series: Series[] = [
+    //         {
+    //           name: 'Units sold',
+    //           type: 'line',
+    //           data: [],
+    //         },
+    //         {
+    //           name: 'Advertising cost',
+    //           type: 'bar',
+    //           data: [],
+    //         },
+    //         {
+    //           name: 'Refunds',
+    //           type: 'line',
+    //           data: [],
+    //         },
+    //         {
+    //           name: 'Net Profit',
+    //           type: 'bar',
+    //           data: [],
+    //         },
+    //       ];
+    //       for (const datum of data) {
+    //         categories.push(datum.date_string);
+    //         series[0].data.push(parseFloat(datum.total_units));
+    //         series[1].data.push(0);
+    //         series[1].data.push(parseFloat(datum.total_refund));
+    //         series[2].data.push(parseFloat(datum.total_net_profit) / 100);
+    //       }
+    //       setSeries(JSON.stringify(series));
+    //       setCategories(JSON.stringify(categories));
+    //     } else {
+    //       console.error(res);
+    //     }
+    //   });
     getAllProducts(1, 1000)
       .then(res => {
         setProducts(res.data);
@@ -375,7 +387,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={true} />
+                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={index < 30} />
                         </div>
                         <div className="d-flex">
                           <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />
@@ -408,11 +420,11 @@ export const ChartComponent: FC<Props> = ({ className }) => {
         </div>
       </div>
       <div className={`card ${className}`}>
-        <div className='card-header border-0 pt-5'>
+        {/* <div className='card-header border-0 pt-5'>
           <h3 className='card-title align-items-start flex-column'>
             <span className='card-label fw-bold fs-3 mb-1'>Recent Orders</span>
           </h3>
-          {/* <div className='card-toolbar' data-kt-buttons='true'>
+          <div className='card-toolbar' data-kt-buttons='true'>
             <a
               className='btn btn-sm btn-color-muted btn-active btn-active-primary active px-4 me-1'
               id='kt_charts_widget_6_sales_btn'
@@ -425,8 +437,8 @@ export const ChartComponent: FC<Props> = ({ className }) => {
             >
               Expenses
             </a>
-          </div> */}
-        </div>
+          </div>
+        </div> */}
         <div className='card-body'>
           <div ref={chartRef} id='kt_charts_widget_6_chart' style={{ height: '350px' }}></div>
         </div>

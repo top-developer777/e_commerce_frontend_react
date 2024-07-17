@@ -6,24 +6,6 @@ import {Integrations} from './components/Integrations'
 import {ConfigHeader} from './ConfigHeader'
 
 const configBreadCrumbs: Array<PageLink> = [
-  {
-    title: 'Account',
-    path: '/config/account',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'My Teams',
-    path: '/config/my-teams',
-    isSeparator: false,
-    isActive: false,
-  },
-  {
-    title: 'Integrations',
-    path: '/config/integrations',
-    isSeparator: false,
-    isActive: false,
-  },
 ]
 
 const ConfigPage = () => (

@@ -24,7 +24,7 @@ export const PLComponent = () => {
   const [PLPeriod, setPLPeriod] = useState<string>('1');
   const [searchPLProducts, setSearchPLProducts] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
-  const [isAllChecked, setIsAllChecked] = useState<boolean>(false);
+  const [isAllChecked, setIsAllChecked] = useState<boolean>(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   const scrollRef = useRef<HTMLUListElement | null>(null);
