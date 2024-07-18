@@ -757,12 +757,13 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75 flex-column">
                     {numProducts.map(ean => (
                       <div className="d-flex w-100" key={`numProduct${ean}`}>
-                        <div className="d-flex align-items-center p-2 me-auto" style={{ width: '75%' }}>
+                        <div className="d-flex align-items-center p-2 me-auto" style={{ width: '68%' }}>
                           <div className="d-block overflow-hidden" style={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {products.find(p => p.value === ean)?.label}
                           </div>
                         </div>
-                        <div className="d-flex m-0" style={{ width: '20%', minWidth: '50px' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
+                        <div className="d-flex align-items-center m-0"><Barcode displayValue={false} value={`${ean}-${1}`} height={40} width={0.4} margin={3} /></div>
+                        <div className="d-flex m-0" style={{ minWidth: '50px' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
                         <div className="d-flex m-0">
                           <button className="btn btn-light-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-trash-fill"></i></button>
                         </div>
@@ -802,11 +803,6 @@ export function ShippingManagement() {
                     </div>
                   </div>
                 </label>
-                <div className="d-flex align-items-center py-1">
-                  <div className="m-auto w-auto">
-                    <Barcode displayValue={false} value="123456789" />
-                  </div>
-                </div>
               </form>
             </div>
             <div className="modal-footer">
