@@ -1,5 +1,6 @@
 export interface Product {
   id?: number;
+  part_number_key: string;
   product_name: string;
   model_name: string;
   ean: string;
@@ -26,5 +27,6 @@ export interface Product {
   stock: number;
   day_stock: number;
   internal_shipping_price: string;
-  market_places: string[];
+  market_places?: string[];
+  sale_price?: string;
 }

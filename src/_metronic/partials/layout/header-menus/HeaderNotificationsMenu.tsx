@@ -24,7 +24,16 @@ export interface AlertModel {
 }
 
 const HeaderNotificationsMenu: FC = () => {
-  const [alerts, setAlerts] = useState<AlertModel[]>([]);
+  const [alerts, setAlerts] = useState<AlertModel[]>([{
+    id: 0,
+    title: '',
+    description: '',
+    time: 'sadgasdgasdgasdgasdg',
+    icon: '',
+    state: 'success',
+    read: false,
+    user_id: 0
+  }]);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -45,10 +54,11 @@ const HeaderNotificationsMenu: FC = () => {
             if (!alert.read) {
               toast(<div>
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{alert.title}</div>
-                <div>{alert.description}</div>
+                <div className='overflow-hidden text-nowrap' style={{ textOverflow: 'ellipsis', width: 'calc(var(--toastify-toast-width) - 66px)' }}>{alert.description}</div>
               </div>, {
                 autoClose: 500000,
                 closeOnClick: true,
+                closeButton: false,
                 draggable: true,
                 hideProgressBar: false,
                 onClick: () => checkReadNotification(alert.id as number),
@@ -122,26 +132,29 @@ const HeaderNotificationsMenu: FC = () => {
 
       <div className='tab-content'>
         <div className='tab-pane fade show active' id='kt_topbar_notifications_1' role='tabpanel'>
-          <div className='scroll-y mh-325px my-5 px-8'>
-            {!!alerts.length && alerts.map((alert, index) => (
-              <div key={`alert${index}`} className='d-flex flex-stack py-4'>
-                <div className='d-flex align-items-center'>
-                  <div className='symbol symbol-35px me-4'>
-                    <span className={clsx('symbol-label', `bg-light-${alert.state}`)}>
-                      {' '}
-                      <KTIcon iconName={alert.icon} className={`fs-2 text-${alert.state}`} />
-                    </span>
+          <div className='scroll-y mh-325px my-5 px-2'>
+            {!!alerts.length && alerts.map((alert, index) => {
+              const state = alert.state === 'error' ? 'danger' : alert.state;
+              return (
+                <div key={`alert${index}`} className='d-flex flex-stack py-4'>
+                  <div className='d-flex align-items-center'>
+                    <div className='symbol symbol-35px me-4'>
+                      <span className={clsx('symbol-label', `bg-light-${state}`)}>
+                        {' '}
+                        <KTIcon iconName={alert.icon} className={`fs-2 text-${state}`} />
+                      </span>
+                    </div>
+                    <div className='mb-0 me-2'>
+                      <a href='#' className='fs-6 text-gray-800 text-hover-primary fw-bolder'>
+                        {alert.title}
+                      </a>
+                      <div className='text-gray-500 fs-7'>{alert.description}</div>
+                    </div>
                   </div>
-                  <div className='mb-0 me-2'>
-                    <a href='#' className='fs-6 text-gray-800 text-hover-primary fw-bolder'>
-                      {alert.title}
-                    </a>
-                    <div className='text-gray-500 fs-7'>{alert.description}</div>
-                  </div>
+                  <span className='badge badge-light fs-8' style={{ maxWidth: '75px' }}>{(new Date(alert.time).toDateString())}</span>
                 </div>
-                <span className='badge badge-light fs-8'>{(new Date(alert.time).toDateString())}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* <div className='py-3 text-center border-top'>

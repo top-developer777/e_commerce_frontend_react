@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Select from 'react-select'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts, getProductAmount, getRefundedInfo, getSalesInfo, getShipmentInfo } from './_request'
+import { getAllProducts, getProductAmount, getProductInfo } from './_request'
 import { Product } from '../../models/product'
 import { SalesInformation } from '../../inventory_management/components/SalesInform'
 import { OrdersInformation } from '../../inventory_management/components/OrdersInform'
@@ -9,6 +9,7 @@ import { addProductRequest, editProductRequest, getAllSuppliers } from '../../in
 import { Suppliers } from '../../models/supplier'
 import { getAllMarketplaces } from '../../config/components/_request'
 import { interMKP } from '../../config/components/Integrations'
+import { Order } from '../../models/order'
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 
@@ -171,12 +172,14 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
   const [returns, setReturns] = useState<Return[]>([]);
   const [seriesSales, setSeriesSales] = useState<{ name: string, data: number[] }[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [suppliers, setSuppliers] = useState<Suppliers[]>([]);
 
   useEffect(() => {
-    getSalesInfo(product.id ?? 0)
+    getProductInfo(product.id ?? 0)
       .then(res => {
         if (res.data !== '') {
-          const data = res.data as [{ date_string: string, sales: number }];
+          const data = res.data.sales_info as [{ date_string: string, sales: number }];
           const catigories: string[] = [];
           const series: number[] = [];
           data.forEach(datum => {
@@ -185,13 +188,20 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
           });
           setSeriesSales([{ name: 'Sales', data: series }]);
           setCategories(catigories);
+          setShipments(res.data.shipments_info);
+          setOrders(res.data.orders_info);
+          const returns = [];
+          const returnsInfo = res.data.returns_info;
+          for (const key in returnsInfo) {
+            if (key !== 'total') returns.push({ refunded_reason_id: key, refunded_number: returnsInfo[key] })
+          }
+          setReturns(returns);
         }
       })
       .catch(e => console.error(e));
-    getRefundedInfo(product.id ?? 0)
-      .then(res => setReturns(res.data))
-    getShipmentInfo(product.id ?? 0)
-      .then(res => setShipments(res.data))
+    getAllSuppliers(1, 1000)
+      .then(res => setSuppliers(res.data))
+      .catch(e => console.error(e));
   }, [product.id]);
 
   return (
@@ -208,23 +218,25 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
           </h3>
         </div>
         <div className='card-body py-0'>
-          <div className="row">
-            <div className="col-md-12"><a href={`https://amazon.com/dp/${product.model_name}}`} target='_blank'>https://amazon.com/dp/${product.model_name}</a></div>
+          <div className="row py-2">
+            <div className="col-md-12">
+              Product Name: <b>{product.product_name}</b>
+            </div>
           </div>
           <div className="row py-2">
-            <div className="col-md-4 fw-bold">Price: {formatCurrency(parseFloat(product.price))}</div>
-            <div className="col-md-4">Variation Name: {product.variation_name_1688}</div>
-            <div className="col-md-4">PCS/CTN: {product.pcs_ctn}</div>
+            <div className="col-md-4 fw-bold">Sale Price: {formatCurrency(parseFloat(product.sale_price ?? '0'))}</div>
+            <div className="col-md-4">Part Number Key: {product.part_number_key}</div>
+            <div className="col-md-4">Stock: {product.stock}</div>
           </div>
           <div className="row py-2 mb-8">
-            <div className="col-md-4">Weight: {product.weight}</div>
+            <div className="col-md-4">Weight: {parseFloat(product.weight)}</div>
             <div className="col-md-4">Dimensions: {product.dimensions}</div>
-            <div className="col-md-4">Supplier: {product.supplier_id}</div>
+            <div className="col-md-4">Supplier: {suppliers.find(supp => supp.id === product.supplier_id)?.name}</div>
           </div>
         </div>
       </div>
       <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(seriesSales)} product={product} categories={JSON.stringify(categories)} />
-      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
+      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} orders={orders} />
       <ReturnsInformation returns={returns} />
       <ShipmentInformation shipments={shipments} />
     </div>
@@ -260,6 +272,7 @@ export const Products = () => {
     day_stock: 0,
     internal_shipping_price: '1235',
     market_places: ['eMAG.ro'],
+    part_number_key: ''
   }]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
@@ -286,7 +299,7 @@ export const Products = () => {
       .then(res => {
         setProducts(res.data);
       })
-      .catch(err => console.log(err));
+      .catch(err => console.error(err));
   }, [currentPage, limit]);
   useEffect(() => {
     getProductAmount()
@@ -656,6 +669,15 @@ export const Products = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Part Number Key:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text" id="part-number-key"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='part_number_key' defaultValue={editProduct.part_number_key} placeholder="Part Number Key" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
                         <div className="d-flex fw-bold w-25">Model Name:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
@@ -909,6 +931,15 @@ export const Products = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Part Number Key:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text" id="part-number-key"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='part_number_key' placeholder="Part Number Key" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
                         <div className="d-flex fw-bold w-25">Model Name:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
@@ -1138,7 +1169,7 @@ export const Products = () => {
                     <button type="button" className="btn-close" onClick={() => setSelectedProduct(undefined)} data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div className="modal-body">
-                    {!!selectedProduct && marketPlaces.filter(market => selectedProduct.market_places.findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
+                    {!!selectedProduct && marketPlaces.filter(market => (selectedProduct.market_places ?? []).findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
                       <div className="d-flex flex-center overflow-hidden" style={{ height: '50px', minWidth: '100px' }}>
                         <img className="rounded" style={{ width: '75%' }} alt={marketplace.marketplaceDomain} src={`${API_URL}/utils/${marketplace.image_url ?? ''}`} />
                       </div>

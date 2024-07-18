@@ -1,31 +1,15 @@
 
-import { useEffect, FC, useState } from 'react'
-import { getOrdersInfo } from '../../dashboard/components/_request';
+import { FC } from 'react'
 import { Product } from '../../models/product';
+import { Order } from '../../models/order';
+import { StatusBadge } from '../../orders_clients/components/Orders';
 
 type Props = {
   className: string,
   product: Product,
+  orders: Order[],
 }
-type Order = {
-  order_id: number,
-  order_date: string,
-  customer_name: string,
-  quantity_orders: string,
-  order_status: string,
-}
-
-const OrdersInformation: FC<Props> = ({ className, product }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-
-  useEffect(() => {
-    getOrdersInfo(product.id ?? 0)
-      .then(res => {
-        setOrders(res.data);
-      })
-      .catch(e => console.error(e));
-  }, [product.id])
-
+const OrdersInformation: FC<Props> = ({ className, product, orders }) => {
   return (
     <div className={`card ${className}`}>
       <div className='card-header border-0 pt-5'>
@@ -64,8 +48,7 @@ const OrdersInformation: FC<Props> = ({ className, product }) => {
                 <tr>
                   <th>Order ID</th>
                   <th>Order Date</th>
-                  <th>Customer Name</th>
-                  <th>Quantity Ordered</th>
+                  <th>Delivery Mode</th>
                   <th>Order Status</th>
                 </tr>
               </thead>
@@ -73,11 +56,10 @@ const OrdersInformation: FC<Props> = ({ className, product }) => {
                 {orders.map((order, index) => {
                   return (
                     <tr key={`order${index}`}>
-                      <td>{order.order_id}</td>
-                      <td>{order.order_date}</td>
-                      <td>{order.customer_name}</td>
-                      <td>{order.quantity_orders}</td>
-                      <td>{order.order_status}</td>
+                      <td>{order.id}</td>
+                      <td>{order.date}</td>
+                      <td>{order.delivery_mode}</td>
+                      <td><StatusBadge status={order.status} /></td>
                     </tr>
                   )
                 })}

@@ -5,7 +5,7 @@ import ApexCharts, { ApexOptions } from 'apexcharts'
 import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_utils'
 import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
 import { Product } from '../../models/product'
-import { getSalesInfo } from '../../dashboard/components/_request';
+import { getProductInfo } from '../../dashboard/components/_request';
 
 type Props = {
   className: string,
@@ -40,10 +40,10 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
   }
 
   useEffect(() => {
-    getSalesInfo(product.id ?? 0, salesPeriod)
+    getProductInfo(product.id ?? 0, salesPeriod)
       .then(res => {
         if (res.data !== '') {
-          const data = res.data as [{ date_string: string, sales: number }];
+          const data = res.data.sales_info as [{ date_string: string, sales: number }];
           const catigories: string[] = [];
           const series: number[] = [];
           data.forEach(datum => {
@@ -138,7 +138,7 @@ function getChartOptions(height: number, series: string, categories: string): Ap
       opacity: 1,
     },
     stroke: {
-      curve: 'straight',
+      curve: 'smooth',
       show: true,
       width: 3,
       colors: [baseColor],
@@ -190,11 +190,6 @@ function getChartOptions(height: number, series: string, categories: string): Ap
     tooltip: {
       style: {
         fontSize: '12px',
-      },
-      y: {
-        formatter: function (val) {
-          return '$' + val + ' thousands'
-        },
       },
     },
     colors: [baseColor, secondaryColor, baseLightColor],

@@ -5,6 +5,7 @@ import { getAllOrders, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
+import { toast } from 'react-toastify';
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
 
@@ -27,7 +28,7 @@ import { Product } from '../../models/product';
 //   }
 // ]
 
-const StatusBadge: React.FC<{ status: number }> = props => (
+export const StatusBadge: React.FC<{ status: number }> = props => (
   <>
     {props.status === 0
       ? <div>
@@ -88,6 +89,7 @@ const OrderTable: React.FC<{
 }> = props => {
   const { currentPage, setCurrentPage } = props;
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedOrder, selectOrder] = useState<Order>();
 
   useEffect(() => {
     getAllProducts()
@@ -126,6 +128,41 @@ const OrderTable: React.FC<{
     }
     return pageNumbers;
   };
+  const isValidPhone = (phoneStr: string) => {
+    let phone = phoneStr;
+    if (phone.indexOf('+') === 0) phone = phone.slice(1);
+    const phoneNum = parseFloat(phone);
+    if (!phoneNum) return false;
+    if (phoneNum % 1 > 0) return false;
+    const len = Math.floor(Math.log10(phoneNum)) + 1;
+    if (len > 7 && len < 12) return true;
+    return false;
+  }
+  const handleCreateAWB = () => {
+    if (!selectedOrder) return;
+    const form = document.querySelector('#createAWBModal form');
+    const data: { [key: string]: string | number | boolean } = {};
+    const inputs = form?.querySelectorAll('input');
+    if (inputs) for (const input of inputs) {
+      if (input.name === '') continue;
+      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+      if (input.name !== 'weight' && input.type === 'number') data[input.name] = parseFloat(input.value);
+      if (input.name !== 'weight' && input.value === '') {
+        toast.warning('All fields must be filled.')
+        return;
+      }
+    }
+    if (!isValidPhone(data['receiver.phone'] as string) || !isValidPhone(data['sender.phone'] as string)) {
+      toast.error('The given phone numbers are not valid.')
+      return;
+    }
+    if (data.weight !== '' && !data.weight) {
+      toast.error('The weight must be number.');
+      return;
+    }
+    console.log(data);
+    console.log(selectedOrder);
+  }
 
   return (
     <>
@@ -170,6 +207,7 @@ const OrderTable: React.FC<{
               </th> */}
               <th className='col-md-1 align-content-center text-center'>Order ID</th>
               <th className='col-md-1 align-content-center text-center'>Products</th>
+              <th className='col-md-1 align-content-center text-center'>Vendor Name</th>
               <th className='col-md-1 align-content-center text-center'>Marketplace</th>
               {/* <th className='col-md-2 align-content-center text-center px-1'>Invoice</th> */}
               <th className='col-md-2 align-content-center text-center px-1'>AWB</th>
@@ -196,6 +234,7 @@ const OrderTable: React.FC<{
                       return <div key={`product${order.id}:${id}`}><a href='#'><img width={40} src={product?.image_link} alt={product?.model_name} /></a></div>
                     })}
                   </td>
+                  <td className='align-content-center text-center '>{order.vendor_name}</td>
                   <td className='align-content-center text-center'>
                     {order.market_place}
                   </td>
@@ -206,9 +245,9 @@ const OrderTable: React.FC<{
                     </button>
                   </td> */}
                   <td className='align-content-center text-center'>
-                    <button type='button' className='btn btn-light btn-light-primary p-1 px-3'>
+                    <button type='button' className='btn btn-light btn-light-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
                       <i className="bi bi-file-earmark-plus"></i>
-                      Quick Create
+                      Create
                     </button>
                   </td>
                   <td className='align-content-center text-center'>
@@ -237,6 +276,171 @@ const OrderTable: React.FC<{
             }
           </tbody>
         </table>
+      </div>
+      <div className="modal fade" id='createAWBModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5">Add Product</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form action="" method='post' id='createAWBForm'>
+                <input type="number" name='order_id' defaultValue={selectedOrder?.id} disabled style={{ display: 'none' }} />
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Weight:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='weight' placeholder="Weight (Kg)" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Envelope Number:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='envelope_number' placeholder="Envelope Number" min={0} max={9999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Parcel Number:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='parcel_number' placeholder="Parcel Number" min={0} max={999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">COD:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='cod' placeholder="COD" min={0} max={999999999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Contain Oversize Product:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='is_oversize' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <hr />
+                <h2>Sender</h2>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='sender.name' placeholder="Name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Contact:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='sender.contact' placeholder="Contact" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Phone Number:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='sender.phone' placeholder="+11234567890" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Locality ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='sender.locality_id' min={1} max={4294967295} placeholder="Locality ID" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Street:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='sender.street' placeholder="Street" required />
+                    </div>
+                  </div>
+                </div>                
+                <hr />
+                <h2>Receiver</h2>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.name' placeholder="Name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Contact:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.contact' placeholder="Contact" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Phone Number:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.phone' placeholder="+11234567890" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Legal Entity:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Locality ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='receiver.locality_id' min={1} max={4294967295} placeholder="Locality ID" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Street:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.street' placeholder="Street" required />
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleCreateAWB}><i className='bi bi-save'></i>Create AWB</button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   )
@@ -314,18 +518,23 @@ export function Orders() {
   const [currentState, setCurrentState] = useState<[number, string]>([-1, ''])
 
   useEffect(() => {
-    getOrderAmout()
+    if (currentState[0] !== selectedStatus || currentState[1] !== searchText) {
+      setCurrentState([selectedStatus, searchText]);
+      setCurrentPage(1);
+    }
+    getOrderAmout(selectedStatus, searchText)
       .then(res => {
         setTotalOrders(res.data);
-        setTotalPages(res.data > 0 ? Math.floor(res.data / limit) : 1);
+        setTotalPages(res.data > 0 ? Math.ceil((res.data + 1) / limit) : 1);
       })
-  }, [limit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit, searchText, selectedStatus]);
   useEffect(() => {
     if (currentState[0] !== selectedStatus || currentState[1] !== searchText) {
       setCurrentState([selectedStatus, searchText]);
       setCurrentPage(1);
     }
-    getAllOrders(currentPage, limit)
+    getAllOrders(currentPage, limit, selectedStatus, searchText)
       .then(async res => {
         setOrders(res.data);
       });
