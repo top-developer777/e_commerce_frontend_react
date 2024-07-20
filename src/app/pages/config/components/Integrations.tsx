@@ -54,17 +54,19 @@ interface interOrderCrud {
   endpoint: string, create: string, read: string, update: string, delete: string, count: string
 }
 export interface interMKP {
-  id?: number,
-  country: 'bg' | 'ro' | 'hu',
-  credentials: interCred,
-  products_crud: interProdCrud,
-  orders_crud: interOrderCrud,
-  title: string,
-  baseURL: string,
-  baseAPIURL: string,
-  marketplaceDomain: string,
-  owner: string,
-  image_url?: string,
+  id?: number;
+  country: 'bg' | 'ro' | 'hu';
+  credentials: interCred;
+  products_crud: interProdCrud;
+  orders_crud: interOrderCrud;
+  title: string;
+  baseURL: string;
+  baseAPIURL: string;
+  marketplaceDomain: string;
+  owner: string;
+  image_url?: string;
+  vat: number;
+  proxy?: string;
 }
 
 export function Integrations() {
@@ -84,6 +86,8 @@ export function Integrations() {
     baseAPIURL: 'https://marketplace-api.emag.ro/api-3',
     marketplaceDomain: 'eMAG.ro',
     owner: '',
+    vat: 20,
+    proxy: '',
   });
   const [allMarketplaces, setAllMarketPlaces] = useState<interMKP[]>([]);
 
@@ -219,7 +223,7 @@ export function Integrations() {
           :
           <div className="card card-custom card-flush">
             <div className="card-header">
-              <h3 className="card-title">Marketplace API Integration</h3>
+              <h3 className="card-title">{addMarketplace.title ? `Edit marketplace - ${addMarketplace.title}` : 'Create marketplace'}</h3>
             </div>
             <div className="card-body py-5">
               <div className='row'>
@@ -342,6 +346,13 @@ export function Integrations() {
                       />
                     </div>
                     <div className="col-md-6">
+                      <label className="form-label">VAT (%)</label>
+                      <input
+                        type="number"
+                        className="form-control form-control-solid"
+                        onChange={e => setAddMarketPlace({ ...addMarketplace, vat: parseFloat(e.target.value) })}
+                        value={addMarketplace.vat}
+                      />
                     </div>
                   </div>
                 </div>
@@ -368,7 +379,21 @@ export function Integrations() {
                   </div>
                 </div> */}
               </div>
-              <div className="row mb-10">
+              <div className="row my-10">
+                <div className="col-md-3 text-end align-content-center fw-bold">
+                  Proxy
+                </div>
+                <div className="col-md-9">
+                  <input
+                    type="text"
+                    className="form-control form-control-solid"
+                    placeholder="http://username:password@hostname:port"
+                    onChange={e => setAddMarketPlace({ ...addMarketplace, proxy: e.target.value })}
+                    value={addMarketplace.proxy}
+                  />
+                </div>
+              </div>
+              <div className="row my-10">
                 <div className='col-lg-2'>
                   <label className="form-label">Credential Method</label>
                   <Select
@@ -464,7 +489,7 @@ export function Integrations() {
                   />
                 </div>
               </div>
-              <div className='row mb-10'>
+              <div className='row'>
                 <div className='col-md-2'>
                   <label className="form-label">Orders CRUD Endpoint</label>
                   <input

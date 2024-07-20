@@ -24,16 +24,7 @@ export interface AlertModel {
 }
 
 const HeaderNotificationsMenu: FC = () => {
-  const [alerts, setAlerts] = useState<AlertModel[]>([{
-    id: 0,
-    title: '',
-    description: '',
-    time: 'sadgasdgasdgasdgasdg',
-    icon: '',
-    state: 'success',
-    read: false,
-    user_id: 0
-  }]);
+  const [alerts, setAlerts] = useState<AlertModel[]>([]);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -56,12 +47,20 @@ const HeaderNotificationsMenu: FC = () => {
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{alert.title}</div>
                 <div className='overflow-hidden text-nowrap' style={{ textOverflow: 'ellipsis', width: 'calc(var(--toastify-toast-width) - 66px)' }}>{alert.description}</div>
               </div>, {
-                autoClose: 500000,
+                autoClose: 5000000,
                 closeOnClick: true,
                 closeButton: false,
                 draggable: true,
                 hideProgressBar: false,
-                onClick: () => checkReadNotification(alert.id as number),
+                onClick: () => {
+                  const newAlerts = [...alerts];
+                  const index = newAlerts.findIndex(al => al.id === alert.id);
+                  if (index >= 0) {
+                    newAlerts[index].read = true;
+                    setAlerts(newAlerts);
+                    updateNotifications(alert.id, newAlerts[index]);
+                  }
+                },
                 pauseOnFocusLoss: true,
                 pauseOnHover: true,
                 position: 'top-right',
@@ -75,14 +74,6 @@ const HeaderNotificationsMenu: FC = () => {
       .catch(e => console.error(e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const checkReadNotification = (id: number) => {
-    const newAlerts = [...alerts];
-    const index = newAlerts.findIndex(alert => alert.id === id);
-    newAlerts[index].read = true;
-    setAlerts(newAlerts);
-    updateNotifications(id, newAlerts[index]);
-  }
 
   return (
     <div

@@ -32,9 +32,11 @@ const SidebarMenuMain = () => {
       </div>
       <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/orders/orders' title='Orders' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-reply-fill' to='/orders/returns' title='Returns' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-repeat' to='/orders/order-processing' title='Order Processing' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-hourglass' to='/orders/order-processing' title='Order Processing' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-hand-thumbs-up-fill' to='/orders/product-reviews' title='Product Reviews' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-activity' to='/orders/customers_actions' title='Customers & Actions' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-repeat' to='/orders/replacement' title='Replacements' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-cart-check' to='/orders/neridicate' title='Neridicate' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Inventory management</span>
@@ -57,12 +59,6 @@ const SidebarMenuMain = () => {
         </>
       )}
       <SidebarMenuItem icon='bi bi-lightning-fill' to='/inventory-management/suppliers' title='Suppliers' hasBullet={false} />
-      <div className='menu-item'>
-        <div className='menu-content pt-8 pb-2'>
-          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Emag</span>
-        </div>
-      </div>
-      <SidebarMenuItem icon='bi bi-lightning-fill' to='/emag/orders' title='Orders' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Alerts</span>

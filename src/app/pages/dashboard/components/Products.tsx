@@ -271,7 +271,7 @@ export const Products = () => {
     stock: 0,
     day_stock: 0,
     internal_shipping_price: '1235',
-    market_places: ['eMAG.ro'],
+    market_place: ['eMAG.ro'],
     part_number_key: ''
   }]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
@@ -621,7 +621,7 @@ export const Products = () => {
                                   <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
                                 </div>
                                 <div className="d-flex">{product.product_name}</div>
-                                <div className="d-flex"><a href={product.link_address_1688} target='_blank'>1688 Link</a></div>
+                                <div className="d-flex"><a href={product.link_address_1688} target='_blank'>{product.link_address_1688}</a></div>
                               </div>
                             </div>
                           </td>
@@ -1169,7 +1169,7 @@ export const Products = () => {
                     <button type="button" className="btn-close" onClick={() => setSelectedProduct(undefined)} data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div className="modal-body">
-                    {!!selectedProduct && marketPlaces.filter(market => (selectedProduct.market_places ?? []).findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
+                    {!!selectedProduct && marketPlaces.filter(market => (selectedProduct.market_place ?? []).findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
                       <div className="d-flex flex-center overflow-hidden" style={{ height: '50px', minWidth: '100px' }}>
                         <img className="rounded" style={{ width: '75%' }} alt={marketplace.marketplaceDomain} src={`${API_URL}/utils/${marketplace.image_url ?? ''}`} />
                       </div>

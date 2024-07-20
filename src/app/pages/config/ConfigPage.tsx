@@ -40,7 +40,7 @@ const ConfigPage = () => (
         path='integrations'
         element={
           <>
-            <PageTitle breadcrumbs={configBreadCrumbs}>Integrations</PageTitle>
+            <PageTitle breadcrumbs={configBreadCrumbs}></PageTitle>
             <Integrations />
           </>
         }

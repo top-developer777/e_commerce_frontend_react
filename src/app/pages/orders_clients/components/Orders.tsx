@@ -205,7 +205,7 @@ const OrderTable: React.FC<{
               {/* <th className='align-content-center'>
                 <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
               </th> */}
-              <th className='col-md-1 align-content-center text-center'>Order ID</th>
+              <th className='col-md-1 align-content-center text-center'>Order Date</th>
               <th className='col-md-1 align-content-center text-center'>Products</th>
               <th className='col-md-1 align-content-center text-center'>Vendor Name</th>
               <th className='col-md-1 align-content-center text-center'>Marketplace</th>
@@ -227,7 +227,7 @@ const OrderTable: React.FC<{
                   {/* <td className='align-content-center'>
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td> */}
-                  <td className='align-content-center text-center '>{order.id}</td>
+                  <td className='align-content-center text-center '>{(new Date(order.date)).toLocaleString()}</td>
                   <td className='align-content-center text-center'>
                     {order.product_id.map(id => {
                       const product = products.find(product => product.id === id);
@@ -281,7 +281,7 @@ const OrderTable: React.FC<{
         <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5">Add Product</h1>
+              <h1 className="modal-title fs-5">Create AWB</h1>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">

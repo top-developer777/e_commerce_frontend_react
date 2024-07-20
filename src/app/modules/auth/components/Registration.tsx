@@ -73,6 +73,7 @@ export function Registration() {
         setCurrentUser(user)
         toast.info('Please wait while the administrator allowes you.')
         logout();
+        setLoading(false);
       } catch (error) {
         console.error(error)
         saveAuth(undefined)

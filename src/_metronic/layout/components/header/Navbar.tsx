@@ -35,7 +35,7 @@ const Navbar = () => {
           data-kt-menu-placement='bottom-end'
           className={btnClass}
         >
-          <KTIcon iconName='element-plus' className={btnIconClass} />
+          <KTIcon iconName='notification-on' className={btnIconClass} />
         </div>
         <HeaderNotificationsMenu />
       </div>

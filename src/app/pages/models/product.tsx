@@ -27,6 +27,6 @@ export interface Product {
   stock: number;
   day_stock: number;
   internal_shipping_price: string;
-  market_places?: string[];
+  market_place?: string[];
   sale_price?: string;
 }

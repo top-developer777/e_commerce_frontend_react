@@ -6,6 +6,8 @@ import { OrderProcessing } from './components/OrderProcessing'
 import { ProductReviews } from './components/ProductReviews'
 import { OrdersClientsHeader } from './OrdersClientsHeader'
 import { CustomerAction } from './components/CustomerAction'
+import { ReplacementsComponent } from './components/Replacements'
+import { NeridicateComponent } from './components/Neridicate'
 
 const ocBreadCrumbs: Array<PageLink> = [
 ]
@@ -62,6 +64,24 @@ const OrdersClientsPage = () => (
           <>
             <PageTitle breadcrumbs={ocBreadCrumbs}>Customers & Actions</PageTitle>
             <CustomerAction />
+          </>
+        }
+      />
+      <Route
+        path='replacement'
+        element={
+          <>
+            <PageTitle breadcrumbs={ocBreadCrumbs}>Replacements</PageTitle>
+            <ReplacementsComponent />
+          </>
+        }
+      />
+      <Route
+        path='neridicate'
+        element={
+          <>
+            <PageTitle breadcrumbs={ocBreadCrumbs}>Neridicate</PageTitle>
+            <NeridicateComponent />
           </>
         }
       />

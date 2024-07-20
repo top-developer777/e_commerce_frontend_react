@@ -15,3 +15,24 @@ export const getOrderAmout = (status = -1, searchText = '') => {
     params: { status: status, search_text: searchText }
   })
 }
+
+export const getAllReplaces = (page: number, limit = 50, status = -1) => {
+  return axios
+    .get(`${API_URL}/replaces`, {
+      params: { page: page, items_per_page: limit, status: status }
+    })
+}
+
+export const getReplaceAmount = (status = -1) => {
+  return axios.get(`${API_URL}/replaces/count`, {
+    params: { status: status }
+  })
+}
+
+export const getAllReturns = () => {
+  return axios.get(`${API_URL}/returns`)
+}
+
+export const saveBarcode = (code: number) => {
+  return axios.get(`${API_URL}/replaces`)
+}

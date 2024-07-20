@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import Barcode from 'react-barcode';
 import { Content } from '../../../../_metronic/layout/components/content'
 import Select, { MultiValue } from 'react-select'
-import { createShipments, getAllProducts, getAllSuppliers, getShipments } from './_request';
+import { createShipments, getAllProducts, getShipments } from './_request';
 import { Shipment } from '../../models/shipment';
-import { Suppliers } from '../../models/supplier';
 
 const shippingStatus = [
   {
@@ -411,7 +410,7 @@ const TableShipment: React.FC<{
     <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7" id='table-shipment'>
       <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-          <th className='align-content-center'>Supplier Name</th>
+          <th className='align-content-center'>Agent Name</th>
           <th className='align-content-center'>Shipping Type</th>
           <th className='text-center align-content-center px-1'>Created Date</th>
           <th className='text-center align-content-center px-1'>Status</th>
@@ -424,19 +423,19 @@ const TableShipment: React.FC<{
         {
           props.shipments.map((shipment, index) =>
             <tr className='py-1 cursor-pointer' key={`shipment${index}`}>
-              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.supplier_name}</td>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent_name}</td>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.type}</td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                { shipment.date.toLocaleString() }
+                {shipment.date.toLocaleString()}
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 <StatusBadge status={shipment.status} />
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                { shipment.note }
+                {shipment.note}
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                { shipment.expect_date.toLocaleString() }
+                {shipment.expect_date ? shipment.expect_date.toLocaleString() : ''}
               </td>
               <td className='text-center align-content-center'>
                 <a className='btn btn-white btn-active-light-danger btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => props.setEditShipement(shipment)}>
@@ -461,10 +460,9 @@ export function ShippingManagement() {
   const [editShipement, setEditShipement] = useState<Shipment>();
   const [selectedProductID, setSelectedProductID] = useState<number>(0);
   const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
-  const [products, setProducts] = useState<{ [key: string]: string }[]>([]);
-  const [totalProducts, setTotalProducts] = useState<{ [key: string]: string }[]>([]);
-  const [numProducts, setNumProducts] = useState<string[]>([]);
-  const [suppliers, setSuppliers] = useState<{ value: string; label: string; }[]>([]);
+  const [products, setProducts] = useState<{ value: string, label: string }[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<{ [key: number]: { ean: string, quantity: number } }>({});
+  const [agents, setAgents] = useState<{ value: string; label: string; }[]>([]);
 
   useEffect(() => {
     setShipingTypes(fakeShipingType);
@@ -473,10 +471,6 @@ export function ShippingManagement() {
     getShipments()
       .then(res => setShipments(res.data))
       .catch(e => console.error(e));
-    getAllSuppliers(1, 100)
-      .then(res => {
-        setSuppliers(res.data.map((dat: Suppliers) => { return { value: dat.name, label: `${dat.group} / ${dat.name}`} }))
-      })
   }, [])
   useEffect(() => {
     if (editID != -1) {
@@ -493,11 +487,16 @@ export function ShippingManagement() {
         const products = data.map((datum: { [key: string]: string }) => {
           return { value: datum.ean, label: datum.product_name }
         });
-        setTotalProducts(products);
         setProducts(products);
       })
       .catch(e => console.error(e));
   }, []);
+  useEffect(() => {
+    if (editShipement) {
+      const dict: { [key: number]: string } = {};
+
+    }
+  }, [editShipement, products])
 
   const confirm = () => {
     setshippings(shippings.map((shipping, index) => {
@@ -512,28 +511,22 @@ export function ShippingManagement() {
     ))
     setEditID(-1);
   }
-  const loadMoreProducts = () => {
-    const size = products.length;
-    const newProducts = totalProducts.slice(0, size + 10);
-    setProducts(newProducts);
-  }
   const handleSave = () => {
     const nameComp = document.querySelector('#createShipmentModal input[name="name"]') as HTMLInputElement;
     const delivery_dateComp = document.querySelector('#createShipmentModal input[name="delivery_date"]') as HTMLInputElement;
     const typeComp = document.querySelector('#createShipmentModal input[name="type"][type="hidden"]') as HTMLInputElement;
-    const productsComp = document.querySelectorAll('#createShipmentModal input[name="products"][type="hidden"]') as unknown as HTMLInputElement[];
     const quantityComp = document.querySelectorAll('#createShipmentModal input[name="numProduct"][type="number"]') as unknown as HTMLInputElement[];
     const statusComp = document.querySelector('#createShipmentModal input[name="status"][type="hidden"]') as HTMLInputElement;
+    const warehouseComp = document.querySelector('#createShipmentModal input[name="warehouse"]') as HTMLInputElement;
     const noteComp = document.querySelector('#createShipmentModal textarea[name="note"]') as HTMLInputElement;
     const name = nameComp.value;
+    const warehouse = warehouseComp.value;
     const delivery_date = delivery_dateComp.value;
     const type = typeComp.value;
     const products: string[] = [];
     const quantity: number[] = [];
     if (quantityComp.length)
       quantityComp.forEach(p => quantity.push(parseInt(p.value)));
-    if (productsComp.length)
-      productsComp.forEach(p => products.push(p.value));
     const status = statusComp.value;
     const note = noteComp.value;
     const now = new Date();
@@ -542,11 +535,11 @@ export function ShippingManagement() {
       date: now.toISOString().split('T')[0],
       expect_date: delivery_date,
       type: type,
-      product_name_list: products,
       quantity_list: quantity,
       supplier_name: name,
       status: status,
       note: note,
+      warehouse: warehouse,
     }
     createShipments(data)
       .then(res => {
@@ -607,7 +600,7 @@ export function ShippingManagement() {
               <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
                 <div className="card-header pt-4 w-full">
                   <div>
-                    <h3 className="text-gray-800 card-title align-content-center">Order Dashboard</h3>
+                    <h3 className="text-gray-800 card-title align-content-center">Details of {shipments[selectedShipment].name}</h3>
                   </div>
                   {/* <div>
                     <button type='button' className='btn btn-light btn-light-primary p-3' onClick={() => setEditID(-2)}>
@@ -625,9 +618,7 @@ export function ShippingManagement() {
                     <div className='col-md-4'>
                       <span className='text-gray-700'>Total Units</span><br />
                       <h4 className='text-gray-900 text-hover-primary'>
-                        {
-                          selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()
-                        }
+                        {selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()}
                       </h4>
                     </div>
                     <div className='col-md-8'>
@@ -700,7 +691,7 @@ export function ShippingManagement() {
           </>
       }
       <div className="modal fade" id='createShipmentModal' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-dialog modal-dialog modal-dialog-scrollable modal-fullscreen">
           <div className="modal-content">
             <div className="modal-header">
               <h1 className="modal-title fs-5" id="exampleModalLabel">Create Shipment</h1>
@@ -708,115 +699,253 @@ export function ShippingManagement() {
             </div>
             <div className="modal-body">
               <form action="" method='post' id='editProductForm'>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Supplier Name:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='name'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={suppliers}
-                      placeholder='Select a supplier'
-                      noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
-                      defaultValue={suppliers[0] ?? null}
-                    />
-                  </div>
-                </label>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Shipping Type:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='type'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={shipingTypes}
-                      placeholder='Select shipping type'
-                      isSearchable={false}
-                      noOptionsMessage={e => `No more shipping type${e.inputValue}`}
-                      defaultValue={{ value: 'Train', label: 'Train' }}
-                    />
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Products:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='products'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={products}
-                      placeholder='Select products'
-                      isMulti
-                      onMenuScrollToBottom={loadMoreProducts}
-                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                      hideSelectedOptions
-                      value={products.filter(product => numProducts.findIndex(ean => ean === product.value) >= 0)}
-                      onChange={product => setNumProducts(product.map(p => p.value))}
-                    />
-                  </div>
-                </div>
-                {!!numProducts.length && <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Number of products:</div>
-                  <div className="d-flex ms-auto mr-0 w-75 flex-column">
-                    {numProducts.map(ean => (
-                      <div className="d-flex w-100" key={`numProduct${ean}`}>
-                        <div className="d-flex align-items-center p-2 me-auto" style={{ width: '68%' }}>
-                          <div className="d-block overflow-hidden" style={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {products.find(p => p.value === ean)?.label}
+                <div className="row">
+                  <div className="col-md-1"></div>
+                  <div className="col-md-10">
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Order ID:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="number" className="form-control" name='order_id' placeholder="Order ID" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipping Type:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='type'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={shipingTypes}
+                              placeholder='Select shipping type'
+                              isSearchable={false}
+                              noOptionsMessage={e => `No more shipping type${e.inputValue}`}
+                              defaultValue={{ value: 'Train', label: 'Train' }}
+                            />
                           </div>
                         </div>
-                        <div className="d-flex align-items-center m-0"><Barcode displayValue={false} value={`${ean}-${1}`} height={40} width={0.4} margin={3} /></div>
-                        <div className="d-flex m-0" style={{ minWidth: '50px' }}><input type="number" name='numProduct' defaultValue={1} min={1} className='form-control' /></div>
-                        <div className="d-flex m-0">
-                          <button className="btn btn-light-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-trash-fill"></i></button>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipment Status:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='status'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={shippingStatus}
+                              placeholder='Select shipment status'
+                              isSearchable={false}
+                              noOptionsMessage={e => `No more shipping status${e.inputValue}`}
+                              defaultValue={shippingStatus[2]}
+                            />
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Warehouse:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='warehouse' placeholder="Warehouse" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Expected Delivery Date:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Agent Name:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='name'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={agents}
+                              placeholder='Select an agent'
+                              noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
+                              defaultValue={agents[0] ?? null}
+                            />
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-12">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-25">Note (Optional):</div>
+                          <div className="d-flex ms-auto mr-0 w-75">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <textarea className="form-control" name='note' placeholder="Note" rows={3} />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <hr />
+                    <h1>Products</h1>
+                    <div className="row">
+                      <div className="col-md-12 overflow-auto">
+                        <table className='table table-bordered table-hover w-100 text-nowrap' style={{ overflowY: 'visible' }}>
+                          <thead>
+                            <tr className="py-1 fs-4 fw-bold">
+                              <th></th>
+                              <th style={{ minWidth: '500px' }}>Product</th>
+                              <th>Quantity</th>
+                              <th>Supplier</th>
+                              <th>Item</th>
+                              <th>PDF sent</th>
+                              <th>Pay URL</th>
+                              <th>Tracking</th>
+                              <th>Arrive to Agent</th>
+                              <th>Wechat Group</th>
+                              <th>PP</th>
+                              <th>Each Status</th>
+                              <th>Shipment Name</th>
+                              <th>Box Number</th>
+                              <th>Document</th>
+                              <th>Created Date</th>
+                              <th>Date to Agent</th>
+                              <th>SID</th>
+                              <th>GID</th>
+                              <th>Date to Port</th>
+                              <th>New ID</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.keys(selectedProducts).map((index) => (
+                              <tr className="py-1 fw-bold" key={`tr${index}`}>
+                                <td className='align-content-center'>
+                                  <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
+                                    const newProArr = { ...selectedProducts };
+                                    delete newProArr[parseInt(index)];
+                                    setSelectedProducts(newProArr);
+                                  }}><i className="bi bi-trash-fill"></i></button>
+                                </td>
+                                <td>
+                                  <Select
+                                    name='products'
+                                    className='react-select-styled react-select-solid react-select-sm w-100'
+                                    options={products}
+                                    placeholder='Select a product'
+                                    noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                    hideSelectedOptions
+                                    captureMenuScroll={true}
+                                    menuPlacement={'auto'}
+                                    menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                    value={products.find(product => product.value === selectedProducts[parseInt(index)].ean)}
+                                    onChange={product => setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ean: product?.value ?? '', quantity: 1 } })}
+                                  />
+                                </td>
+                                <td><input type="number" name='numProduct' value={selectedProducts[parseInt(index)].quantity} min={1} onChange={(e) => {
+                                  const newProducts = { ...selectedProducts };
+                                  newProducts[parseInt(index)].quantity = parseInt(e.target.value);
+                                  setSelectedProducts(newProducts);
+                                }} className='form-control form-control-sm d-flex' /></td>
+                                <td>Supplier</td>
+                                <td>Item</td>
+                                <td>PDF sent</td>
+                                <td>Pay URL</td>
+                                <td>Tracking</td>
+                                <td>Arrive to Agent</td>
+                                <td>Wechat Group</td>
+                                <td>PP</td>
+                                <td>Each Status</td>
+                                <td>Shipment Name</td>
+                                <td>Box Number</td>
+                                <td>Document</td>
+                                <td>Created Date</td>
+                                <td>Date to Agent</td>
+                                <td>SID</td>
+                                <td>GID</td>
+                                <td>Date to Port</td>
+                                <td>New ID</td>
+                              </tr>
+                            ))}
+                            {(() => {
+                              const len = Object.keys(selectedProducts).length.toString();
+                              return (
+                                <tr className="py-1 fw-bold" key={`tr${len}`}>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td>
+                                    <Select
+                                      name='products'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      options={products}
+                                      placeholder='Select a product'
+                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                      // value={products.find(product => product.value === selectedProducts[parseInt(len)].ean)}
+                                      onChange={product => setSelectedProducts({ ...selectedProducts, [parseInt(len)]: { ean: product?.value ?? '', quantity: 1 } })}
+                                    />
+                                  </td>
+                                  <td><input type="number" name='numProduct' /*value={selectedProducts[parseInt(index)].quantity}*/ min={1} onChange={(e) => {
+                                    const newProducts = { ...selectedProducts };
+                                    newProducts[parseInt(len)].quantity = parseInt(e.target.value);
+                                    setSelectedProducts(newProducts);
+                                  }} className='form-control form-control-sm d-flex' readOnly /></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                </tr>
+                              )
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                </div>}
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Shipment Status:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='status'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={shippingStatus}
-                      placeholder='Select shipment status'
-                      isSearchable={false}
-                      noOptionsMessage={e => `No more shipping status${e.inputValue}`}
-                      defaultValue={shippingStatus[2]}
-                    />
-                  </div>
+                  <div className="col-md-1"></div>
                 </div>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Expected Delivery Date:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" />
-                    </div>
-                  </div>
-                </label>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Note (Optional):</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <textarea className="form-control" name='note' placeholder="Note" rows={3} />
-                    </div>
-                  </div>
-                </label>
               </form>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
-              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-plus"></i>Create</button>
             </div>
           </div>
         </div>
       </div>
       <div className="modal fade" id='editShipmentModal' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-dialog modal-dialog-scrollable modal-fullscreen">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">Create Shipment</h1>
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Shipment</h1>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
@@ -827,10 +956,10 @@ export function ShippingManagement() {
                     <Select
                       name='name'
                       className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={suppliers}
-                      placeholder='Select a supplier'
-                      noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
-                      defaultValue={suppliers.find(sup => sup.value === editShipement.supplier_name)}
+                      options={agents}
+                      placeholder='Select an agent'
+                      noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
+                      defaultValue={agents.find(sup => sup.value === editShipement.agent_name)}
                     />
                   </div>
                 </label>
@@ -849,43 +978,6 @@ export function ShippingManagement() {
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Products:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='products'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={products}
-                      placeholder='Select products'
-                      isMulti
-                      onMenuScrollToBottom={loadMoreProducts}
-                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                      hideSelectedOptions
-                      onChange={product => setNumProducts(product.map(p => p.value))}
-                      value={products.filter(type => editShipement.product_name_list.findIndex(item => item === type.value))}
-                    />
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Number of products:</div>
-                  <div className="d-flex ms-auto mr-0 w-75 flex-column">
-                    {editShipement.product_name_list.map((ean, index) => (
-                      <div className="d-flex w-100" key={`numProduct${ean}`}>
-                        <div className="d-flex align-items-center p-2 w-auto me-auto">
-                          <div className="d-block overflow-hidden" style={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {products.find(p => p.value === `${ean}`)?.label}
-                          </div>
-                        </div>
-                        <div className="d-flex m-0" style={{ width: '20%' }}>
-                          <input type="number" name='numProduct' defaultValue={editShipement.quantity_list[index]} min={1} className='form-control' />
-                        </div>
-                        <div className="d-flex m-0">
-                          <button className="btn btn-primary btn-sm" onClick={() => setNumProducts(numProducts.filter(prod => prod !== ean))}><i className="bi bi-trash-fill"></i></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Shipment Status:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <Select
@@ -899,6 +991,15 @@ export function ShippingManagement() {
                     />
                   </div>
                 </div>
+                <label className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Warehouse:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='warehouse' placeholder="Warehouse" defaultValue={editShipement.warehouse} />
+                    </div>
+                  </div>
+                </label>
                 <label className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Expected Delivery Date:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
@@ -917,9 +1018,6 @@ export function ShippingManagement() {
                     </div>
                   </div>
                 </label>
-                <div className="d-flex align-items-center py-1">
-                  <Barcode displayValue={true} value="123456789" />
-                </div>
               </form>}
             </div>
             <div className="modal-footer">
