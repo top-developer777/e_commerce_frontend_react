@@ -33,6 +33,7 @@ export const getAllReturns = () => {
   return axios.get(`${API_URL}/returns`)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const saveBarcode = (code: number) => {
   return axios.get(`${API_URL}/replaces`)
 }

@@ -837,7 +837,9 @@ export function ShippingManagement() {
                                     const newProArr = { ...selectedProducts };
                                     delete newProArr[parseInt(index)];
                                     setSelectedProducts(newProArr);
-                                  }}><i className="bi bi-trash-fill"></i></button>
+                                  }}>
+                                    <i className="bi bi-trash-fill"></i>
+                                  </button>
                                 </td>
                                 <td>
                                   <Select
@@ -854,11 +856,13 @@ export function ShippingManagement() {
                                     onChange={product => setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ean: product?.value ?? '', quantity: 1 } })}
                                   />
                                 </td>
-                                <td><input type="number" name='numProduct' value={selectedProducts[parseInt(index)].quantity} min={1} onChange={(e) => {
-                                  const newProducts = { ...selectedProducts };
-                                  newProducts[parseInt(index)].quantity = parseInt(e.target.value);
-                                  setSelectedProducts(newProducts);
-                                }} className='form-control form-control-sm d-flex' /></td>
+                                <td>
+                                  <input type="number" name='numProduct' value={selectedProducts[parseInt(index)].quantity} min={1} onChange={(e) => {
+                                    const newProducts = { ...selectedProducts };
+                                    newProducts[parseInt(index)].quantity = parseInt(e.target.value);
+                                    setSelectedProducts(newProducts);
+                                  }} className='form-control form-control-sm d-flex' />
+                                </td>
                                 <td>Supplier</td>
                                 <td>Item</td>
                                 <td>PDF sent</td>
@@ -880,9 +884,11 @@ export function ShippingManagement() {
                               </tr>
                             ))}
                             {(() => {
-                              const len = Object.keys(selectedProducts).length.toString();
+                              const objects = Object.keys(selectedProducts);
+                              const len = objects.length;
+                              const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
                               return (
-                                <tr className="py-1 fw-bold" key={`tr${len}`}>
+                                <tr className="py-1 fw-bold" key={`tr${num}`}>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td>
                                     <Select
@@ -895,13 +901,12 @@ export function ShippingManagement() {
                                       captureMenuScroll={true}
                                       menuPlacement={'auto'}
                                       menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
-                                      // value={products.find(product => product.value === selectedProducts[parseInt(len)].ean)}
-                                      onChange={product => setSelectedProducts({ ...selectedProducts, [parseInt(len)]: { ean: product?.value ?? '', quantity: 1 } })}
+                                      onChange={product => setSelectedProducts({ ...selectedProducts, [parseInt(num)]: { ean: product?.value ?? '', quantity: 1 } })}
                                     />
                                   </td>
-                                  <td><input type="number" name='numProduct' /*value={selectedProducts[parseInt(index)].quantity}*/ min={1} onChange={(e) => {
+                                  <td><input type="number" name='numProduct' defaultValue={1} min={1} onChange={(e) => {
                                     const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(len)].quantity = parseInt(e.target.value);
+                                    newProducts[parseInt(num)].quantity = parseInt(e.target.value);
                                     setSelectedProducts(newProducts);
                                   }} className='form-control form-control-sm d-flex' readOnly /></td>
                                   <td></td>
