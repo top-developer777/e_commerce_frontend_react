@@ -236,7 +236,7 @@ const OrderTable: React.FC<{
                   </td>
                   <td className='align-content-center text-center '>{order.vendor_name}</td>
                   <td className='align-content-center text-center'>
-                    {order.market_place}
+                    {order.order_market_place}
                   </td>
                   {/* <td className='align-content-center text-center'>
                     <button type='button' className='btn btn-light btn-light-primary p-1 px-3'>
@@ -245,10 +245,12 @@ const OrderTable: React.FC<{
                     </button>
                   </td> */}
                   <td className='align-content-center text-center'>
-                    <button type='button' className='btn btn-light btn-light-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
+                    {order.status === 0 && <>None</>}
+                    {[1, 2, 3].findIndex(item => item === order.status) >= 0 && <button type='button' className='btn btn-light btn-light-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
                       <i className="bi bi-file-earmark-plus"></i>
                       Create
-                    </button>
+                    </button>}
+                    {[4, 5].findIndex(item => item === order.status) >= 0 && <>AWB Number</>}
                   </td>
                   <td className='align-content-center text-center'>
                     <StatusBadge status={order.status} />

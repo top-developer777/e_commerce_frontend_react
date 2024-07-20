@@ -16,5 +16,5 @@ export interface Return {
   replacement_product_quantity: number;
   date: string;
   request_status: number;
-  market_place: string;
+  return_market_place: string;
 }

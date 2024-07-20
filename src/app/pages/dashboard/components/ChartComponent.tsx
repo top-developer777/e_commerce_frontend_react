@@ -63,8 +63,8 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
     stroke: {
       curve: 'smooth',
       show: true,
-      width: [0, 2, 0, 2],
-      colors: ['#fff', '#1bc5bd', '#fff', '#4e91ff'],
+      width: [0, 0, 2],
+      colors: ['#fff', '#1bc5bd', '#f64e60'],
     },
     xaxis: {
       categories: JSON.parse(categories),
@@ -117,10 +117,6 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
       y: [{
         formatter: function (val) {
           return `${val}`;
-        },
-      },{
-        formatter: function (val) {
-          return `$${val}`;
         },
       },{
         formatter: function (val) {
@@ -192,11 +188,6 @@ export const ChartComponent: FC<Props> = ({ className }) => {
               data: [],
             },
             {
-              name: 'Advertising cost',
-              type: 'line',
-              data: [],
-            },
-            {
               name: 'Refunds',
               type: 'bar',
               data: [],
@@ -210,9 +201,8 @@ export const ChartComponent: FC<Props> = ({ className }) => {
           for (const datum of data) {
             categories.push(datum.date_string);
             series[0].data.push(parseFloat(datum.total_units));
-            series[1].data.push(100);
-            series[2].data.push(parseFloat(datum.total_refund));
-            series[3].data.push(parseFloat((parseFloat(datum.total_net_profit) / 1000).toPrecision(2)));
+            series[1].data.push(parseFloat(datum.total_refund));
+            series[2].data.push(parseFloat((parseFloat(datum.total_net_profit) / 1000).toPrecision(2)));
           }
           setSeries(JSON.stringify(series));
           setCategories(JSON.stringify(categories));
@@ -271,46 +261,6 @@ export const ChartComponent: FC<Props> = ({ className }) => {
   }
 
   useEffect(() => {
-    // getChartInfo()
-    //   .then(res => {
-    //     if (res.status === 200) {
-    //       const data = res.data.chart_data;
-    //       const categories = [];
-    //       const series: Series[] = [
-    //         {
-    //           name: 'Units sold',
-    //           type: 'line',
-    //           data: [],
-    //         },
-    //         {
-    //           name: 'Advertising cost',
-    //           type: 'bar',
-    //           data: [],
-    //         },
-    //         {
-    //           name: 'Refunds',
-    //           type: 'line',
-    //           data: [],
-    //         },
-    //         {
-    //           name: 'Net Profit',
-    //           type: 'bar',
-    //           data: [],
-    //         },
-    //       ];
-    //       for (const datum of data) {
-    //         categories.push(datum.date_string);
-    //         series[0].data.push(parseFloat(datum.total_units));
-    //         series[1].data.push(0);
-    //         series[1].data.push(parseFloat(datum.total_refund));
-    //         series[2].data.push(parseFloat(datum.total_net_profit) / 100);
-    //       }
-    //       setSeries(JSON.stringify(series));
-    //       setCategories(JSON.stringify(categories));
-    //     } else {
-    //       console.error(res);
-    //     }
-    //   });
     getAllProducts(1, 1000)
       .then(res => {
         setProducts(res.data);

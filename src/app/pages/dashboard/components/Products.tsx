@@ -244,36 +244,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 }
 
 export const Products = () => {
-  const [products, setProducts] = useState<Product[]>([{
-    product_name: '2341235',
-    model_name: '21362',
-    ean: '13262361',
-    price: '2134',
-    image_link: '512',
-    barcode_title: '1235',
-    masterbox_title: '1235',
-    link_address_1688: '1325',
-    price_1688: '1235123',
-    variation_name_1688: '1263',
-    pcs_ctn: '1236',
-    weight: '12',
-    dimensions: '2314',
-    supplier_id: 0,
-    english_name: '1253',
-    romanian_name: '1235',
-    material_name_en: '135',
-    material_name_ro: '1235',
-    hs_code: '1352',
-    battery: false,
-    default_usage: '1325',
-    production_time: '1235',
-    discontinued: false,
-    stock: 0,
-    day_stock: 0,
-    internal_shipping_price: '1235',
-    market_place: ['eMAG.ro'],
-    part_number_key: ''
-  }]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
   const [selectedProduct, setSelectedProduct] = useState<Product>();

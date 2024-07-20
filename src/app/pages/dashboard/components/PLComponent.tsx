@@ -159,7 +159,7 @@ export const PLComponent = () => {
           </button>
         </div>
       </div>
-      <div className="card-body table-responsive">
+      <div className="card-body table-responsive mt-10">
         <table className="table table-bordered table-hover cursor-pointer">
           <thead>
             <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
@@ -170,7 +170,7 @@ export const PLComponent = () => {
           <tbody className="table-group-divider">
             <tr>
               <td className="bg-white" style={{ position: 'sticky', left: '0' }}>Sales</td>
-              {PLData.map((datum, index) => <td key={`sales${index}`} className='text-end'>{datum.total_sales}</td>)}
+              {PLData.map((datum, index) => <td key={`sales${index}`} className='text-end'>{parseFloat(datum.total_sales.toString()).toFixed(3)}</td>)}
             </tr>
             <tr>
               <td className="bg-white" style={{ position: 'sticky', left: '0' }}>Units</td>
@@ -182,11 +182,11 @@ export const PLComponent = () => {
             </tr>
             <tr>
               <td className="bg-white" style={{ position: 'sticky', left: '0' }}>Gross Profit</td>
-              {PLData.map((datum, index) => <td key={`gross${index}`} className='text-end'>{datum.total_gross_profit}</td>)}
+              {PLData.map((datum, index) => <td key={`gross${index}`} className='text-end'>{parseFloat(datum.total_gross_profit.toString()).toFixed(3)}</td>)}
             </tr>
             <tr>
               <td className="bg-white" style={{ position: 'sticky', left: '0' }}>Net Profit</td>
-              {PLData.map((datum, index) => <td key={`profit${index}`} className='text-end'>{datum.total_net_profit}</td>)}
+              {PLData.map((datum, index) => <td key={`profit${index}`} className='text-end'>{parseFloat(datum.total_net_profit.toString()).toFixed(3)}</td>)}
             </tr>
           </tbody>
         </table>

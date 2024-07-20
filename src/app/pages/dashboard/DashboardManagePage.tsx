@@ -3,6 +3,7 @@ import { PageLink, PageTitle } from '../../../_metronic/layout/core'
 import { DashboardManageHeader } from './DashboardManageHeader'
 import { DashboardPage } from './components/DashboardPage'
 import { Products } from './components/Products'
+import { WarehousesComponent } from './components/Warehouses'
 
 const dashboardManBreadCrumbs: Array<PageLink> = [
   // {
@@ -38,6 +39,15 @@ const DashboardManagePage = () => (
           <>
             <PageTitle breadcrumbs={dashboardManBreadCrumbs}>Products</PageTitle>
             <Products />
+          </>
+        }
+      />
+      <Route
+        path='warehouses'
+        element={
+          <>
+            <PageTitle breadcrumbs={dashboardManBreadCrumbs}>Warehouses</PageTitle>
+            <WarehousesComponent />
           </>
         }
       />

@@ -29,5 +29,5 @@ export interface Order {
   finalization_date: string;
   details: string;
   payment_mode_id: number;
-  market_place: string;
+  order_market_place: string;
 }

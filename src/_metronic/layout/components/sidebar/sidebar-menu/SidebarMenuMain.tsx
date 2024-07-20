@@ -17,6 +17,7 @@ const SidebarMenuMain = () => {
       </div>
       <SidebarMenuItem icon='element-11' to='/dashboard/main' title={intl.formatMessage({id: 'MENU.DASHBOARD'})} fontIcon='bi-app-indicator' />
       <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/dashboard/products' title='Products' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-house-fill' to='/dashboard/warehouses' title='Warehouses' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Configuration</span>
