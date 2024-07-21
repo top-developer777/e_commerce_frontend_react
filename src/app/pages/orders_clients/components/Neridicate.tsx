@@ -25,7 +25,7 @@ export const NeridicateComponent = () => {
   const [returns, setReturns] = useState<Return[]>([]);
 
   useEffect(() => {
-    const html5QrCode = new Html5Qrcode("reader", {
+    const html5QrCode = new Html5Qrcode("cameraReader", {
       formatsToSupport: [
         Html5QrcodeSupportedFormats.QR_CODE,
         Html5QrcodeSupportedFormats.CODE_128,
@@ -155,7 +155,7 @@ export const NeridicateComponent = () => {
       {result === null &&
         <>
           <div
-            id="reader"
+            id="cameraReader"
             className='mx-auto bg-dark mw-100 mh-100'
             style={{ width: `${dimensions.width}px`, height: `${dimensions.height}px` }}
           ></div>
