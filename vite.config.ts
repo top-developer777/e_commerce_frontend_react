@@ -15,8 +15,8 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       https: {
-        key: fs.readFileSync(path.resolve(__dirname, 'ssl/vite.key')),
-        cert: fs.readFileSync(path.resolve(__dirname, 'ssl/vite.crt')),
+        key: fs.readFileSync(path.resolve(__dirname, 'ssl/key.pem')),
+        cert: fs.readFileSync(path.resolve(__dirname, 'ssl/cert.pem')),
       },
       host: true,
       port: Number(env.VITE_PORT),
