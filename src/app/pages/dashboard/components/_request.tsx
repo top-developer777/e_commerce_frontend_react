@@ -46,8 +46,8 @@ const getProductAmount = (suppliers: string = '') => {
     return axios.get(`${API_URL}/products/count?supplier_ids=${suppliers}`)
 }
 
-const getProductInfo = async (productId: number, type: number = 1) => {
-    return axios.get(`${API_URL}/products/info/${productId}?type=${type}`)
+const getProductInfo = async (ean: string, type: number = 1) => {
+    return axios.get(`${API_URL}/products/info/${ean}?type=${type}`)
 }
 
 export {

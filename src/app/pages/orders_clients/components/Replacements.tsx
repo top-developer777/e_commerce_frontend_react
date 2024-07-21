@@ -96,8 +96,9 @@ export function ReplacementsComponent() {
                 <th>Date of Request</th>
                 <th>Order ID</th>
                 <th>Product Name</th>
-                <th>Replacement Reason</th>
                 <th>Status</th>
+                <th>Replacement Reason</th>
+                <th>Customer Id</th>
               </tr>
             </thead>
             <tbody>
@@ -108,6 +109,7 @@ export function ReplacementsComponent() {
                   <td>{products.find(product => product.value === replace.product_ean)?.label ?? 'None'}</td>
                   <td>{replace.reason}</td>
                   <td>{replace.status}</td>
+                  <td>{replace.customer_id}</td>
                 </tr>
               ))}
             </tbody>
@@ -144,6 +146,8 @@ export function ReplacementsComponent() {
                         placeholder='Select product'
                         noOptionsMessage={e => `No more products including "${e.inputValue}"`}
                         defaultValue={products[0]}
+                        menuPlacement='auto'
+                        menuPortalTarget={document.querySelector('#requestModal') as HTMLElement}
                       />
                     </div>
                   </div>

@@ -250,7 +250,7 @@ const TableProductPlanner: React.FC<{
     <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7">
       <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-          <th className='text-center align-content-center px-1'>shipping type</th>
+          <th className='text-center align-content-center px-1'>Shipping type</th>
           <th className='text-center align-content-center px-1'>Picture</th>
           <th className='text-start align-content-center px-1 col-md-2'>Product name</th>
           <th className='text-center align-content-center px-0'>Quantity</th>
@@ -955,74 +955,6 @@ export function ShippingManagement() {
             </div>
             <div className="modal-body">
               {editShipement && <form action="" method='post' id='editProductForm'>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Supplier Name:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='name'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={agents}
-                      placeholder='Select an agent'
-                      noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
-                      defaultValue={agents.find(sup => sup.value === editShipement.agent_name)}
-                    />
-                  </div>
-                </label>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Shipping Type:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='type'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={shipingTypes}
-                      placeholder='Select shipping type'
-                      isSearchable={false}
-                      defaultValue={fakeShipingType.find(type => editShipement.type === type.value)}
-                      noOptionsMessage={e => `No more shipping type${e.inputValue}`}
-                    />
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Shipment Status:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='status'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={shippingStatus}
-                      placeholder='Select shipment status'
-                      isSearchable={false}
-                      noOptionsMessage={e => `No more shipping status${e.inputValue}`}
-                      defaultValue={shippingStatus.filter(status => status.value === editShipement.status)}
-                    />
-                  </div>
-                </div>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Warehouse:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='warehouse' placeholder="Warehouse" defaultValue={editShipement.warehouse} />
-                    </div>
-                  </div>
-                </label>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Expected Delivery Date:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" min={0} defaultValue={editShipement.expect_date} />
-                    </div>
-                  </div>
-                </label>
-                <label className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Note (Optional):</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <textarea className="form-control" name='note' placeholder="Note" rows={3} defaultValue={editShipement.note} />
-                    </div>
-                  </div>
-                </label>
               </form>}
             </div>
             <div className="modal-footer">

@@ -41,7 +41,7 @@ const OrdersInformation: FC<Props> = ({ className, product, orders }) => {
             <div className="separator my-10"></div>
           </div>
         </div>
-        <div className="row">
+        <div className="row mt-5">
           <div className="col-md-12">
             <table className="table table-rounded table-bordered border gy-7 gs-7 cursor-pointer table-hover text-center">
               <thead>

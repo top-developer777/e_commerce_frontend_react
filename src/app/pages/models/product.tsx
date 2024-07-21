@@ -25,7 +25,7 @@ export interface Product {
   production_time: string;
   discontinued: boolean;
   stock: number;
-  day_stock: number;
+  day_stock: number[];
   internal_shipping_price: string;
   market_place?: string[];
   sale_price?: string;

@@ -9,15 +9,13 @@ import { getProductInfo } from '../../dashboard/components/_request';
 
 type Props = {
   className: string,
-  series: string,
-  categories: string,
   product: Product,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const SalesInformation: FC<Props> = ({ className, series, categories, product }) => {
-  const [seriesSales, setSeriesSales] = useState<string>(series);
-  const [categories1, setCategories] = useState<string>(categories);
+const SalesInformation: FC<Props> = ({ className, product }) => {
+  const [seriesSales, setSeriesSales] = useState<string>(JSON.stringify([]));
+  const [categories1, setCategories] = useState<string>(JSON.stringify([]));
   const [salesPeriod, setSalesPeriod] = useState<number>(1);
   const salesPeriodOptions = [
     { value: 1, label: 'Last 12 months by month' },
@@ -40,7 +38,7 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
   }
 
   useEffect(() => {
-    getProductInfo(product.id ?? 0, salesPeriod)
+    getProductInfo(product.ean ?? '', salesPeriod)
       .then(res => {
         if (res.data !== '') {
           const data = res.data.sales_info as [{ date_string: string, sales: number }];
@@ -55,7 +53,7 @@ const SalesInformation: FC<Props> = ({ className, series, categories, product })
         }
       })
       .catch(e => console.error(e));
-  }, [product.id, salesPeriod])
+  }, [product.ean, salesPeriod])
   useEffect(() => {
     const chart = refreshChart()
     return () => {

@@ -7,17 +7,20 @@ import { formatCurrency } from '../../dashboard/components/_function';
 import { interMKP } from '../../config/components/Integrations';
 import { getAllMarketplaces } from '../../config/components/_request';
 import { Return } from '../../models/returns';
-import { getAllReturns } from './_request';
+import { getAllOrders, getAllReturns, getOrderAmout } from './_request';
+import { Order } from '../../models/order';
 
 export const NeridicateComponent = () => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [codeType, setCodeType] = useState<string>();
   const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number, height: number }>({ width: 500, height: 400 });
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
+  const [selectedOrder, setSelectedOrder] = useState<Order>();
+  const [numOrderPages, setNumOrderPages] = useState<number>(1);
   const [marketplaces, setMarketplaces] = useState<interMKP[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
 
@@ -39,16 +42,34 @@ export const NeridicateComponent = () => {
     getAllProducts(1, 1000)
       .then((res) => setProducts(res.data))
       .catch((e) => console.error(e));
+    getOrderAmout()
+      .then(res => res.data as number)
+      .then(res => setNumOrderPages(res ? Math.ceil(res / 100) : 1))
+      .catch(e => console.error(e));
     getAllMarketplaces()
       .then(res => setMarketplaces(res.data))
       .catch(e => console.error(e));
     getAllReturns()
       .then(res => setReturns(res.data))
       .catch(e => console.error(e));
+    // let i = 1;
+    // while (i <= numOrderPages) {
+    //   getAllOrders(i, 100)
+    //     .then(res => res.data as Order[])
+    //     .then(res => {
+    //       setOrders([...orders, ...res.filter(ord => ord.date === result)]);
+    //       i++;
+    //     })
+    //     .catch(e => {
+    //       console.error(e);
+    //       i = numOrderPages + 1;
+    //     });
+    // }
   }, []);
   useEffect(() => {
-    if (codeType === 'bar') setSelectedProduct(products.find(product => parseInt(product.ean) === parseInt(result ?? '')));
-  }, [result, codeType]);
+    if (!!result && !Number.isNaN(Number(result))) setSelectedProduct(products.find(product => parseInt(product.ean) === parseInt(result ?? '')));
+    if (!!result && Number.isNaN(Number(result))) setSelectedOrder(orders.find(order => order.date === result));
+  }, [result]);
 
   const startScanning = async () => {
     if (html5QrCode) {
@@ -56,6 +77,13 @@ export const NeridicateComponent = () => {
         const videoConstraints = {
           facingMode: "environment",
         };
+
+        const isCameraAvailable = await checkAvailability();
+
+        if (!isCameraAvailable) {
+          setError("No camera found. Please connect a camera and try again.");
+          return;
+        }
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
         const track = stream.getVideoTracks()[0];
@@ -75,18 +103,8 @@ export const NeridicateComponent = () => {
             qrbox: { width: 400, height: 250 },
           },
           (decodedText, decodedResult) => {
-            const codeType = decodedResult.result.format?.formatName === 'QR_CODE' ? 'qr' : 'bar';
-            setCodeType(codeType);
-            // if (codeType === 'qr') {
-            //   // const newWnd = window.open(decodedText);
-            //   // setResult(null);
-            //   // if (!newWnd) {
-            //     navigator.clipboard.writeText(decodedText);
-            //     prompt('Please copy this url.', decodedText);
-            //   // }
-            // } else {
-              setResult(decodedText);
-            // }
+            // const codeType = decodedResult.result.format?.formatName === 'QR_CODE' ? 'qr' : 'bar';
+            setResult(decodedText);
             setScanning(false);
             html5QrCode.stop().then(() => {
               stream.getTracks().forEach(track => track.stop());
@@ -114,6 +132,16 @@ export const NeridicateComponent = () => {
       });
     }
   };
+  const checkAvailability = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      return videoDevices.length > 0;
+    } catch (err) {
+      console.error('Error checking camera availability:', err);
+      return false;
+    }
+  }
   const flags = {
     "ro": "romania",
     "bg": "bulgaria",
@@ -149,7 +177,7 @@ export const NeridicateComponent = () => {
           {error && <div className='text-center text-danger fs-8'>Error: {error}</div>}
         </>
       }
-      {!!result && codeType === 'bar' && <>
+      {!!result && !Number.isNaN(Number(result)) && <>
         <div className="row">
           <div className="col-md-12">
             {!selectedProduct && <div className='w-100 text-center'>
@@ -193,7 +221,7 @@ export const NeridicateComponent = () => {
                     <div className="col-md-3 fw-bold">Stock</div>
                     <div className="col-md-3">{selectedProduct.stock ?? 0}</div>
                     <div className="col-md-3 fw-bold">Day Left in Stock</div>
-                    <div className="col-md-3">{selectedProduct.day_stock ?? 0}</div>
+                    <div className="col-md-3">{selectedProduct.day_stock[0] ?? 0}</div>
                   </div>
                   <div className="row">
                     <div className="col-md-3 fw-bold">Barcode Title</div>
@@ -292,9 +320,15 @@ export const NeridicateComponent = () => {
           </div>
         </div>
       </>}
-      {!!result && codeType === 'qr' && <>
-        AWB: {result}
-      </>}
+      {!!result && Number.isNaN(Number(result)) && <div className='row'>
+        <div className="col-md-12 text-center">
+          <div>AWB: {result}</div>
+          <button className='btn btn-success ms-3' onClick={() => setResult(null)}>
+            <i className="bi bi-skip-end-fill" style={{ marginTop: '-3px' }}></i>
+            Next
+          </button>
+        </div>
+      </div>}
     </Content>
   )
 }

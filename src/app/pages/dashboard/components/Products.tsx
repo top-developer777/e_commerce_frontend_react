@@ -170,13 +170,13 @@ interface Return {
 const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.Dispatch<React.SetStateAction<number>> }> = ({ product, setSelectedProductID }) => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
-  const [seriesSales, setSeriesSales] = useState<{ name: string, data: number[] }[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  // const [seriesSales, setSeriesSales] = useState<{ name: string, data: number[] }[]>([]);
+  // const [categories, setCategories] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [suppliers, setSuppliers] = useState<Suppliers[]>([]);
 
   useEffect(() => {
-    getProductInfo(product.id ?? 0)
+    getProductInfo(product.ean ?? '')
       .then(res => {
         if (res.data !== '') {
           const data = res.data.sales_info as [{ date_string: string, sales: number }];
@@ -186,8 +186,8 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
             catigories.push(datum.date_string);
             series.push(datum.sales);
           });
-          setSeriesSales([{ name: 'Sales', data: series }]);
-          setCategories(catigories);
+          // setSeriesSales([{ name: 'Sales', data: series }]);
+          // setCategories(catigories);
           setShipments(res.data.shipments_info);
           setOrders(res.data.orders_info);
           const returns = [];
@@ -202,7 +202,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
     getAllSuppliers(1, 1000)
       .then(res => setSuppliers(res.data))
       .catch(e => console.error(e));
-  }, [product.id]);
+  }, [product.ean]);
 
   return (
     <div>
@@ -235,7 +235,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
           </div>
         </div>
       </div>
-      <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(seriesSales)} product={product} categories={JSON.stringify(categories)} />
+      <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
       <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} orders={orders} />
       <ReturnsInformation returns={returns} />
       <ShipmentInformation shipments={shipments} />
@@ -597,7 +597,7 @@ export const Products = () => {
                             </div>
                           </td>
                           <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
-                          <td className='align-content-center'>{product.stock} ({product.day_stock} days)</td>
+                          <td className='align-content-center'>{product.stock} ({product.day_stock[0]} days)</td>
                           <td className='align-content-center'>{product.barcode_title}</td>
                           <td className='align-content-center'>{product.masterbox_title}</td>
                           <td className="align-content-center">

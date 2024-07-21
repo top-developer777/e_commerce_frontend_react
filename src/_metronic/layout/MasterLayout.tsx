@@ -26,7 +26,7 @@ const MasterLayout = () => {
             <div className='app-main flex-column flex-row-fluid' id='kt_app_main'>
               <div className='d-flex flex-column flex-column-fluid'>
                 <Outlet />
-                <ToastContainer />
+                <ToastContainer limit={3} />
               </div>
               <FooterWrapper />
             </div>

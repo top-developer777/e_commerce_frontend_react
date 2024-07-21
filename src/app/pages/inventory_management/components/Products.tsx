@@ -5,61 +5,6 @@ import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 import { Product } from '../../models/product'
 
-// const Pagination = (props) => {
-//   return (
-//     <div className='pagination'>
-
-//     </div>
-//   )
-// }
-
-const fakeShipments = [
-  {
-    "shipment_id": "SH123456",
-    "shipment_name": "Electronics Batch 1",
-    "destination": "New York, USA",
-    "last_updated": "2024-06-10T15:30:00Z",
-    "created": "2024-06-05T10:00:00Z",
-    "qty_shipped": 500,
-    "qty_received": 450,
-    "shipment_status": "In Transit"
-  },
-  {
-    "shipment_id": "SH789012",
-    "shipment_name": "Furniture Batch 3",
-    "destination": "Los Angeles, USA",
-    "last_updated": "2024-06-12T12:00:00Z",
-    "created": "2024-06-08T09:00:00Z",
-    "qty_shipped": 300,
-    "qty_received": 300,
-    "shipment_status": "Delivered"
-  }
-]
-
-const fakeReturns = [
-  {
-    "return_type": "Damaged Item",
-    "quantity": 10,
-    "rate": 66.7,
-    "summary": "150 units returned due to defects",
-  },
-  {
-    "return_type": "Defective Item",
-    "quantity": 5,
-    "rate": 33.3,
-    "summary": "Entire shipment returned due to incorrect specifications",
-  }
-]
-
-const fakeSeriesSales = [
-  {
-    name: 'Sales',
-    data: [0, 0, 0, 25, 78, 0, 50, 0, 25, 25, 0, 27],
-  }
-]
-
-const fakeCategoriesSales = ['19/05/2024', '21/05/2024', '23/05/2024', '25/05/2024', '27/05/2024', '29/05/2024', '31/05/2024', '02/06/2024', '04/06/2024', '06/06/2024', '08/06/2024', '10/06/2024']
-
 interface Return {
   return_type: string;
   rate: number;
@@ -79,9 +24,9 @@ const ReturnsInformation: React.FC<{
 }> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-      <div className="card-header pt-4 w-full">
+      <div className="card-header pt-6 w-full">
         <div>
-          <h3 className="text-gray-800 card-title align-content-center">Return Dashboard</h3>
+          <h3 className="text-gray-800 card-title align-content-center fw-bold">Return Dashboard</h3>
         </div>
         <div>
         </div>
@@ -149,9 +94,9 @@ const ShipmentInformation: React.FC<{
 }> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-      <div className="card-header pt-4 w-full">
+      <div className="card-header pt-6 w-full">
         <div>
-          <h3 className="text-gray-800 card-title align-content-center">Shipment Information</h3>
+          <h3 className="text-gray-800 card-title align-content-center fw-bold">Shipment Information</h3>
         </div>
         <div>
 
@@ -199,8 +144,8 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
   const [returns, setReturns] = useState<Return[]>([]);
 
   useEffect(() => {
-    setShipments(fakeShipments)
-    setReturns(fakeReturns)
+    setShipments([])
+    setReturns([])
   }, []);
 
   return (
@@ -232,16 +177,24 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
           </div>
         </div>
       </div>
-      <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' series={JSON.stringify(fakeSeriesSales)} product={product} categories={JSON.stringify(fakeCategoriesSales)} />
-      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
+      <SalesInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} />
+      <OrdersInformation className='card-xl-stretch mb-5 mb-xl-8' product={product} orders={[]} />
       <ReturnsInformation returns={returns} />
       <ShipmentInformation shipments={shipments} />
     </div>
   )
 }
 
+interface CalculateProduct extends Product {
+  quantity: number;
+  stock_imports: string[];
+  shipping_type: string;
+  imports_stock: string[];
+  days_stock: number[];
+}
+
 export function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<CalculateProduct[]>([]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -342,8 +295,11 @@ export function Products() {
               </div>
               <div className="col-md-3">
                 <div className="dropdown">
-                  <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    <input type="text" className="form-control" readOnly value={`${weight.from} ~ ${weight.to} kg`} />
+                  <div className='d-flex' data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <div className="d-flex align-items-center pe-3 text-nowrap">Weight:</div>
+                    <div className="d-flex">
+                      <input type="text" className="form-control" readOnly value={`${weight.from} ~ ${weight.to} kg`} />
+                    </div>
                   </div>
                   <form className="dropdown-menu p-4" style={{ width: '150%' }}>
                     <div className="d-flex align-items-stretch flex-wrap w-100 h-100 weight-panel">
@@ -382,7 +338,7 @@ export function Products() {
                 </div>
               </div>
               <div className="col-md-2 align-content-center">
-                <button type='button' className='btn btn-primary' onClick={handleFilterProduct}>
+                <button type='button' className='btn btn-light-primary btn-sm' onClick={handleFilterProduct}>
                   <i className="bi bi-funnel"></i>
                   Filter
                 </button>
@@ -405,14 +361,13 @@ export function Products() {
             <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
               <thead>
                 <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                  <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
-                    <input className="form-check-input" type="checkbox" value="" />
-                  </div></th>
                   <th>Product</th>
-                  <th>Price</th>
-                  <th>Stock (Days Left in Stock)</th>
-                  <th>Barcode Title</th>
-                  <th>Masterbox Title</th>
+                  <th>Quantity</th>
+                  <th>Stock Imports</th>
+                  <th>Days in stock</th>
+                  <th>Shipping Type</th>
+                  <th>Stock Days</th>
+                  <th>Import stocks</th>
                 </tr>
               </thead>
               <tbody>
@@ -423,9 +378,6 @@ export function Products() {
                     return (
                       <tr key={`inventCalc${index}`}>
                         <td className='align-content-center'>
-                          <input className="form-check-input" type="checkbox" value={index} />
-                        </td>
-                        <td className='align-content-center'>
                           <div className="d-flex">
                             <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
                               {
@@ -434,19 +386,16 @@ export function Products() {
                                   : <div> No Image </div>
                               }
                             </div>
-                            <div className="d-flex flex-column ms-2">
-                              <div className="d-flex align-items-center">
-                                <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
-                              </div>
-                              <div className="d-flex" onClick={() => setSelectedProductID(index)}>{product.product_name}</div>
-                              <div className="d-flex"><a href={product.link_address_1688} target='_blank'>1688 Link</a></div>
+                            <div className="d-flex flex-column ms-2" onClick={() => setSelectedProductID(index)}>
+                              {product.product_name}
                             </div>
                           </div>
                         </td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{formatCurrency(parseFloat(product.price))}</td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock} ({product.day_stock === null ? 0 : product.day_stock} days)</td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.barcode_title}</td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.masterbox_title}</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.quantity ?? 0}</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock_imports ? <div>{`${product.stock_imports[0]} (${parseFloat(product.stock_imports[1]).toFixed(1)})`} <br /> {product.stock_imports[2]}</div> : ''}</td>
+                        <td className='align-content-center text-nowrap' onClick={() => setSelectedProductID(index)}>{product.day_stock[0]} (days stock)<br />{product.day_stock[1]} (import)</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.shipping_type}</td>
+                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.imports_stock?.map((str, index) => <div key={index}>{str}</div>)}</td>
                         {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />
