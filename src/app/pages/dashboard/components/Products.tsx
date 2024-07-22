@@ -268,6 +268,7 @@ export const Products = () => {
   useEffect(() => {
     getAllProducts(currentPage, limit)
       .then(res => {
+        console.log(res.data);
         setProducts(res.data);
       })
       .catch(err => console.error(err));
@@ -565,7 +566,7 @@ export const Products = () => {
                       </div></th>
                       <th>Product</th>
                       <th>Price</th>
-                      <th>Stock (Days Left in Stock)</th>
+                      <th>Stock</th>
                       <th>Barcode Title</th>
                       <th>Masterbox Title</th>
                       <th>Action</th>
@@ -597,7 +598,7 @@ export const Products = () => {
                             </div>
                           </td>
                           <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
-                          <td className='align-content-center'>{product.stock} ({product.day_stock[0]} days)</td>
+                          <td className='align-content-center'>{product.stock}</td>
                           <td className='align-content-center'>{product.barcode_title}</td>
                           <td className='align-content-center'>{product.masterbox_title}</td>
                           <td className="align-content-center">
