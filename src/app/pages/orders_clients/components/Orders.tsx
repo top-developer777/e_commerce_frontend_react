@@ -147,7 +147,7 @@ const OrderTable: React.FC<{
       is_oversize: boolean,
       order_id: number,
       parcel_number: number,
-      locker_id: number,
+      locker_id: string,
       rma_id: number,
       insured_value: number,
       observation: string,
@@ -174,7 +174,7 @@ const OrderTable: React.FC<{
       is_oversize: false,
       order_id: 0,
       parcel_number: 0,
-      locker_id: 0,
+      locker_id: '',
       rma_id: 0,
       insured_value: 0,
       observation: '',
@@ -200,7 +200,7 @@ const OrderTable: React.FC<{
     data.envelope_number = parseFloat((form?.querySelector('[name="envelope_number"]') as HTMLInputElement).value);
     data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked;
     data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
-    data.locker_id = parseInt((form?.querySelector('[name="locker_id"]') as HTMLInputElement).value);
+    data.locker_id = (form?.querySelector('[name="locker_id"]') as HTMLInputElement).value;
     data.rma_id = parseInt((form?.querySelector('[name="rma_id"]') as HTMLInputElement).value);
     data.insured_value = parseFloat((form?.querySelector('[name="insured_value"]') as HTMLInputElement).value);
     data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
@@ -393,7 +393,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='locker_id' placeholder="Locker ID" min={0} max={999} required />
+                      <input type="string" className="form-control" name='locker_id' placeholder="Locker ID" required />
                     </div>
                   </div>
                 </div>

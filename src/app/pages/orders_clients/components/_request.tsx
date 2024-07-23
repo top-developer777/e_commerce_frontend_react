@@ -44,7 +44,7 @@ export const createAWB = (data: {
   is_oversize: boolean,
   order_id: number,
   parcel_number: number,
-  locker_id: number,
+  locker_id: string,
   rma_id: number,
   insured_value: number,
   observation: string,
@@ -58,13 +58,15 @@ export const createAWB = (data: {
   receiver_locality_id: number,
   receiver_name: string,
   receiver_phone1: string,
+  receiver_phone2?: string,
   receiver_street: string,
   receiver_zipcode: string,
   sender_locality_id: number,
   sender_name: string,
   sender_phone1: string,
+  sender_phone2?: string,
   sender_street: string,
   sender_zipcode: string,
 }, marketplace: string) => {
-  return axios.post(`${API_URL}/../awb?marketplace=${marketplace}`, data)
+  return axios.post(`${API_URL}/../awb/${marketplace}`, data)
 }
