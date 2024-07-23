@@ -1,13 +1,14 @@
-import {FC, useState} from 'react'
+import { FC, useState } from 'react'
 import * as Yup from 'yup'
-import {useFormik} from 'formik'
-import {isNotEmpty, toAbsoluteUrl} from '../../../../../../_metronic/helpers'
-import {initialUser, User} from '../core/_models'
+import { useFormik } from 'formik'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { isNotEmpty, toAbsoluteUrl } from '../../../../../../_metronic/helpers'
+import { initialUser, User } from '../core/_models'
 import clsx from 'clsx'
-import {useListView} from '../core/ListViewProvider'
-import {UsersListLoading} from '../components/loading/UsersListLoading'
-import {createUser, updateUser} from '../core/_requests'
-import {useQueryResponse} from '../core/QueryResponseProvider'
+import { useListView } from '../core/ListViewProvider'
+import { UsersListLoading } from '../components/loading/UsersListLoading'
+import { createUser, updateUser } from '../core/_requests'
+import { useQueryResponse } from '../core/QueryResponseProvider'
 
 type Props = {
   isUserLoading: boolean
@@ -26,9 +27,9 @@ const editUserSchema = Yup.object().shape({
     .required('Name is required'),
 })
 
-const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
-  const {setItemIdForUpdate} = useListView()
-  const {refetch} = useQueryResponse()
+const UserEditModalForm: FC<Props> = ({ user, isUserLoading }) => {
+  const { setItemIdForUpdate } = useListView()
+  const { refetch } = useQueryResponse()
 
   const [userForEdit] = useState<User>({
     ...user,
@@ -45,13 +46,13 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
     setItemIdForUpdate(undefined)
   }
 
-  const blankImg = toAbsoluteUrl('media/svg/avatars/blank.svg')
-  const userAvatarImg = toAbsoluteUrl(`media/${userForEdit.avatar}`)
+  // const blankImg = toAbsoluteUrl('media/svg/avatars/blank.svg')
+  // const userAvatarImg = toAbsoluteUrl(`media/${userForEdit.avatar}`)
 
   const formik = useFormik({
     initialValues: userForEdit,
     validationSchema: editUserSchema,
-    onSubmit: async (values, {setSubmitting}) => {
+    onSubmit: async (values, { setSubmitting }) => {
       console.log(user)
       setSubmitting(true)
       try {
@@ -84,65 +85,51 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
           data-kt-scroll-offset='300px'
         >
           {/* begin::Input group */}
-          <div className='fv-row mb-7'>
+          <div className='fv-row'>
             {/* begin::Label */}
-            <label className='d-block fw-bold fs-6 mb-5'>Avatar</label>
+            {/* <label className='d-block fw-bold fs-6 mb-5'>Avatar</label> */}
             {/* end::Label */}
 
             {/* begin::Image input */}
-            <div
+            {/* <div
               className='image-input image-input-outline'
               data-kt-image-input='true'
-              style={{backgroundImage: `url('${blankImg}')`}}
+              style={{ backgroundImage: `url('${blankImg}')` }}
             >
-              {/* begin::Preview existing avatar */}
               <div
                 className='image-input-wrapper w-125px h-125px'
-                style={{backgroundImage: `url('${userAvatarImg}')`}}
+                style={{ backgroundImage: `url('${userAvatarImg}')` }}
               ></div>
-              {/* end::Preview existing avatar */}
+              <label
+                className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
+                data-kt-image-input-action='change'
+                data-bs-toggle='tooltip'
+                title='Change avatar'
+              >
+                <i className='bi bi-pencil-fill fs-7'></i>
 
-              {/* begin::Label */}
-              {/* <label
-              className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
-              data-kt-image-input-action='change'
-              data-bs-toggle='tooltip'
-              title='Change avatar'
-            >
-              <i className='bi bi-pencil-fill fs-7'></i>
-
-              <input type='file' name='avatar' accept='.png, .jpg, .jpeg' />
-              <input type='hidden' name='avatar_remove' />
-            </label> */}
-              {/* end::Label */}
-
-              {/* begin::Cancel */}
-              {/* <span
-              className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
-              data-kt-image-input-action='cancel'
-              data-bs-toggle='tooltip'
-              title='Cancel avatar'
-            >
-              <i className='bi bi-x fs-2'></i>
-            </span> */}
-              {/* end::Cancel */}
-
-              {/* begin::Remove */}
-              {/* <span
-              className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
-              data-kt-image-input-action='remove'
-              data-bs-toggle='tooltip'
-              title='Remove avatar'
-            >
-              <i className='bi bi-x fs-2'></i>
-            </span> */}
-              {/* end::Remove */}
+                <input type='file' name='avatar' accept='.png, .jpg, .jpeg' />
+                <input type='hidden' name='avatar_remove' />
+              </label>
+              <span
+                className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
+                data-kt-image-input-action='cancel'
+                data-bs-toggle='tooltip'
+                title='Cancel avatar'
+              >
+                <i className='bi bi-x fs-2'></i>
+              </span>
+              <span
+                className='btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow'
+                data-kt-image-input-action='remove'
+                data-bs-toggle='tooltip'
+                title='Remove avatar'
+              >
+                <i className='bi bi-x fs-2'></i>
+              </span>
             </div>
-            {/* end::Image input */}
 
-            {/* begin::Hint */}
-            {/* <div className='form-text'>Allowed file types: png, jpg, jpeg.</div> */}
-            {/* end::Hint */}
+            <div className='form-text'>Allowed file types: png, jpg, jpeg.</div> */}
           </div>
           {/* end::Input group */}
 
@@ -160,7 +147,7 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
               name='name'
               className={clsx(
                 'form-control form-control-solid mb-3 mb-lg-0',
-                {'is-invalid': formik.touched.name && formik.errors.name},
+                { 'is-invalid': formik.touched.name && formik.errors.name },
                 {
                   'is-valid': formik.touched.name && !formik.errors.name,
                 }
@@ -191,7 +178,7 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
               {...formik.getFieldProps('email')}
               className={clsx(
                 'form-control form-control-solid mb-3 mb-lg-0',
-                {'is-invalid': formik.touched.email && formik.errors.email},
+                { 'is-invalid': formik.touched.email && formik.errors.email },
                 {
                   'is-valid': formik.touched.email && !formik.errors.email,
                 }
@@ -204,7 +191,9 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
             {/* end::Input */}
             {formik.touched.email && formik.errors.email && (
               <div className='fv-plugins-message-container'>
-                <span role='alert'>{formik.errors.email}</span>
+                <div className='fv-help-block'>
+                  <span role='alert'>{formik.errors.email}</span>
+                </div>
               </div>
             )}
           </div>
@@ -266,7 +255,7 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
                 <label className='form-check-label' htmlFor='kt_modal_update_role_option_1'>
                   <div className='fw-bolder text-gray-800'>Customer Support</div>
                   <div className='text-gray-600'>
-                     Customer Support
+                    Customer Support
                   </div>
                 </label>
                 {/* end::Label */}
@@ -402,4 +391,4 @@ const UserEditModalForm: FC<Props> = ({user, isUserLoading}) => {
   )
 }
 
-export {UserEditModalForm}
+export { UserEditModalForm }

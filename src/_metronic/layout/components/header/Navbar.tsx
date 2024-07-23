@@ -1,12 +1,15 @@
 import clsx from 'clsx'
-import {KTIcon, toAbsoluteUrl} from '../../../helpers'
+import { KTIcon, toAbsoluteUrl } from '../../../helpers'
 import {
+  AlertModel,
   HeaderNotificationsMenu,
   HeaderUserMenu,
   // Search,
   ThemeModeSwitcher
 } from '../../../partials'
-import {useLayout} from '../../core'
+import { useLayout } from '../../core'
+import { useEffect, useState } from 'react'
+import { getNotifications } from '../../../partials/layout/header-menus/_request';
 
 const itemClass = 'ms-1 ms-md-4'
 const btnClass =
@@ -15,7 +18,15 @@ const userAvatarClass = 'symbol-35px'
 const btnIconClass = 'fs-2'
 
 const Navbar = () => {
-  const {config} = useLayout()
+  const { config } = useLayout();
+  const [alerts, setAlerts] = useState<AlertModel[]>([]);
+
+  useEffect(() => {
+    getNotifications()
+      .then(res => setAlerts(res.data))
+      .catch(e => console.error(e));
+  }, []);
+
   return (
     <div className='app-navbar flex-shrink-0'>
       {/* <div className={clsx('app-navbar-item align-items-stretch', itemClass)}>
@@ -35,7 +46,18 @@ const Navbar = () => {
           data-kt-menu-placement='bottom-end'
           className={btnClass}
         >
-          <KTIcon iconName='notification-on' className={btnIconClass} />
+          <div className="position-relative">
+            <KTIcon iconName='notification-on' className={btnIconClass} />
+            {(() => {
+              const len = alerts.filter(alert => alert.read === false).length;
+              return len ? (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white ms-2">
+                  {len}
+                  <span className="visually-hidden">unread messages</span>
+                </span>
+              ) : '';
+            })()}
+          </div>
         </div>
         <HeaderNotificationsMenu />
       </div>
@@ -77,4 +99,4 @@ const Navbar = () => {
   )
 }
 
-export {Navbar}
+export { Navbar }

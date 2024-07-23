@@ -11,6 +11,7 @@ type Props = {
   icon?: string
   fontIcon?: string
   hasBullet?: boolean
+  badge?: number
 }
 
 const SidebarMenuItem: FC<Props & WithChildren> = ({
@@ -20,6 +21,7 @@ const SidebarMenuItem: FC<Props & WithChildren> = ({
   icon,
   fontIcon,
   hasBullet = false,
+  badge = 0,
 }) => {
   const {pathname} = useLocation()
   const isActive = checkIsActive(pathname, to)
@@ -44,6 +46,7 @@ const SidebarMenuItem: FC<Props & WithChildren> = ({
           <i className={clsx('bi fs-3', fontIcon)}></i>
         )}
         <span className='menu-title'>{title}</span>
+        {!!badge && <div className='d-flex me-0 ms-auto rounded-circle bg-danger text-center fw-bold text-white' style={{ paddingLeft: '5px', paddingRight: '7px' }}>{badge}</div>}
       </Link>
       {children}
     </div>

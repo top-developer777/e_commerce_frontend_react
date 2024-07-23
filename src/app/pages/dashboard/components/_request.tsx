@@ -18,9 +18,9 @@ const getPLInfo = (type: number = 1, productIds: string = '') => {
         .get(`${DASHBOARD_ENDPOINT}/P_L?type=${type}${productIds ? `&product_ids=${productIds}` : ''}`)
 }
 
-const getTrendInfo = (type: number = 1, productIds: string = '') => {
+const getTrendInfo = (type: number = 1, field: string = 'sales', productIds: string = '') => {
     return axios
-        .get(`${DASHBOARD_ENDPOINT}/trend?type=${type}${productIds ? `&product_ids=${productIds}` : ''}`)
+        .get(`${DASHBOARD_ENDPOINT}/trends?type=${type}&field=${field}${productIds ? `&product_ids=${productIds}` : ''}`)
 }
 
 const getProductsDay = (day: string) => {

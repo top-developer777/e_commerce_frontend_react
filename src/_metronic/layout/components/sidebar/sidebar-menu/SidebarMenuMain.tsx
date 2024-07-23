@@ -2,11 +2,21 @@ import {useIntl} from 'react-intl'
 // import {KTIcon} from '../../../../helpers'
 import {SidebarMenuItem} from './SidebarMenuItem'
 import { useAuth } from '../../../../../app/modules/auth'
+import { getAllMarketplaces } from '../../../../../app/pages/config/components/_request';
+import { useEffect, useState } from 'react';
 // import { FALSE } from 'sass'
 
 const SidebarMenuMain = () => {
-  const intl = useIntl()
+  const intl = useIntl();
+  const [numMKP, setNumMKP] = useState<number>(0);
   const { currentUser } = useAuth();
+
+  useEffect(() => {
+    getAllMarketplaces()
+      .then(res => res.data.length)
+      .then(res => setNumMKP(res))
+      .catch(e => console.error(e));
+  }, []);
 
   return (
     <>
@@ -25,7 +35,7 @@ const SidebarMenuMain = () => {
       </div>
       <SidebarMenuItem icon='bi bi-person-fill' to='/config/account' title='Account' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-people-fill' to='/config/my-teams' title='My Teams' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-link-45deg' to='/config/integrations' title='Integrations' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-link-45deg' to='/config/integrations' title='Integrations' hasBullet={false} badge={numMKP} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Orders & Clients</span>
@@ -36,7 +46,6 @@ const SidebarMenuMain = () => {
       <SidebarMenuItem icon='bi bi-hourglass' to='/orders/order-processing' title='Order Processing' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-hand-thumbs-up-fill' to='/orders/product-reviews' title='Product Reviews' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-activity' to='/orders/customers_actions' title='Customers & Actions' hasBullet={false} />
-      <SidebarMenuItem icon='bi bi-repeat' to='/orders/replacement' title='Replacements' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-cart-check' to='/orders/neridicate' title='Neridicate' hasBullet={false} />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>

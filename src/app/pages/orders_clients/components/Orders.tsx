@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 // import { useAuth } from '../../../modules/auth';
-import { getAllOrders, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
@@ -141,27 +141,99 @@ const OrderTable: React.FC<{
   const handleCreateAWB = () => {
     if (!selectedOrder) return;
     const form = document.querySelector('#createAWBModal form');
-    const data: { [key: string]: string | number | boolean } = {};
-    const inputs = form?.querySelectorAll('input');
-    if (inputs) for (const input of inputs) {
-      if (input.name === '') continue;
-      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
-      if (input.name !== 'weight' && input.type === 'number') data[input.name] = parseFloat(input.value);
-      if (input.name !== 'weight' && input.value === '') {
-        toast.warning('All fields must be filled.')
-        return;
-      }
-    }
-    if (!isValidPhone(data['receiver.phone'] as string) || !isValidPhone(data['sender.phone'] as string)) {
-      toast.error('The given phone numbers are not valid.')
+    const data: {
+      cod: number,
+      envelope_number: number,
+      is_oversize: boolean,
+      order_id: number,
+      parcel_number: number,
+      locker_id: number,
+      rma_id: number,
+      insured_value: number,
+      observation: string,
+      courier_account_id: number,
+      pickup_and_return: boolean,
+      saturday_delivery: boolean,
+      sameday_delivery: boolean,
+      dropoff_locker: boolean,
+      receiver_contact: string,
+      receiver_legal_entity: boolean,
+      receiver_locality_id: number,
+      receiver_name: string,
+      receiver_phone1: string,
+      receiver_street: string,
+      receiver_zipcode: string,
+      sender_locality_id: number,
+      sender_name: string,
+      sender_phone1: string,
+      sender_street: string,
+      sender_zipcode: string,
+    } = {
+      cod: 0,
+      envelope_number: 0,
+      is_oversize: false,
+      order_id: 0,
+      parcel_number: 0,
+      locker_id: 0,
+      rma_id: 0,
+      insured_value: 0,
+      observation: '',
+      courier_account_id: 0,
+      pickup_and_return: false,
+      saturday_delivery: false,
+      sameday_delivery: false,
+      dropoff_locker: false,
+      receiver_contact: '',
+      receiver_legal_entity: false,
+      receiver_locality_id: 0,
+      receiver_name: '',
+      receiver_phone1: '',
+      receiver_street: '',
+      receiver_zipcode: '',
+      sender_locality_id: 0,
+      sender_name: '',
+      sender_phone1: '',
+      sender_street: '',
+      sender_zipcode: ''
+    };
+    data.cod = parseFloat((form?.querySelector('[name="cod"]') as HTMLInputElement).value);
+    data.envelope_number = parseFloat((form?.querySelector('[name="envelope_number"]') as HTMLInputElement).value);
+    data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked;
+    data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
+    data.locker_id = parseInt((form?.querySelector('[name="locker_id"]') as HTMLInputElement).value);
+    data.rma_id = parseInt((form?.querySelector('[name="rma_id"]') as HTMLInputElement).value);
+    data.insured_value = parseFloat((form?.querySelector('[name="insured_value"]') as HTMLInputElement).value);
+    data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
+    data.parcel_number = parseInt((form?.querySelector('[name="parcel_number"]') as HTMLInputElement).value);
+    data.observation = (form?.querySelector('[name="observation"]') as HTMLInputElement).value;
+    data.pickup_and_return = (form?.querySelector('[name="pickup_and_return"]') as HTMLInputElement).checked;
+    data.saturday_delivery = (form?.querySelector('[name="saturday_delivery"]') as HTMLInputElement).checked;
+    data.sameday_delivery = (form?.querySelector('[name="sameday_delivery"]') as HTMLInputElement).checked;
+    data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked;
+    data.sender_locality_id = parseInt((form?.querySelector('[name="sender.locality_id"]') as HTMLInputElement).value);
+    data.sender_name = (form?.querySelector('[name="sender.name"]') as HTMLInputElement).value;
+    data.sender_phone1 = (form?.querySelector('[name="sender.phone"]') as HTMLInputElement).value;
+    data.sender_street = (form?.querySelector('[name="sender.street"]') as HTMLInputElement).value;
+    data.sender_zipcode = (form?.querySelector('[name="sender.zipcode"]') as HTMLInputElement).value;
+    data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
+    data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
+    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone"]') as HTMLInputElement).value;
+    data.receiver_street = (form?.querySelector('[name="receiver.street"]') as HTMLInputElement).value;
+    data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
+    data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked;
+    data.receiver_zipcode = (form?.querySelector('[name="receiver.zipcode"]') as HTMLInputElement).value;
+    if (!isValidPhone(data.sender_phone1)) {
+      toast.error('Sender\'s phone must be valid phone number.');
       return;
     }
-    if (data.weight !== '' && !data.weight) {
-      toast.error('The weight must be number.');
+    if (!isValidPhone(data.receiver_phone1)) {
+      toast.error('Receiver\'s phone must be valid phone number.');
       return;
     }
     console.log(data);
-    console.log(selectedOrder);
+    createAWB(data, selectedOrder.order_market_place)
+      .then(res => console.log(res))
+      .catch(e => console.error(e));
   }
 
   return (
@@ -250,7 +322,7 @@ const OrderTable: React.FC<{
                       <i className="bi bi-file-earmark-plus"></i>
                       Create
                     </button>}
-                    {[4, 5].findIndex(item => item === order.status) >= 0 && <>AWB Number</>}
+                    {[4, 5].findIndex(item => item === order.status) >= 0 && <>{order.awb ?? 'None'}</>}
                   </td>
                   <td className='align-content-center text-center'>
                     <StatusBadge status={order.status} />
@@ -290,11 +362,11 @@ const OrderTable: React.FC<{
               <form action="" method='post' id='createAWBForm'>
                 <input type="number" name='order_id' defaultValue={selectedOrder?.id} disabled style={{ display: 'none' }} />
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Weight:</div>
+                  <div className="d-flex fw-bold w-25">RMA ID:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='weight' placeholder="Weight (Kg)" required />
+                      <input type="number" className="form-control" name='rma_id' placeholder="RMA ID" min={0} max={999} required />
                     </div>
                   </div>
                 </div>
@@ -317,19 +389,87 @@ const OrderTable: React.FC<{
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Locker ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='locker_id' placeholder="Locker ID" min={0} max={999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="align-items-center py-1" style={{ display: 'none' }}>
                   <div className="d-flex fw-bold w-25">COD:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='cod' placeholder="COD" min={0} max={999999999} required />
+                      <input type="number" className="form-control" name='cod' placeholder="COD" defaultValue={selectedOrder?.cashed_cod} />
                     </div>
                   </div>
                 </div>
-                <div className="d-flex align-items-center py-1">
+                <div className="d-flex align-items-center py-3">
                   <div className="d-flex fw-bold w-25">Contain Oversize Product:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
                       <input className="form-check-input" type="checkbox" name='is_oversize' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Insured Value:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='insured_value' placeholder="Insured Value" min={0} max={9999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Observation:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='observation' placeholder="Observation" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Courier Account ID:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='courier_account_id' placeholder="Courier Account ID" min={0} max={9999} required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Pickup and Return:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='pickup_and_return' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Saturday Delivery:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='saturday_delivery' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Sameday Delivery:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='sameday_delivery' defaultChecked={false} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Dropoff Locker:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" name='dropoff_locker' defaultChecked={false} />
                     </div>
                   </div>
                 </div>
@@ -341,15 +481,6 @@ const OrderTable: React.FC<{
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
                       <input type="text" className="form-control" name='sender.name' placeholder="Name" required />
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Contact:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='sender.contact' placeholder="Contact" required />
                     </div>
                   </div>
                 </div>
@@ -379,7 +510,16 @@ const OrderTable: React.FC<{
                       <input type="text" className="form-control" name='sender.street' placeholder="Street" required />
                     </div>
                   </div>
-                </div>                
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Zipcode:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='sender.zipcode' placeholder="Zipcode" required />
+                    </div>
+                  </div>
+                </div>
                 <hr />
                 <h2>Receiver</h2>
                 <div className="d-flex align-items-center py-1">
@@ -409,7 +549,7 @@ const OrderTable: React.FC<{
                     </div>
                   </div>
                 </div>
-                <div className="d-flex align-items-center py-1">
+                <div className="d-flex align-items-center py-3">
                   <div className="d-flex fw-bold w-25">Legal Entity:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
@@ -432,6 +572,15 @@ const OrderTable: React.FC<{
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
                       <input type="text" className="form-control" name='receiver.street' placeholder="Street" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Zipcode:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.zipcode' placeholder="Zipcode" required />
                     </div>
                   </div>
                 </div>

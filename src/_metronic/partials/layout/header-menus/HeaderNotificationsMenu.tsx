@@ -135,14 +135,36 @@ const HeaderNotificationsMenu: FC = () => {
                         <KTIcon iconName={alert.icon} className={`fs-2 text-${state}`} />
                       </span>
                     </div>
-                    <div className='mb-0 me-2'>
+                    <div
+                      className='mb-0 me-2'
+                      onClick={() => {
+                        if (alert.read) return;
+                        const newAlerts = [...alerts];
+                        const index = newAlerts.findIndex(al => al.id === alert.id);
+                        if (index >= 0) {
+                          newAlerts[index].read = true;
+                          setAlerts(newAlerts);
+                          updateNotifications(alert.id, newAlerts[index]);
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <a href='#' className='fs-6 text-gray-800 text-hover-primary fw-bolder'>
                         {alert.title}
                       </a>
-                      <div className='text-gray-500 fs-7'>{alert.description}</div>
+                      <div className={`fs-7 ${alert.read ? 'text-gray-500' : 'text-danger fw-bold'}`} >
+                        {(() => {
+                          let text = alert.description;
+                          let clipped = false;
+                          if (text.length > 45) clipped = true;
+                          text = text.slice(0, 45);
+                          if (clipped) text = `${text} ...`;
+                          return text;
+                        })()}
+                      </div>
                     </div>
                   </div>
-                  <span className='badge badge-light fs-8' style={{ maxWidth: '75px' }}>{(new Date(alert.time).toDateString())}</span>
+                  <span className='badge badge-light fs-8'>{(new Date(alert.time).toDateString())}</span>
                 </div>
               )
             })}

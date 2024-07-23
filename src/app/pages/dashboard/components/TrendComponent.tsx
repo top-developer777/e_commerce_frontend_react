@@ -17,6 +17,58 @@ const periods = [
     label: 'Last 30 days, by day'
   },
 ];
+const getCategories = (type = 1) => {
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const today = new Date();
+  const result: string[] = [];
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const currentDate = today.getDate();
+  if (type === 1) {
+    result.push(`${months[currentMonth]} 1-${currentDate} ${currentYear}`);
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today);
+      date.setMonth(currentMonth - i - 1);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      result.push(`${months[month]} ${year}`);
+    }
+  } else if (type === 2) {
+    let weekNumber = 1;
+    const getMonthWeeks = (year: number, month: number) => {
+      const weeks = [];
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      const startOfWeek = new Date(firstDayOfMonth);
+      while (startOfWeek <= lastDayOfMonth) {
+        let endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        if (endOfWeek > lastDayOfMonth) {
+          endOfWeek = lastDayOfMonth;
+        }
+        weeks.push(`Week ${weekNumber}`);
+        weekNumber++;
+        startOfWeek.setDate(startOfWeek.getDate() + 7);
+      }
+      return weeks;
+    }
+    for (let i = 0; i < 3; i++) {
+      const date = new Date(today);
+      date.setMonth(today.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const weeks = getMonthWeeks(year, month);
+      result.push(...weeks);
+    }
+  } else if (type === 3) {
+    for (let i = 0; i < 31; i++) {
+      const date = new Date(today);
+      date.setDate(currentDate - i);
+      result.push(`${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`);
+    }
+  } else { /* empty */ }
+  return result;
+}
 
 export const TrendComponent = () => {
   const [trendData, setTrendDdata] = useState<{ [key: string]: [] }[]>([]);
@@ -27,22 +79,19 @@ export const TrendComponent = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const scrollRef = useRef<HTMLUListElement | null>(null);
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
+  const [field, setField] = useState<string>('sales');
+  const [categories, setCategories] = useState<string[]>(getCategories(1));
 
   const handleTrendFilter = () => {
+    setCategories(getCategories(parseInt(trendPeriod)));
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
     const productIds = [];
     if (inputs) for (const input of inputs) {
       if (input.checked) productIds.push(input.value);
     }
-    getTrendInfo(parseInt(trendPeriod), productIds.join(','))
-      .then(res => {
-        if (res.status === 200) {
-          const data = res.data.trend_data;
-          setTrendDdata(data);
-        } else {
-          console.error(res);
-        }
-      });
+    getTrendInfo(parseInt(trendPeriod), field, productIds.join(','))
+      .then(res => setTrendDdata(res.data.trends_data))
+      .catch(e => console.error(e));
   }
   const checkSelected = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
@@ -72,17 +121,8 @@ export const TrendComponent = () => {
       checkSelected();
     }
   }
-  
+
   useEffect(() => {
-    getTrendInfo()
-      .then(res => {
-        if (res.status === 200) {
-          const data = res.data.PL_data;
-          setTrendDdata(data);
-        } else {
-          console.error(res);
-        }
-      });
     getAllProducts(1, 1000)
       .then(res => {
         setProducts(res.data);
@@ -91,8 +131,14 @@ export const TrendComponent = () => {
   }, []);
   useEffect(() => {
     if (mappingCompleted) handleTrendFilter();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mappingCompleted]);
+  useEffect(() => {
+    getTrendInfo(parseInt(trendPeriod), field)
+      .then(res => setTrendDdata(res.data.trends_data))
+      .catch(e => console.error(e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field])
 
   return (
     <div className="tab-pane fade" id="dashboard-trends" role="tabpanel">
@@ -173,10 +219,26 @@ export const TrendComponent = () => {
           </button>
         </div>
       </div>
+      <div className="row my-3 mx-3">
+        <div className="col-md-12 border border-1">
+          <button className={`btn btn-light-primary py-1 px-2 m-3${field === 'sales' ? ' active' : ''}`} onClick={() => setField('sales')}>Sales</button>
+          <button className={`btn btn-light-primary py-1 px-2 m-3${field === 'units' ? ' active' : ''}`} onClick={() => setField('units')}>Units</button>
+          <button className={`btn btn-light-primary py-1 px-2 m-3${field === 'refund' ? ' active' : ''}`} onClick={() => setField('refund')}>Refund</button>
+          <button className={`btn btn-light-primary py-1 px-2 m-3${field === 'gross_profit' ? ' active' : ''}`} onClick={() => setField('gross_profit')}>Gross Profit</button>
+          <button className={`btn btn-light-primary py-1 px-2 m-3${field === 'net_profit' ? ' active' : ''}`} onClick={() => setField('net_profit')}>Net Profit</button>
+        </div>
+      </div>
       <div className="card-body table-responsive">
         <table className="table table-bordered table-hover cursor-pointer">
           <thead></thead>
-          <tbody></tbody>
+          <tbody>
+            {trendData.map((trend, index) => (
+              <tr>
+                <th>{categories[index]}</th>
+                <td>{JSON.stringify(trend)}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>

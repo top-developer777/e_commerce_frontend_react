@@ -30,4 +30,5 @@ export interface Order {
   details: string;
   payment_mode_id: number;
   order_market_place: string;
+  awb?: number;
 }
