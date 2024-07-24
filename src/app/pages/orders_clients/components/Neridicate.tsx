@@ -7,6 +7,7 @@ import { formatCurrency } from '../../dashboard/components/_function';
 import { interMKP } from '../../config/components/Integrations';
 import { getAllMarketplaces } from '../../config/components/_request';
 import { Return } from '../../models/returns';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { getAllOrders, getAllReturns, getOrderAmout } from './_request';
 import { Order } from '../../models/order';
 
@@ -17,9 +18,12 @@ export const NeridicateComponent = () => {
   const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number, height: number }>({ width: 500, height: 400 });
   const [products, setProducts] = useState<Product[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedOrder, setSelectedOrder] = useState<Order>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [numOrderPages, setNumOrderPages] = useState<number>(1);
   const [marketplaces, setMarketplaces] = useState<interMKP[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
@@ -103,7 +107,8 @@ export const NeridicateComponent = () => {
             qrbox: { width: 400, height: 250 },
           },
           (decodedText, decodedResult) => {
-            // const codeType = decodedResult.result.format?.formatName === 'QR_CODE' ? 'qr' : 'bar';
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const codeType = decodedResult.result.format?.formatName === 'QR_CODE' ? 'qr' : 'bar';
             setResult(decodedText);
             setScanning(false);
             html5QrCode.stop().then(() => {
@@ -231,7 +236,7 @@ export const NeridicateComponent = () => {
                   </div>
                   <div className="row">
                     <div className="col-md-3 fw-bold">1688 Link</div>
-                    <div className="col-md-3">{!!selectedProduct.link_address_1688 ? <a href={selectedProduct.link_address_1688}>{selectedProduct.link_address_1688}</a> : 'None'}</div>
+                    <div className="col-md-3">{selectedProduct.link_address_1688 ? <a href={selectedProduct.link_address_1688}>{selectedProduct.link_address_1688}</a> : 'None'}</div>
                     <div className="col-md-3 fw-bold">Variation Name</div>
                     <div className="col-md-3">{selectedProduct.variation_name_1688}</div>
                   </div>

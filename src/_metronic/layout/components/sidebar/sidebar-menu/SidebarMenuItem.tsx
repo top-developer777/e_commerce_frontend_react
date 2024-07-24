@@ -46,7 +46,7 @@ const SidebarMenuItem: FC<Props & WithChildren> = ({
           <i className={clsx('bi fs-3', fontIcon)}></i>
         )}
         <span className='menu-title'>{title}</span>
-        {!!badge && <div className='d-flex me-0 ms-auto rounded-circle bg-danger text-center fw-bold text-white' style={{ paddingLeft: '5px', paddingRight: '7px' }}>{badge}</div>}
+        {!!badge && <div className='d-flex me-0 ms-auto rounded-4 bg-danger text-center fw-bold text-white' style={{ paddingLeft: '5px', paddingRight: '7px' }}>{badge}</div>}
       </Link>
       {children}
     </div>

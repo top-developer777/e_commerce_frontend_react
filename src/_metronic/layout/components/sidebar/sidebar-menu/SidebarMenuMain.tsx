@@ -1,20 +1,38 @@
-import {useIntl} from 'react-intl'
+import { useIntl } from 'react-intl'
 // import {KTIcon} from '../../../../helpers'
-import {SidebarMenuItem} from './SidebarMenuItem'
+import { SidebarMenuItem } from './SidebarMenuItem'
 import { useAuth } from '../../../../../app/modules/auth'
 import { getAllMarketplaces } from '../../../../../app/pages/config/components/_request';
 import { useEffect, useState } from 'react';
+import { getOrderAmout } from '../../../../../app/pages/orders_clients/components/_request';
 // import { FALSE } from 'sass'
 
 const SidebarMenuMain = () => {
   const intl = useIntl();
   const [numMKP, setNumMKP] = useState<number>(0);
   const { currentUser } = useAuth();
+  const [numOrder, setNumOrder] = useState(0);
 
   useEffect(() => {
     getAllMarketplaces()
       .then(res => res.data.length)
       .then(res => setNumMKP(res))
+      .catch(e => console.error(e));
+    getOrderAmout(1)
+      .then(res => {
+        let num = res.data as number;
+        getOrderAmout(2)
+          .then(res => {
+            num += res.data;
+            getOrderAmout(3)
+              .then(res => {
+                num += res.data;
+                setNumOrder(num);
+              })
+              .catch(e => console.error(e));
+          })
+          .catch(e => console.error(e));
+      })
       .catch(e => console.error(e));
   }, []);
 
@@ -25,7 +43,7 @@ const SidebarMenuMain = () => {
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Profit</span>
         </div>
       </div>
-      <SidebarMenuItem icon='element-11' to='/dashboard/main' title={intl.formatMessage({id: 'MENU.DASHBOARD'})} fontIcon='bi-app-indicator' />
+      <SidebarMenuItem icon='element-11' to='/dashboard/main' title={intl.formatMessage({ id: 'MENU.DASHBOARD' })} fontIcon='bi-app-indicator' />
       <SidebarMenuItem icon='bi bi-cart-plus-fill' to='/dashboard/products' title='Products' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-house-fill' to='/dashboard/warehouses' title='Warehouses' hasBullet={false} />
       <div className='menu-item'>
@@ -41,7 +59,7 @@ const SidebarMenuMain = () => {
           <span className='menu-section text-muted text-uppercase fs-8 ls-1'>Orders & Clients</span>
         </div>
       </div>
-      <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/orders/orders' title='Orders' hasBullet={false} />
+      <SidebarMenuItem icon='bi bi-cart-dash-fill' to='/orders/orders' title='Orders' hasBullet={false} badge={numOrder} />
       <SidebarMenuItem icon='bi bi-reply-fill' to='/orders/returns' title='Returns' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-hourglass' to='/orders/order-processing' title='Order Processing' hasBullet={false} />
       <SidebarMenuItem icon='bi bi-hand-thumbs-up-fill' to='/orders/product-reviews' title='Product Reviews' hasBullet={false} />
@@ -123,4 +141,4 @@ const SidebarMenuMain = () => {
   )
 }
 
-export {SidebarMenuMain}
+export { SidebarMenuMain }

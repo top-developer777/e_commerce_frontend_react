@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import Select from 'react-select';
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts, getFilteredProducts } from './_request'
+import { getAllProducts } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 import { Product } from '../../models/product'
@@ -188,9 +189,22 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 interface CalculateProduct extends Product {
   quantity: number;
   stock_imports: string[];
-  shipping_type: string;
+  type: number;
   imports_stock: string[];
   days_stock: number[];
+}
+
+const ShipmentType: React.FC<{ type: number }> = ({ type }) => {
+  switch (type) {
+    case 1:
+      return <span className='fs-1'>🚆</span>
+    case 2:
+      return <span className='fs-1'>🛫</span>
+    case 3:
+      return <span className='fs-1'>🚢</span>
+    default:
+      return <span className='fs-1'>❌</span>
+  }
 }
 
 export function Products() {
@@ -201,9 +215,13 @@ export function Products() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(50);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [checkedMethods, setCheckedMethods] = useState<string[]>(['Train', 'Airplain', 'Ship']);
-  const [weight, setWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
-  const [vWeight, setVWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
+  // const [checkedMethods, setCheckedMethods] = useState<string[]>(['Train', 'Airplain', 'Ship']);
+  // const [weight, setWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
+  // const [vWeight, setVWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
+  const shippingMethods: { value: number, label: string }[] = [{ value: 0, label: 'All' }, { value: 1, label: 'Train' }, { value: 2, label: 'Air' }, { value: 3, label: 'Sea' }];
+  const [checkedMethod, setCheckedMethod] = useState<number>(0);
+  const [stockDays, setStockDays] = useState<number>(0);
+  const [importStock, setImportStock] = useState<number>(0);
 
   useEffect(() => {
     getAllProducts()
@@ -216,15 +234,24 @@ export function Products() {
   }, [limit]);
 
 
+  // const handleFilterProduct = () => {
+  //   const w = { from: parseFloat(weight.from), to: parseFloat(weight.to) };
+  //   const v = { from: parseFloat(vWeight.from), to: parseFloat(vWeight.to) };
+  //   if (!Number.isNaN(w.from && w.to && v.from && v.to) && w.from > w.to || v.from > v.to) return;
+  //   let shippingType = checkedMethods.join('%2C');
+  //   shippingType = shippingType.replace('Train', '1');
+  //   shippingType = shippingType.replace('Airplain', '2');
+  //   shippingType = shippingType.replace('Ship', '3');
+  //   getFilteredProducts(shippingType, w.from, w.to, v.from, v.to)
+  //     .then(res => {
+  //       setProducts(res.data);
+  //       setTotalProducts(res.data.length);
+  //       setTotalPages(res.data.length ? Math.ceil(res.data.length / limit) : 1);
+  //     })
+  //     .catch(err => console.log(err))
+  // }
   const handleFilterProduct = () => {
-    const w = { from: parseFloat(weight.from), to: parseFloat(weight.to) };
-    const v = { from: parseFloat(vWeight.from), to: parseFloat(vWeight.to) };
-    if (!Number.isNaN(w.from && w.to && v.from && v.to) && w.from > w.to || v.from > v.to) return;
-    let shippingType = checkedMethods.join('%2C');
-    shippingType = shippingType.replace('Train', '1');
-    shippingType = shippingType.replace('Airplain', '2');
-    shippingType = shippingType.replace('Ship', '3');
-    getFilteredProducts(shippingType, w.from, w.to, v.from, v.to)
+    getAllProducts(checkedMethod, stockDays, importStock)
       .then(res => {
         setProducts(res.data);
         setTotalProducts(res.data.length);
@@ -257,14 +284,14 @@ export function Products() {
     }
     return pageNumbers;
   }
-  const handleChangeMethods = () => {
-    const inputs = document.querySelectorAll('.method-panel li input[type="checkbox"]') as unknown as HTMLInputElement[];
-    const checkedMethods = [];
-    if (inputs) for (const input of inputs) {
-      if (input.checked) checkedMethods.push(input.value);
-    }
-    setCheckedMethods(checkedMethods);
-  }
+  // const handleChangeMethods = () => {
+  //   const inputs = document.querySelectorAll('.method-panel li input[type="checkbox"]') as unknown as HTMLInputElement[];
+  //   const checkedMethods = [];
+  //   if (inputs) for (const input of inputs) {
+  //     if (input.checked) checkedMethods.push(input.value);
+  //   }
+  //   setCheckedMethods(checkedMethods);
+  // }
 
   return (
     <Content>
@@ -272,6 +299,30 @@ export function Products() {
         selectedProductID == -1 ?
           <>
             <div className="row py-2">
+              <div className="col-md-2 align-content-center fw-bold text-end">
+                Shipment Type
+              </div>
+              <div className="col-md-2">
+                <Select
+                  className='react-select-styled react-select-solid react-select-sm w-100'
+                  isSearchable={false}
+                  options={shippingMethods}
+                  isClearable={false}
+                  defaultValue={shippingMethods[0]}
+                  onChange={(e) => setCheckedMethod(e?.value ?? 0)}
+                />
+              </div>
+              <div className="col-md-1 align-content-center fw-bold text-end">Days Stock</div>
+              <div className="col-md-2"><input type="number" className="form-control" value={stockDays} onChange={(e) => setStockDays(parseInt(e.target.value))} /></div>
+              <div className="col-md-1 align-content-center fw-bold text-end">Imports Stock</div>
+              <div className="col-md-2"><input type="number" className="form-control" value={importStock} onChange={(e) => setImportStock(parseInt(e.target.value))} /></div>
+              <div className="col-md-2 align-content-center">
+                <button className="btn btn-light-primary btn-sm" onClick={handleFilterProduct}>
+                  <i className="bi bi-filter"></i> Filter
+                </button>
+              </div>
+            </div>
+            {/* <div className="row py-2">
               <div className="col-md-4">
                 <div className="dropdown">
                   <div data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
@@ -343,7 +394,7 @@ export function Products() {
                   Filter
                 </button>
               </div>
-            </div>
+            </div> */}
             <div className='d-flex flex-row justify-content-between mb-4'>
               <div className='d-flex flex-row '>
                 <button type='button' key={-1} className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
@@ -394,7 +445,7 @@ export function Products() {
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.quantity ?? 0}</td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock_imports ? <div>{`${product.stock_imports[0]} (${parseFloat(product.stock_imports[1]).toFixed(1)})`} <br /> {product.stock_imports[2]}</div> : ''}</td>
                         <td className='align-content-center text-nowrap' onClick={() => setSelectedProductID(index)}>{product.day_stock[0]} (days stock)<br />{product.day_stock[1]} (import)</td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.shipping_type}</td>
+                        <td className='align-content-center text-center' onClick={() => setSelectedProductID(index)}><ShipmentType type={product.type} /></td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.imports_stock?.map((str, index) => <div key={index}>{str}</div>)}</td>
                         {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">

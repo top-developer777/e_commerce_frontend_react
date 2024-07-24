@@ -5,9 +5,13 @@ const PRODUCTS_ENDPOINT = `${API_URL}/products`
 const SUPPLIERS_ENDPOINT = `${API_URL}/suppliers`
 const SHIPMENT_ENDPOINT = `${API_URL}/shipment`
 
-export const getAllProducts = () => {
+export const getAllProducts = (shipment_type = 0, query_stock_days = 0, query_imports_stocks = 0) => {
+    const params: { [key: string]: number } = {};
+    if (query_stock_days) params['query_stock_days'] = query_stock_days;
+    if (shipment_type) params['shipment_type'] = shipment_type;
+    if (query_imports_stocks) params['query_imports_stocks'] = query_imports_stocks;
     return axios
-        .get(`${API_URL}/inventory/product`)
+        .get(`${API_URL}/inventory/product`, { params: params })
 }
 
 export const getFilteredProducts = (shipment_type: string, weight_min: number, weight_max: number, volumetric_weight_min: number, volumetric_weight_max: number) => {
