@@ -20,18 +20,8 @@ const SidebarMenuMain = () => {
       .catch(e => console.error(e));
     getOrderAmout(1)
       .then(res => {
-        let num = res.data as number;
-        getOrderAmout(2)
-          .then(res => {
-            num += res.data;
-            getOrderAmout(3)
-              .then(res => {
-                num += res.data;
-                setNumOrder(num);
-              })
-              .catch(e => console.error(e));
-          })
-          .catch(e => console.error(e));
+        const num = res.data as number;
+        setNumOrder(num);
       })
       .catch(e => console.error(e));
   }, []);

@@ -197,13 +197,13 @@ interface CalculateProduct extends Product {
 const ShipmentType: React.FC<{ type: number }> = ({ type }) => {
   switch (type) {
     case 1:
-      return <span className='fs-1'>🚆</span>
+      return <span className='fs-1' title='Air'>🛫</span>
     case 2:
-      return <span className='fs-1'>🛫</span>
+      return <span className='fs-1' title='Train'>🚆</span>
     case 3:
-      return <span className='fs-1'>🚢</span>
+      return <span className='fs-1' title='Sea'>🚢</span>
     default:
-      return <span className='fs-1'>❌</span>
+      return <span className='fs-1' title='All'>❌</span>
   }
 }
 
@@ -218,7 +218,7 @@ export function Products() {
   // const [checkedMethods, setCheckedMethods] = useState<string[]>(['Train', 'Airplain', 'Ship']);
   // const [weight, setWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
   // const [vWeight, setVWeight] = useState<{ from: string, to: string }>({ from: '0', to: '1' });
-  const shippingMethods: { value: number, label: string }[] = [{ value: 0, label: 'All' }, { value: 1, label: 'Train' }, { value: 2, label: 'Air' }, { value: 3, label: 'Sea' }];
+  const shippingMethods: { value: number, label: string }[] = [{ value: 0, label: 'All' }, { value: 1, label: 'Air' }, { value: 2, label: 'Train' }, { value: 3, label: 'Sea' }];
   const [checkedMethod, setCheckedMethod] = useState<number>(0);
   const [stockDays, setStockDays] = useState<number>(0);
   const [importStock, setImportStock] = useState<number>(0);

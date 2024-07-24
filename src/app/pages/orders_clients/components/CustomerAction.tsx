@@ -108,12 +108,12 @@ export const CustomerAction = () => {
             Total: {totalReplaces}
           </div>
         </div>
-        {/* <div className="d-flex ms-auto me-0">
+        <div className="d-flex ms-auto me-0">
           <button type='button' className='btn btn-light btn-light-primary btn-sm mx-1 fs-7' data-bs-toggle="modal" data-bs-target="#requestModal">
             <i className="bi bi-cart-plus"></i>
             Request Replacement
           </button>
-        </div> */}
+        </div>
       </div>
       <div className="row">
         <div className="col-md-12 table-responsive">
@@ -167,7 +167,7 @@ export const CustomerAction = () => {
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-chat-dots-fill"></i></span>
                       <Select
-                        className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                        className='react-select-styled react-select-solid react-select-sm flex-1'
                         name='product_id'
                         options={products}
                         placeholder='Select product'
