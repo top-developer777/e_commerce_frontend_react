@@ -73,6 +73,7 @@ export const NeridicateComponent = () => {
   useEffect(() => {
     if (!!result && !Number.isNaN(Number(result))) setSelectedProduct(products.find(product => parseInt(product.ean) === parseInt(result ?? '')));
     if (!!result && Number.isNaN(Number(result))) setSelectedOrder(orders.find(order => order.date === result));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
   const startScanning = async () => {

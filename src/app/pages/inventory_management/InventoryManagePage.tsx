@@ -3,7 +3,7 @@ import { PageLink, PageTitle } from '../../../_metronic/layout/core'
 import { Products } from './components/Products'
 import { Planner } from './components/Planner'
 import { ShippingManagement } from './components/ShippingManagement'
-import { WarehouseManagement } from './components/WarehouseManagement'
+import { WarehouseManagement } from '../dashboard/components/WarehouseManagement'
 import { Suppliers } from './components/Suppliers'
 import { InventoryManageHeader } from './InventoryManageHeader'
 

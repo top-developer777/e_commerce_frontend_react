@@ -364,16 +364,16 @@ export const Products = () => {
     if (inputs) for (const input of inputs) {
       if (input.name === '') continue;
       data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
-      if (input.value === '') {
-        modal?.classList.remove('show');
-        setToast({ msg: 'All fields must be filled.', status: 'danger' });
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-        return;
-      }
+      // if (input.value === '') {
+      //   modal?.classList.remove('show');
+      //   setToast({ msg: 'All fields must be filled.', status: 'danger' });
+      //   toastBtn.click();
+      //   modal?.classList.add('show');
+      //   setTimeout(() => {
+      //     if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      //   }, 5000);
+      //   return;
+      // }
     }
     if (!isValidURL(data.image_link as string)) {
       modal?.classList.remove('show');
@@ -421,18 +421,18 @@ export const Products = () => {
     if (inputs) for (const input of inputs) {
       if (input.name === '') continue;
       data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
-      if (input.value === '') {
-        modal?.classList.remove('show');
-        setToast({ msg: 'All fields must be filled.', status: 'danger' });
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-        return;
-      }
+      // if (input.value === '') {
+      //   modal?.classList.remove('show');
+      //   setToast({ msg: 'All fields must be filled.', status: 'danger' });
+      //   toastBtn.click();
+      //   modal?.classList.add('show');
+      //   setTimeout(() => {
+      //     if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
+      //   }, 5000);
+      //   return;
+      // }
     }
-    if (!isValidURL(data.image_link as string)) {
+    if (!!data.image_link && !isValidURL(data.image_link as string)) {
       modal?.classList.remove('show');
       setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
       toastBtn.click();
@@ -442,7 +442,7 @@ export const Products = () => {
       }, 5000);
       return;
     }
-    if (!isValidURL(data.link_address_1688 as string)) {
+    if (!!data.link_address_1688 && !isValidURL(data.link_address_1688 as string)) {
       modal?.classList.remove('show');
       setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
       toastBtn.click();

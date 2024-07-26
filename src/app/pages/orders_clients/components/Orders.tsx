@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import Select from 'react-select';
+
 import { Content } from '../../../../_metronic/layout/components/content'
 // import { useAuth } from '../../../modules/auth';
 import { createAWB, getAllOrders, getOrderAmout } from './_request'
@@ -6,6 +8,8 @@ import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
 import { toast } from 'react-toastify';
+import { getWarehouses } from '../../dashboard/components/_request';
+import { WarehouseType } from '../../models/warehouse';
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
 
@@ -90,11 +94,25 @@ const OrderTable: React.FC<{
   const { currentPage, setCurrentPage } = props;
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedOrder, selectOrder] = useState<Order>();
+  const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
+  const [senders, setSenders] = useState<{ value: string, label: string }[]>([]);
 
   useEffect(() => {
     getAllProducts()
       .then(res => setProducts(res.data))
       .catch(e => console.error(e))
+    getWarehouses()
+      .then(res => res.data)
+      .then(res => {
+        setWarehouses(res.sort((x: WarehouseType, y: WarehouseType) => {
+          if (x.id && y.id) return x.id - y.id;
+        }));
+        const warehouse = res.map((data: WarehouseType) => {
+          return { value: data.id, label: `${data.sender_name} (${data.phone1})` };
+        });
+        setSenders(warehouse);
+      })
+      .catch(e => console.error(e));
   }, []);
 
   // const { currentUser } = useAuth();
@@ -161,11 +179,13 @@ const OrderTable: React.FC<{
       receiver_locality_id: number,
       receiver_name: string,
       receiver_phone1: string,
+      receiver_phone2?: string,
       receiver_street: string,
       receiver_zipcode: string,
       sender_locality_id: number,
       sender_name: string,
       sender_phone1: string,
+      sender_phone2?: string,
       sender_street: string,
       sender_zipcode: string,
     } = {
@@ -188,11 +208,13 @@ const OrderTable: React.FC<{
       receiver_locality_id: 0,
       receiver_name: '',
       receiver_phone1: '',
+      receiver_phone2: '',
       receiver_street: '',
       receiver_zipcode: '',
       sender_locality_id: 0,
       sender_name: '',
       sender_phone1: '',
+      sender_phone2: '',
       sender_street: '',
       sender_zipcode: ''
     };
@@ -210,11 +232,6 @@ const OrderTable: React.FC<{
     data.saturday_delivery = (form?.querySelector('[name="saturday_delivery"]') as HTMLInputElement).checked;
     data.sameday_delivery = (form?.querySelector('[name="sameday_delivery"]') as HTMLInputElement).checked;
     data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked;
-    data.sender_locality_id = parseInt((form?.querySelector('[name="sender.locality_id"]') as HTMLInputElement).value);
-    data.sender_name = (form?.querySelector('[name="sender.name"]') as HTMLInputElement).value;
-    data.sender_phone1 = (form?.querySelector('[name="sender.phone"]') as HTMLInputElement).value;
-    data.sender_street = (form?.querySelector('[name="sender.street"]') as HTMLInputElement).value;
-    data.sender_zipcode = (form?.querySelector('[name="sender.zipcode"]') as HTMLInputElement).value;
     data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
     data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
     data.receiver_phone1 = (form?.querySelector('[name="receiver.phone"]') as HTMLInputElement).value;
@@ -222,15 +239,26 @@ const OrderTable: React.FC<{
     data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
     data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked;
     data.receiver_zipcode = (form?.querySelector('[name="receiver.zipcode"]') as HTMLInputElement).value;
-    if (!isValidPhone(data.sender_phone1)) {
-      toast.error('Sender\'s phone must be valid phone number.');
-      return;
-    }
-    if (!isValidPhone(data.receiver_phone1)) {
+    if (!isValidPhone(data.receiver_phone1) || (data.receiver_phone2 && !isValidPhone(data.receiver_phone2 ?? ''))) {
       toast.error('Receiver\'s phone must be valid phone number.');
       return;
     }
-    console.log(data);
+    const senderId = parseInt((form?.querySelector('[name="sender"]') as HTMLInputElement).value);
+    if (!data.cod || !data.envelope_number || !data.order_id || !data.locker_id || !data.insured_value || !data.parcel_number) {
+      toast.error('Please fill all necessary values.');
+      return;
+    }
+    if (!senderId) {
+      toast.error('Please select a sender.');
+      return;
+    }
+    const sender = warehouses.find(house => house.id === senderId);
+    data.sender_locality_id = parseInt(sender?.locality_id ?? '0');
+    data.sender_name = sender?.sender_name ?? '';
+    data.sender_phone1 = sender?.phone1 ?? '';
+    data.sender_phone2 = sender?.phone2 ?? '';
+    data.sender_street = sender?.street ?? '';
+    data.sender_zipcode = sender?.zipcode ?? '';
     createAWB(data, selectedOrder.order_market_place)
       .then(res => console.log(res))
       .catch(e => console.error(e));
@@ -311,14 +339,14 @@ const OrderTable: React.FC<{
                     {order.order_market_place}
                   </td>
                   {/* <td className='align-content-center text-center'>
-                    <button type='button' className='btn btn-light btn-light-primary p-1 px-3'>
+                    <button type='button' className='btn btn-primary p-1 px-3'>
                       <i className="bi bi-file-earmark-plus"></i>
-                      Quick Create
+                      Create
                     </button>
                   </td> */}
                   <td className='align-content-center text-center'>
                     {order.status === 0 && <>None</>}
-                    {[1, 2, 3].findIndex(item => item === order.status) >= 0 && <button type='button' className='btn btn-light btn-light-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
+                    {[1, 2, 3].findIndex(item => item === order.status) >= 0 && <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
                       <i className="bi bi-file-earmark-plus"></i>
                       Create
                     </button>}
@@ -473,51 +501,18 @@ const OrderTable: React.FC<{
                     </div>
                   </div>
                 </div>
-                <hr />
-                <h2>Sender</h2>
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Name:</div>
+                  <div className="d-flex fw-bold w-25">Sender:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='sender.name' placeholder="Name" required />
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Phone Number:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='sender.phone' placeholder="+11234567890" required />
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Locality ID:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='sender.locality_id' min={1} max={4294967295} placeholder="Locality ID" required />
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Street:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='sender.street' placeholder="Street" required />
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Zipcode:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='sender.zipcode' placeholder="Zipcode" required />
-                    </div>
+                    <Select
+                      name='sender'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={senders}
+                      placeholder='Select a sender'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more senders including "${e.inputValue}"`}
+                      defaultValue={senders[0]}
+                    />
                   </div>
                 </div>
                 <hr />
@@ -663,7 +658,7 @@ export function Orders() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState<number>(50);
-  const [selectedStatus, setSelectedStatus] = useState<number>(-1);
+  const [selectedStatus, setSelectedStatus] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [currentState, setCurrentState] = useState<[number, string]>([-1, ''])

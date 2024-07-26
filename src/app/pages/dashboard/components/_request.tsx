@@ -1,4 +1,5 @@
 import axios from "axios";
+import { WarehouseType } from "../../models/warehouse";
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 const DASHBOARD_ENDPOINT = `${API_URL}/dashboard`
@@ -43,6 +44,26 @@ const getProductInfo = async (ean: string, type: number = 1) => {
     return axios.get(`${API_URL}/products/info/${ean}?type=${type}`)
 }
 
+const getWarehouses = async () => {
+    return axios.get(`${API_URL}/warehouse`)
+}
+
+const getWarehouse = async (id: number) => {
+    return axios.get(`${API_URL}/warehouse/${id}`)
+}
+
+const createWarehouse = async (data: WarehouseType) => {
+    return axios.post(`${API_URL}/warehouse`, data)
+}
+
+const updateWarehouse = async (id: number, data: WarehouseType) => {
+    return axios.put(`${API_URL}/warehouse/${id}`, data)
+}
+
+const deleteWarehouse = async (id: number) => {
+    return axios.delete(`${API_URL}/warehouse/${id}`)
+}
+
 export {
     getAllProducts,
     getChartInfo,
@@ -52,4 +73,9 @@ export {
     getProductsDay,
     getProductInfo,
     getTrendInfo,
+    createWarehouse,
+    getWarehouses,
+    getWarehouse,
+    updateWarehouse,
+    deleteWarehouse,
 }
