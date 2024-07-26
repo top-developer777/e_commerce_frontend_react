@@ -9,7 +9,6 @@ import { addProductRequest, editProductRequest, getAllSuppliers } from '../../in
 import { Suppliers } from '../../models/supplier'
 import { getAllMarketplaces } from '../../config/components/_request'
 import { interMKP } from '../../config/components/Integrations'
-import { Order } from '../../models/order'
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 
@@ -72,9 +71,9 @@ const ReturnsInformation: React.FC<{
 }> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-      <div className="card-header pt-4 w-full">
+      <div className="card-header pt-6 w-full">
         <div>
-          <h3 className="text-gray-800 card-title align-content-center">Return Dashboard</h3>
+          <h3 className="text-gray-800 card-title align-content-center">Refunded</h3>
         </div>
         <div>
         </div>
@@ -114,7 +113,7 @@ const ShipmentInformation: React.FC<{
 }> = props => {
   return (
     <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-      <div className="card-header pt-4 w-full">
+      <div className="card-header pt-6 w-full">
         <div>
           <h3 className="text-gray-800 card-title align-content-center">Shipment Information</h3>
         </div>
@@ -172,7 +171,12 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
   const [returns, setReturns] = useState<Return[]>([]);
   // const [seriesSales, setSeriesSales] = useState<{ name: string, data: number[] }[]>([]);
   // const [categories, setCategories] = useState<string[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<{
+    order_id: number;
+    order_date: string;
+    quantity_orders: number;
+    order_status: number;
+  }[]>([]);
   const [suppliers, setSuppliers] = useState<Suppliers[]>([]);
 
   useEffect(() => {
@@ -557,7 +561,7 @@ export const Products = () => {
             </div>
             <div className="row flex-shrink-1">
               <div className="col-md-12 table-responsive d-flex h-100">
-                <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
+                <table className="table table-rounded table-row-bordered border gy-7 gs-7 table-hover">
                   <thead>
                     <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
                       <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
@@ -589,7 +593,7 @@ export const Products = () => {
                               </div>
                               <div className="d-flex flex-column ms-2">
                                 <div className="d-flex align-items-center">
-                                  <span className='d-flex'><a href={`https://amazon.com/dp/${product.model_name}`} target='_blank'>{product.model_name}</a></span>
+                                  <span className='d-flex fw-bold'>{product.model_name}</span>
                                 </div>
                                 <div className="d-flex">{product.product_name}</div>
                                 <div className="d-flex"><a href={product.link_address_1688} target='_blank'>{product.link_address_1688}</a></div>

@@ -3,10 +3,10 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_APP_API_URL
 const ORDERS_ENDPOINT = `${API_URL}/orders`
 
-export const getAllOrders = (page: number, limit = 50, status = -1, searchText = '') => {
+export const getAllOrders = (page: number, limit = 50, status = -1, searchText = '', sort = true) => {
   return axios
     .get(ORDERS_ENDPOINT, {
-      params: { page: page, items_per_page: limit, status: status, search_text: searchText }
+      params: { page: page, items_per_page: limit, status: status, search_text: searchText, flag: sort }
     })
 }
 

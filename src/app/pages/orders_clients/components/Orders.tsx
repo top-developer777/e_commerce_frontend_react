@@ -32,63 +32,74 @@ import { WarehouseType } from '../../models/warehouse';
 //   }
 // ]
 
-export const StatusBadge: React.FC<{ status: number }> = props => (
-  <>
-    {props.status === 0
-      ? <div>
-        <span className="badge badge-secondary fw-bold fs-7 p-2">
-          <i className='bi bi-slash-circle fw-bold'></i>&nbsp;
-          Canceled
-        </span>
-      </div>
-      : props.status === 1
-        ? <div>
+export const StatusBadge: React.FC<{ status: number }> = props => {
+  switch (props.status) {
+    default: return <div></div>
+    case 0:
+      return (
+        <div>
+          <span className="badge badge-secondary fw-bold fs-7 p-2">
+            <i className='bi bi-slash-circle fw-bold'></i>&nbsp;
+            Canceled
+          </span>
+        </div>
+      )
+    case 1:
+      return (
+        <div>
           <span className="badge badge-light-info fw-bold fs-7 p-2">
             <i className='bi bi-file-earmark-plus text-info fw-bold'></i>&nbsp;
             New
           </span>
         </div>
-        : props.status == 2
-          ? <div>
-            <span className="badge badge-light-primary fw-bold fs-7 p-2">
-              <i className='bi bi-hourglass text-primary fw-bold'></i>&nbsp;
-              In progress
-            </span>
-          </div>
-          : props.status == 3
-            ? <div>
-              <span className="badge badge-light-success fw-bold fs-7 p-2">
-                <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
-                Prepared
-              </span>
-            </div>
-            : props.status === 4
-              ? <div>
-                <span className="badge badge-light-warning fw-bold fs-7 p-2">
-                  <i className='bi bi-stack text-warning fw-bold'></i>&nbsp;
-                  Finalized
-                </span>
-              </div>
-              : props.status == 5
-                ? <div>
-                  <span className="badge badge-light-danger fw-bold fs-7 p-2">
-                    <i className='bi bi-repeat text-danger fw-bold'></i>&nbsp;
-                    Returned
-                  </span>
-                </div>
-                : <div>
-
-                </div>
-    }
-  </>
-)
+      )
+    case 2:
+      return (
+        <div>
+          <span className="badge badge-light-primary fw-bold fs-7 p-2">
+            <i className='bi bi-hourglass text-primary fw-bold'></i>&nbsp;
+            In progress
+          </span>
+        </div>
+      )
+    case 3:
+      return (
+        <div>
+          <span className="badge badge-light-success fw-bold fs-7 p-2">
+            <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
+            Prepared
+          </span>
+        </div>
+      )
+    case 4:
+      return (
+        <div>
+          <span className="badge badge-light-warning fw-bold fs-7 p-2">
+            <i className='bi bi-stack text-warning fw-bold'></i>&nbsp;
+            Finalized
+          </span>
+        </div>
+      )
+    case 5:
+      return (
+        <div>
+          <span className="badge badge-light-danger fw-bold fs-7 p-2">
+            <i className='bi bi-repeat text-danger fw-bold'></i>&nbsp;
+            Returned
+          </span>
+        </div>
+      )
+  }
+}
 
 const OrderTable: React.FC<{
   orders: Order[],
   currentPage: number,
   totalPages: number,
   totalOrders: number,
+  sort: boolean,
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
+  setSort: React.Dispatch<React.SetStateAction<boolean>>,
   setEditID?: React.Dispatch<React.SetStateAction<number>>,
 }> = props => {
   const { currentPage, setCurrentPage } = props;
@@ -234,7 +245,8 @@ const OrderTable: React.FC<{
     data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked;
     data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
     data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
-    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone"]') as HTMLInputElement).value;
+    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone1"]') as HTMLInputElement).value;
+    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone2"]') as HTMLInputElement).value;
     data.receiver_street = (form?.querySelector('[name="receiver.street"]') as HTMLInputElement).value;
     data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
     data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked;
@@ -260,7 +272,7 @@ const OrderTable: React.FC<{
     data.sender_street = sender?.street ?? '';
     data.sender_zipcode = sender?.zipcode ?? '';
     createAWB(data, selectedOrder.order_market_place)
-      .then(() => {})
+      .then(() => { })
       .catch(e => console.error(e));
   }
 
@@ -305,7 +317,12 @@ const OrderTable: React.FC<{
               {/* <th className='align-content-center'>
                 <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
               </th> */}
-              <th className='col-md-1 align-content-center text-center'>Order Date</th>
+              <th className='col-md-1 align-content-center text-center cursor-pointer' onClick={() => props.setSort(!props.sort)} title='Assending/Decending'>
+                <div className="d-flex">
+                  <div className='d-flex align-items-center'>Order Date</div>
+                  <div className='d-flex align-items-center'>{props.sort ? <i className='bi bi-caret-down-fill'></i> : <i className='bi bi-caret-up-fill'></i>}</div>
+                </div>
+              </th>
               <th className='col-md-1 align-content-center text-center'>Products</th>
               <th className='col-md-1 align-content-center text-center'>Vendor Name</th>
               <th className='col-md-1 align-content-center text-center'>Marketplace</th>
@@ -331,7 +348,7 @@ const OrderTable: React.FC<{
                   <td className='align-content-center text-center'>
                     {order.product_id.map(id => {
                       const product = products.find(product => product.id === id);
-                      return <div key={`product${order.id}:${id}`}><a href='#'><img width={40} src={product?.image_link} alt={product?.model_name} /></a></div>
+                      return <div key={`product${order.id}:${id}`}><a href='#'><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></a></div>
                     })}
                   </td>
                   <td className='align-content-center text-center '>{order.vendor_name}</td>
@@ -536,11 +553,20 @@ const OrderTable: React.FC<{
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Phone Number:</div>
+                  <div className="d-flex fw-bold w-25">Phone Number 1:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.phone' placeholder="+11234567890" required />
+                      <input type="text" className="form-control" name='receiver.phone1' placeholder="+11234567890" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Phone Number 2 (Optional):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='receiver.phone2' placeholder="+11234567890" required />
                     </div>
                   </div>
                 </div>
@@ -661,7 +687,8 @@ export function Orders() {
   const [selectedStatus, setSelectedStatus] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [totalOrders, setTotalOrders] = useState<number>(0);
-  const [currentState, setCurrentState] = useState<[number, string]>([-1, ''])
+  const [currentState, setCurrentState] = useState<[number, string]>([-1, '']);
+  const [sort, setSort] = useState<boolean>(true);
 
   useEffect(() => {
     if (currentState[0] !== selectedStatus || currentState[1] !== searchText) {
@@ -680,17 +707,17 @@ export function Orders() {
       setCurrentState([selectedStatus, searchText]);
       setCurrentPage(1);
     }
-    getAllOrders(currentPage, limit, selectedStatus, searchText)
+    getAllOrders(currentPage, limit, selectedStatus, searchText, sort)
       .then(async res => {
         setOrders(res.data);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, limit, selectedStatus, searchText]);
+  }, [currentPage, limit, selectedStatus, searchText, sort]);
 
   return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
-      <OrderTable orders={orders} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} />
+      <OrderTable orders={orders} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} />
     </Content>
   )
 }

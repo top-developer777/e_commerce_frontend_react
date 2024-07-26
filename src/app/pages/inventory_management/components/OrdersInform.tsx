@@ -1,13 +1,17 @@
 
 import { FC } from 'react'
 import { Product } from '../../models/product';
-import { Order } from '../../models/order';
 import { StatusBadge } from '../../orders_clients/components/Orders';
 
 type Props = {
   className: string,
   product: Product,
-  orders: Order[],
+  orders: {
+    order_id: number;
+    order_date: string;
+    quantity_orders: number;
+    order_status: number;
+  }[],
 }
 const OrdersInformation: FC<Props> = ({ className, product, orders }) => {
   return (
@@ -48,7 +52,7 @@ const OrdersInformation: FC<Props> = ({ className, product, orders }) => {
                 <tr>
                   <th>Order ID</th>
                   <th>Order Date</th>
-                  <th>Delivery Mode</th>
+                  <th>Quantity</th>
                   <th>Order Status</th>
                 </tr>
               </thead>
@@ -56,10 +60,10 @@ const OrdersInformation: FC<Props> = ({ className, product, orders }) => {
                 {orders.map((order, index) => {
                   return (
                     <tr key={`order${index}`}>
-                      <td>{order.id}</td>
-                      <td>{order.date}</td>
-                      <td>{order.delivery_mode}</td>
-                      <td><StatusBadge status={order.status} /></td>
+                      <td>{order.order_id}</td>
+                      <td>{(new Date(order.order_date)).toLocaleString('en-GB')}</td>
+                      <td>{order.quantity_orders}</td>
+                      <td><StatusBadge status={order.order_status} /></td>
                     </tr>
                   )
                 })}
