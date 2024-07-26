@@ -27,7 +27,6 @@ const DragDropFileUpload: React.FC<{
       console.error('Error uploading file:', error);
     }
     props.setImg(res.filepath.replace('uploads/', 'upload/'))
-    console.log(acceptedFile);
   }, [props]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });

@@ -265,7 +265,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
       .then(res => {
         setProducts(res.data);
       })
-      .catch(err => console.log(err));
+      .catch(err => console.error(err));
   }, []);
   useEffect(() => {
     const chart = refreshChart()

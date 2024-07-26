@@ -1,18 +1,18 @@
 export interface Shipment {
   id?: number;
   order_id: number;
-  date: string;
+  create_date: string;
   title: string;
   agent_name: string;
   type: 'Airplain' | 'Sea' | 'Train';
   status: string;
-  expect_date: string;
+  delivery_date: string;
   warehouse: string;
   note?: string;
   ean: string[],
   quantity: number[],
   supplier_name: string[],
-  item: string[],
+  item: number[],
   pdf_sent: boolean[],
   pay_url: string[],
   tracking: string[],

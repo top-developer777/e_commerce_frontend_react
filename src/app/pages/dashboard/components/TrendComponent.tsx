@@ -71,7 +71,7 @@ const getCategories = (type = 1) => {
 }
 
 export const TrendComponent = () => {
-  const [trendData, setTrendDdata] = useState<{ [key: string]: [] }[]>([]);
+  const [trendData, setTrendDdata] = useState<number[][]>([]);
   const [trendPeriod, setTrendPeriod] = useState<string>('1');
   const [searchTrendProducts, setSearchTrendProducts] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
@@ -81,6 +81,7 @@ export const TrendComponent = () => {
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   const [field, setField] = useState<string>('sales');
   const [categories, setCategories] = useState<string[]>(getCategories(1));
+  const [checkedProducts, setCheckedProducts] = useState<number[]>([]);
 
   const handleTrendFilter = () => {
     setCategories(getCategories(parseInt(trendPeriod)));
@@ -89,6 +90,7 @@ export const TrendComponent = () => {
     if (inputs) for (const input of inputs) {
       if (input.checked) productIds.push(input.value);
     }
+    setCheckedProducts(productIds.map(id => parseInt(id)));
     getTrendInfo(parseInt(trendPeriod), field, productIds.join(','))
       .then(res => setTrendDdata(res.data.trends_data))
       .catch(e => console.error(e));
@@ -124,17 +126,18 @@ export const TrendComponent = () => {
 
   useEffect(() => {
     getAllProducts(1, 1000)
-      .then(res => {
-        setProducts(res.data);
-      })
-      .catch(err => console.log(err));
+      .then(res => setProducts(res.data))
+      .catch(err => console.error(err));
   }, []);
   useEffect(() => {
-    if (mappingCompleted) handleTrendFilter();
+    if (mappingCompleted) {
+      checkSelected();
+      handleTrendFilter();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mappingCompleted]);
   useEffect(() => {
-    getTrendInfo(parseInt(trendPeriod), field)
+    getTrendInfo(parseInt(trendPeriod), field, checkedProducts.join(','))
       .then(res => setTrendDdata(res.data.trends_data))
       .catch(e => console.error(e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,7 +190,7 @@ export const TrendComponent = () => {
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchTrendProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} />
+                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={index < 30} />
                         </div>
                         <div className="d-flex">
                           <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />
@@ -230,14 +233,21 @@ export const TrendComponent = () => {
       </div>
       <div className="card-body table-responsive">
         <table className="table table-bordered table-hover cursor-pointer">
-          <thead></thead>
+          <thead>
+            <tr>
+              <th className="start-0 position-sticky bg-white">Product</th>
+              {categories.map(cat => <th key={`trendheader${cat}`} className="text-nowrap">{cat}</th>)}
+            </tr>
+          </thead>
           <tbody>
-            {trendData.map((trend, index) => (
-              <tr>
-                <th>{categories[index]}</th>
-                <td>{JSON.stringify(trend)}</td>
-              </tr>
-            ))}
+            {!!trendData.length && !!trendData[0].length &&
+              trendData[0].map((_, i) => (
+                <tr key={`trend${i}`}>
+                  <td className="start-0 position-sticky bg-white"><img src={products.find(product => product.id === checkedProducts[i])?.image_link ?? ''} alt={`product${checkedProducts[i]}`} width={50} /></td>
+                  {trendData.map((trend, index) => <td key={`trend(${i})(${index})`} className="align-content-center text-end">{parseFloat(trend[i].toString()).toFixed(3)}</td>)}
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import Select, { MultiValue } from 'react-select'
-import { createShipments, getAllProducts, getShipments } from './_request';
+import { createShipments, deleteShipment, getAllProducts, getShipments, updateShipments } from './_request';
 import { Shipment } from '../../models/shipment';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
@@ -405,6 +405,7 @@ const TableProductPlanner: React.FC<{
 
 const TableShipment: React.FC<{
   shipments: Shipment[];
+  handleDeleteShipment: (id: number) => void;
   setSelectedShipment: React.Dispatch<React.SetStateAction<number>>;
   setEditShipment: React.Dispatch<React.SetStateAction<Shipment | undefined>>;
 }> = props => {
@@ -412,6 +413,7 @@ const TableShipment: React.FC<{
     <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7" id='table-shipment'>
       <thead>
         <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+          <th className='align-content-center'>Shipment Name</th>
           <th className='align-content-center'>Agent Name</th>
           <th className='align-content-center'>Shipping Type</th>
           <th className='text-center align-content-center px-1'>Created Date</th>
@@ -425,10 +427,11 @@ const TableShipment: React.FC<{
         {
           props.shipments.map((shipment, index) =>
             <tr className='py-1 cursor-pointer' key={`shipment${index}`}>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.title}</td>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent_name}</td>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.type}</td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.date.toLocaleString()}
+                {shipment.create_date.toLocaleString()}
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 <StatusBadge status={shipment.status} />
@@ -437,11 +440,14 @@ const TableShipment: React.FC<{
                 {shipment.note}
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.expect_date ? shipment.expect_date.toLocaleString() : ''}
+                {shipment.delivery_date ? shipment.delivery_date.toLocaleString() : ''}
               </td>
               <td className='text-center align-content-center'>
-                <a className='btn btn-white btn-active-light-danger btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => props.setEditShipment(shipment)}>
-                  <i className="bi text-danger bi-slash-circle fs-3 p-1"></i>
+                <a className='btn btn-white btn-active-light-info btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => props.setEditShipment(shipment)}>
+                  <i className="bi bi-pencil-square fs-3 p-1"></i>
+                </a>
+                <a className='btn btn-white btn-active-light-danger btn-sm p-2' onClick={() => props.handleDeleteShipment(shipment.id ?? 0)}>
+                  <i className="bi bi-ban text-danger fs-3 p-1"></i>
                 </a>
               </td>
             </tr>
@@ -453,6 +459,7 @@ const TableShipment: React.FC<{
 }
 
 export function ShippingManagement() {
+  const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shippings, setshippings] = useState<Shipping[]>([]);
   const [shipingTypes, setShipingTypes] = useState<{ value: string; label: string; }[]>([]);
@@ -468,7 +475,7 @@ export function ShippingManagement() {
     ean: string;
     quantity: number;
     supplier_name: string;
-    item: string;
+    item: number;
     pdf_sent: boolean;
     pay_url: string;
     tracking: string;
@@ -493,22 +500,25 @@ export function ShippingManagement() {
   const [warehouses, setWarehouses] = useState<{ value: string; label: string; }[]>([]);
 
   useEffect(() => {
-    setShipingTypes(fakeShipingType);
-    setshippings(fakeshippings);
-    setSelectedProduct(fakeshippings[0]);
-    getShipments()
-      .then(res => setShipments(res.data))
-      .catch(e => console.error(e));
-    getWarehouses()
-      .then(res => res.data)
-      .then(res => {
-        const dict = res.map((data: WarehouseType) => {
-          return { value: data.name, label: data.name }
-        });
-        setWarehouses(dict);
-      })
-      .catch(e => console.error(e));
-  }, []);
+    if (changed) {
+      setShipingTypes(fakeShipingType);
+      setshippings(fakeshippings);
+      setSelectedProduct(fakeshippings[0]);
+      getShipments()
+        .then(res => setShipments(res.data))
+        .catch(e => console.error(e));
+      getWarehouses()
+        .then(res => res.data)
+        .then(res => {
+          const dict = res.map((data: WarehouseType) => {
+            return { value: data.name, label: data.name }
+          });
+          setWarehouses(dict);
+        })
+        .catch(e => console.error(e));
+      setChanged(false);
+    }
+  }, [changed]);
   useEffect(() => {
     if (editID != -1) {
       setProductName(shippings[editID]['productName'])
@@ -602,15 +612,39 @@ export function ShippingManagement() {
       firstKey = key.toString();
       break;
     }
-    if (!firstKey) return;
-    const products: { [key: string]: (string | number | boolean)[] } = {};
-    Object.keys(selectedProducts[parseInt(firstKey)]).map(key => {
-      products[key] = Object.values(selectedProducts).map(product => product[key as keyType]);
-    });
+    let products: { [key: string]: (string | number | boolean)[] } = {};
+    if (firstKey) {
+      Object.keys(selectedProducts[parseInt(firstKey)]).map(key => {
+        products[key] = Object.values(selectedProducts).map(product => product[key as keyType]);
+      });
+    } else {
+      products = {
+        ean: [],
+        quantity: [],
+        supplier_name: [],
+        item: [],
+        pdf_sent: [],
+        pay_url: [],
+        tracking: [],
+        arrive_agent: [],
+        wechat_group: [],
+        pp: [],
+        each_status: [],
+        shipment_name: [],
+        box_number: [],
+        document: [],
+        add_date: [],
+        date_agent: [],
+        SID: [],
+        GID: [],
+        date_port: [],
+        newid: [],
+      }
+    }
     const data = {
-      agent: agent,
-      date: now.toISOString().split('T')[0],
-      expect_date: delivery_date,
+      agent_name: agent,
+      created_date: editShipment ? editShipment.create_date : now.toISOString().split('T')[0],
+      delivery_date: delivery_date,
       type: type,
       title: name,
       status: status,
@@ -618,13 +652,23 @@ export function ShippingManagement() {
       warehouse: warehouse,
       ...products
     }
-    createShipments(data)
-      .then(res => {
-        console.log(res);
-        const closeBtn = document.querySelector(`#${id} button[data-bs-dismiss="modal"]`) as HTMLInputElement;
-        closeBtn.click();
-      })
-      .catch(e => console.error(e));
+    if (id === 'createShipmentModal') {
+      createShipments(data)
+        .then(() => {
+          setChanged(true);
+          const closeBtn = document.querySelector(`#${id} button[data-bs-dismiss="modal"]`) as HTMLInputElement;
+          closeBtn.click();
+        })
+        .catch(e => console.error(e));
+    } else {
+      updateShipments(editShipment?.id ?? 0, data)
+        .then(() => {
+          setChanged(true);
+          const closeBtn = document.querySelector(`#${id} button[data-bs-dismiss="modal"]`) as HTMLInputElement;
+          closeBtn.click();
+        })
+        .catch(e => console.error(e));
+    }
   }
   const filterByShippingType = (shippingType: MultiValue<{ value: string, label: string }> = []) => {
     const values = shippingType.map(type => type.value);
@@ -637,6 +681,10 @@ export function ShippingManagement() {
       if (type && type.indexOf(filter) === -1) tr.setAttribute('style', 'display: none');
       else tr.setAttribute('style', 'display: table-row');
     });
+  }
+  const handleDeleteShipment = (id: number) => {
+    deleteShipment(id)
+      .then(() => setChanged(true));
   }
 
   return (
@@ -662,7 +710,7 @@ export function ShippingManagement() {
                 />
               </div>
             </div>
-            <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} setEditShipment={setEditShipment} />
+            <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} setEditShipment={setEditShipment} handleDeleteShipment={handleDeleteShipment} />
           </>
           :
           <>
@@ -846,7 +894,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="date" className="form-control" name='delivery_date' placeholder="Expected Delivery Date" />
+                              <input type="date" className="form-control" name='delivery_date' defaultValue={(new Date()).toISOString().split('T')[0]} placeholder="Expected Delivery Date" />
                             </div>
                           </div>
                         </label>
@@ -948,7 +996,7 @@ export function ShippingManagement() {
                                         ean: product?.value ?? '',
                                         quantity: 1,
                                         supplier_name: '',
-                                        item: '',
+                                        item: 1,
                                         pdf_sent: false,
                                         pay_url: '',
                                         tracking: '',
@@ -959,11 +1007,11 @@ export function ShippingManagement() {
                                         shipment_name: '',
                                         box_number: 0,
                                         document: '',
-                                        add_date: '',
-                                        date_agent: '',
+                                        add_date: (new Date()).toISOString().split('T')[0],
+                                        date_agent: (new Date()).toISOString().split('T')[0],
                                         SID: '',
                                         GID: '',
-                                        date_port: '',
+                                        date_port: (new Date()).toISOString().split('T')[0],
                                         newid: '',
                                       }
                                     })}
@@ -986,7 +1034,7 @@ export function ShippingManagement() {
                                 <td style={{ minWidth: '100px' }}>
                                   <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].item} onChange={(e) => {
                                     const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].item = e.target.value;
+                                    newProducts[parseInt(index)].item = parseInt(e.target.value);
                                     setSelectedProducts(newProducts);
                                   }} />
                                 </td>
@@ -1133,7 +1181,7 @@ export function ShippingManagement() {
                                           ean: product?.value ?? '',
                                           quantity: 1,
                                           supplier_name: '',
-                                          item: '',
+                                          item: 1,
                                           pdf_sent: false,
                                           pay_url: '',
                                           tracking: '',
@@ -1144,11 +1192,11 @@ export function ShippingManagement() {
                                           shipment_name: '',
                                           box_number: 0,
                                           document: '',
-                                          add_date: '',
-                                          date_agent: '',
+                                          add_date: (new Date()).toISOString().split('T')[0],
+                                          date_agent: (new Date()).toISOString().split('T')[0],
                                           SID: '',
                                           GID: '',
-                                          date_port: '',
+                                          date_port: (new Date()).toISOString().split('T')[0],
                                           newid: '',
                                         }
                                       })}
@@ -1254,12 +1302,8 @@ export function ShippingManagement() {
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Warehouse:</div>
                           <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='warehouse' defaultValue={editShipment.warehouse} placeholder="Warehouse" />
-                            </div>
                             <Select
-                              name='status'
+                              name='warehouse'
                               className='react-select-styled react-select-solid react-select-sm w-100'
                               options={warehouses}
                               placeholder='Select a warehouse'
@@ -1275,7 +1319,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="date" className="form-control" name='delivery_date' defaultValue={editShipment.expect_date?.split('T')[0]} placeholder="Expected Delivery Date" />
+                              <input type="date" className="form-control" name='delivery_date' defaultValue={editShipment.delivery_date?.split('T')[0]} placeholder="Expected Delivery Date" />
                             </div>
                           </div>
                         </label>
@@ -1373,7 +1417,7 @@ export function ShippingManagement() {
                                         ean: product?.value ?? '',
                                         quantity: 1,
                                         supplier_name: '',
-                                        item: '',
+                                        item: 1,
                                         pdf_sent: false,
                                         pay_url: '',
                                         tracking: '',
@@ -1411,7 +1455,7 @@ export function ShippingManagement() {
                                 <td style={{ minWidth: '100px' }}>
                                   <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].item} onChange={(e) => {
                                     const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].item = e.target.value;
+                                    newProducts[parseInt(index)].item = parseInt(e.target.value);
                                     setSelectedProducts(newProducts);
                                   }} />
                                 </td>
@@ -1557,7 +1601,7 @@ export function ShippingManagement() {
                                           ean: product?.value ?? '',
                                           quantity: 1,
                                           supplier_name: '',
-                                          item: '',
+                                          item: 1,
                                           pdf_sent: false,
                                           pay_url: '',
                                           tracking: '',

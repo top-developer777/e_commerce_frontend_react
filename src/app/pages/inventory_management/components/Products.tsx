@@ -230,7 +230,7 @@ export function Products() {
         setTotalProducts(res.data.length);
         setTotalPages(res.data.length ? Math.ceil(res.data.length / limit) : 1);
       })
-      .catch(err => console.log(err))
+      .catch(err => console.error(err))
   }, [limit]);
 
 
@@ -257,7 +257,7 @@ export function Products() {
         setTotalProducts(res.data.length);
         setTotalPages(res.data.length ? Math.ceil(res.data.length / limit) : 1);
       })
-      .catch(err => console.log(err))
+      .catch(err => console.error(err))
   }
   const renderPageNumbers = () => {
     const pageNumbers = [];

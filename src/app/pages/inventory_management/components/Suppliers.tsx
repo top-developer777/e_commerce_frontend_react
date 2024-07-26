@@ -70,8 +70,7 @@ export const Suppliers = () => {
     const wechat = wechatEle.value;
     const data = { name, group, wechat };
     createSupplier(data)
-      .then(res => {
-        console.log(res.data);
+      .then(() => {
         modal?.classList.remove('show');
         setToast({ msg: 'Successfully created.', status: 'success' });
         toastBtn.click();
@@ -80,7 +79,7 @@ export const Suppliers = () => {
           if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
         }, 5000);
       })
-      .catch(e => console.log(e));
+      .catch(e => console.error(e));
   }
 
   return (

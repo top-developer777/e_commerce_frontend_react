@@ -260,7 +260,7 @@ const OrderTable: React.FC<{
     data.sender_street = sender?.street ?? '';
     data.sender_zipcode = sender?.zipcode ?? '';
     createAWB(data, selectedOrder.order_market_place)
-      .then(res => console.log(res))
+      .then(() => {})
       .catch(e => console.error(e));
   }
 

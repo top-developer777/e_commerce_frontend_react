@@ -46,17 +46,14 @@ const DashboardPage: FC = () => {
   useEffect(() => {
     getDashboardInfo()
       .then(res => {
-        if (res.status === 200) {
-          const dashboardData = [];
-          for (const datum in res.data) {
-            dashboardData.push(res.data[datum]);
-          }
-          setDashboardInfos(dashboardData);
-          setOrders(dashboardData[0].orders);
-        } else {
-          console.error(res);
+        const dashboardData = [];
+        for (const datum in res.data) {
+          dashboardData.push(res.data[datum]);
         }
+        setDashboardInfos(dashboardData);
+        setOrders(dashboardData[0].orders);
       })
+      .catch(e => console.error(e));
   }, []);
 
   return (
