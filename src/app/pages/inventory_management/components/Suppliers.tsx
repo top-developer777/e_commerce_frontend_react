@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { toast as showToast } from 'react-toastify';
+
 import { Content } from '../../../../_metronic/layout/components/content'
-import { countSuppliers, createSupplier, getAllSuppliers } from './_request';
+import { countSuppliers, createSupplier, deleteSupplier, editSupplier, getAllSuppliers } from './_request';
 import { type Suppliers as InterSuplier } from '../../models/supplier';
 
 interface ShowSupplers extends InterSuplier {
@@ -9,32 +11,34 @@ interface ShowSupplers extends InterSuplier {
 }
 
 export const Suppliers = () => {
+  const [handleChanged, setHandleChanged] = useState<boolean>(true);
   const [suppliers, setSuppliers] = useState<ShowSupplers[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<ShowSupplers>();
   const [totalSuppliers, setTotalSuppliers] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(100);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
 
-  const modal = document.querySelector('#addProductModal');
-  const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
-  const toastClose = document.querySelector('#toast button') as HTMLElement;
+  const modalCloseBtn = document.querySelector('#addSupplierModal .btn-close') as HTMLButtonElement;
 
   useEffect(() => {
-    getAllSuppliers(currentPage, limit)
-      .then(res => {
-        setSuppliers(res.data);
-      })
-      .catch(e => console.error(e));
-    countSuppliers()
-      .then(res => {
-        const len = parseInt(res.data);
-        setTotalSuppliers(len);
-        setTotalPages(len ? Math.ceil(len / limit) : 1);
-      })
-      .catch(e => console.error(e));
-  }, [currentPage, limit]);
+    if (handleChanged) {
+      getAllSuppliers(currentPage, limit)
+        .then(res => {
+          setSuppliers(res.data);
+        })
+        .catch(e => console.error(e));
+      countSuppliers()
+        .then(res => {
+          const len = parseInt(res.data);
+          setTotalSuppliers(len);
+          setTotalPages(len ? Math.ceil(len / limit) : 1);
+        })
+        .catch(e => console.error(e));
+      setHandleChanged(false);
+    }
+  }, [currentPage, limit, handleChanged]);
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -61,6 +65,18 @@ export const Suppliers = () => {
     }
     return pageNumbers;
   }
+  const handleDeleteSupplier = (id: number) => {
+    deleteSupplier(id)
+      .then(() => {
+        showToast.success('Supplier has been deleted.');
+        setHandleChanged(true);
+        modalCloseBtn.click();
+      })
+      .catch(e => {
+        console.error(e);
+        showToast.error('Something went wrong.');
+      });
+  }
   const handleSave = () => {
     const nameEle = document.querySelector('#addSupplierModal input[name="name"]') as HTMLInputElement;
     const groupEle = document.querySelector('#addSupplierModal input[name="group"]') as HTMLInputElement;
@@ -69,17 +85,29 @@ export const Suppliers = () => {
     const group = groupEle.value;
     const wechat = wechatEle.value;
     const data = { name, group, wechat };
-    createSupplier(data)
-      .then(() => {
-        modal?.classList.remove('show');
-        setToast({ msg: 'Successfully created.', status: 'success' });
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
-      })
-      .catch(e => console.error(e));
+    if (selectedSupplier) {
+      editSupplier(selectedSupplier.id ?? 0, data)
+        .then(() => {
+          showToast.success('Supplier has been saved.');
+          setHandleChanged(true);
+          modalCloseBtn.click();
+        })
+        .catch(e => {
+          console.error(e);
+          showToast.error('Something went wrong.');
+        });
+    } else {
+      createSupplier(data)
+        .then(() => {
+          showToast.success('Supplier has been updated.');
+          setHandleChanged(true);
+          modalCloseBtn.click();
+        })
+        .catch(e => {
+          console.error(e);
+          showToast.error('Something went wrong.');
+        });
+    }
   }
 
   return (
@@ -98,7 +126,7 @@ export const Suppliers = () => {
           </div>
         </div>
         <div>
-          <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7' data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+          <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7' onClick={() => setSelectedSupplier(undefined)} data-bs-toggle="modal" data-bs-target="#addSupplierModal">
             <i className="bi bi-cart-plus"></i>
             Add Supplier
           </button>
@@ -113,6 +141,7 @@ export const Suppliers = () => {
             <th className='text-center'>WeChat</th>
             <th className='text-center'>Number<br />(Products)</th>
             <th className='text-center'>Number<br />(Orders)</th>
+            <th className="text-center">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -123,8 +152,16 @@ export const Suppliers = () => {
                 <td className='text-center align-content-center'>{supplier.name}</td>
                 <td className='text-center align-content-center'>{supplier.group}</td>
                 <td className='text-center align-content-center'>{supplier.wechat}</td>
-                <td className='text-center align-content-center'>{supplier.numOfproducts ?? 123}</td>
-                <td className='text-center align-content-center'>{supplier.numOfOrders ?? 456}</td>
+                <td className='text-center align-content-center'>{supplier.numOfproducts ?? 0}</td>
+                <td className='text-center align-content-center'>{supplier.numOfOrders ?? 0}</td>
+                <td className="text-center align-content-center">
+                  <a className='btn btn-white btn-active-light-info btn-sm p-2' data-bs-toggle="modal" data-bs-target="#addSupplierModal" onClick={() => setSelectedSupplier(supplier)}>
+                    <i className="bi bi-pencil-square fs-3 p-1"></i>
+                  </a>
+                  <a className='btn btn-white btn-active-light-danger btn-sm p-2' onClick={() => handleDeleteSupplier(supplier.id ?? 0)}>
+                    <i className="bi bi-ban text-danger fs-3 p-1"></i>
+                  </a>
+                </td>
               </tr>
             )
           }
@@ -144,7 +181,7 @@ export const Suppliers = () => {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="supplier-name"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='name' placeholder="Supplier Name" autoComplete='off' />
+                      <input type="text" className="form-control" name='name' defaultValue={selectedSupplier?.name ?? ''} placeholder="Supplier Name" autoComplete='off' />
                     </div>
                   </div>
                 </div>
@@ -153,7 +190,7 @@ export const Suppliers = () => {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="supplier-group"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='group' placeholder="Supplier Group" autoComplete='off' />
+                      <input type="text" className="form-control" name='group' defaultValue={selectedSupplier?.group ?? ''} placeholder="Supplier Group" autoComplete='off' />
                     </div>
                   </div>
                 </div>
@@ -162,7 +199,7 @@ export const Suppliers = () => {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="supplier-wechat"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='wechat' placeholder="Supplier Wechat" autoComplete='off' />
+                      <input type="text" className="form-control" name='wechat' defaultValue={selectedSupplier?.wechat ?? ''} placeholder="Supplier Wechat" autoComplete='off' />
                     </div>
                   </div>
                 </div>
@@ -172,15 +209,6 @@ export const Suppliers = () => {
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-x'></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className='bi bi-save'></i>Save changes</button>
             </div>
-          </div>
-        </div>
-      </div>
-      <a className='d-none' href="#" id='toastBtn' data-bs-toggle="modal" data-bs-target="#toast"></a>
-      <div className="modal fade" id='toast' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog rounded">
-          <div className="modal-content">
-            <div className={`modal-body text-white text-bg-${toast.status} rounded`}>{toast.msg}</div>
-            <button type="button" className="btn btn-secondary d-none" data-bs-dismiss="modal"></button>
           </div>
         </div>
       </div>

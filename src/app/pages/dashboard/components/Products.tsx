@@ -379,7 +379,7 @@ export const Products = () => {
       //   return;
       // }
     }
-    if (!isValidURL(data.image_link as string)) {
+    if (data.image_link && !isValidURL(data.image_link as string)) {
       modal?.classList.remove('show');
       setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
       toastBtn.click();
@@ -389,7 +389,7 @@ export const Products = () => {
       }, 5000);
       return;
     }
-    if (!isValidURL(data.link_address_1688 as string)) {
+    if (data.link_address_1688 && !isValidURL(data.link_address_1688 as string)) {
       modal?.classList.remove('show');
       setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
       toastBtn.click();
@@ -601,7 +601,7 @@ export const Products = () => {
                             </div>
                           </td>
                           <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
-                          <td className='align-content-center'>{product.stock}</td>
+                          <td className='align-content-center text-center'>{product.stock}</td>
                           <td className='align-content-center'>{product.barcode_title}</td>
                           <td className='align-content-center'>{product.masterbox_title}</td>
                           <td className="align-content-center">

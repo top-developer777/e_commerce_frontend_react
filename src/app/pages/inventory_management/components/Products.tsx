@@ -417,8 +417,6 @@ export function Products() {
                   <th>Stock Imports</th>
                   <th>Days in stock</th>
                   <th>Shipping Type</th>
-                  <th>Stock Days</th>
-                  <th>Import stocks</th>
                 </tr>
               </thead>
               <tbody>
@@ -442,11 +440,10 @@ export function Products() {
                             </div>
                           </div>
                         </td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.quantity ?? 0}</td>
+                        <td className='align-content-center text-center' onClick={() => setSelectedProductID(index)}>{parseInt(`${product.quantity}`) ? product.quantity : 0}</td>
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock_imports ? <div>{`${product.stock_imports[0]} (${parseFloat(product.stock_imports[1]).toFixed(1)})`} <br /> {product.stock_imports[2]}</div> : ''}</td>
                         <td className='align-content-center text-nowrap' onClick={() => setSelectedProductID(index)}>{product.day_stock[0]} (days stock)<br />{product.day_stock[1]} (import)</td>
                         <td className='align-content-center text-center' onClick={() => setSelectedProductID(index)}><ShipmentType type={product.type} /></td>
-                        <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.imports_stock?.map((str, index) => <div key={index}>{str}</div>)}</td>
                         {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />

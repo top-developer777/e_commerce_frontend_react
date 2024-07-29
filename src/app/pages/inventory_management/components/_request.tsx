@@ -53,6 +53,14 @@ export const createSupplier = async (data: { name: string, group: string, wechat
   return axios.post(SUPPLIERS_ENDPOINT, data);
 }
 
+export const editSupplier = async (id: number, data: { name: string, group: string, wechat: string }) => {
+  return axios.put(`${SUPPLIERS_ENDPOINT}/${id}`, data)
+}
+
+export const deleteSupplier = async (id: number) => {
+  return axios.delete(`${SUPPLIERS_ENDPOINT}/${id}`)
+}
+
 export const countSuppliers = () => {
   return axios.get(`${SUPPLIERS_ENDPOINT}/count`);
 }
