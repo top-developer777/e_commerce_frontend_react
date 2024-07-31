@@ -9,9 +9,11 @@ export type User = {
   role?: string | number
   username?: string
   last_login?: string
+  last_logged_in?: string
   two_steps?: boolean
   joined_day?: string
   online?: boolean
+  created_at?: string
   initials?: {
     label: string
     state: string

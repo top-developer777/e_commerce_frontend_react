@@ -1,6 +1,6 @@
 import axios from "axios";
 
-interface TeamMember {
+export interface TeamMember {
     id?: number
     user_id: number
     username: string

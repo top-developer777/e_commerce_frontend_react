@@ -11,7 +11,7 @@ import { QueryResponseProvider } from '../../../../app/modules/apps/user-managem
 import { Content } from '../../../../_metronic/layout/components/content'
 import { useEffect, useState } from 'react'
 import { User } from '../../../modules/apps/user-management/users-list/core/_models'
-import { addTeamMember, deleteTeamMember, editTeamMember, getTeamMembers, getUsers } from './_request'
+import { addTeamMember, deleteTeamMember, editTeamMember, getTeamMembers, getUsers, TeamMember } from './_request'
 
 // const UsersList = () => {
 //   const {itemIdForUpdate} = useListView()
@@ -35,10 +35,19 @@ const roleStr2Num = (role: string): number => {
   if (role === 'Administrator') return 4;
   return -1;
 }
+const roleNum2Str = (role: number): string => {
+  if (role === -1) return 'Unallowed';
+  if (role === 0) return 'Warehouse Staff';
+  if (role === 1) return 'Product Manager';
+  if (role === 2) return 'Order Agent';
+  if (role === 3) return 'Customer Support';
+  if (role === 4) return 'Administrator';
+  return 'Unallowed';
+}
 
 export function MyTeams() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<TeamMember[]>([]);
   const [userOptions, setUserOptions] = useState<{ value: number, label: string }[]>([]);
   const [editUser, setEditUser] = useState<User>();
   const [changed, setChanged] = useState<boolean>(false);
@@ -67,6 +76,10 @@ export function MyTeams() {
 
   const handleAddUser = () => {
     if (!editUser) return;
+    if (users.findIndex(user => user.email === editUser.email) >= 0) {
+      toast.warning('The selected user already exists.');
+      return;
+    }
     const closeBtn = document.querySelector('#addMember .btn-close') as HTMLButtonElement;
     addTeamMember({
       user_id: editUser.id ?? 0,
@@ -81,7 +94,7 @@ export function MyTeams() {
     })
       .then(() => {
         setChanged(!changed);
-        toast.success('Successfully created!');
+        toast.success('Successfully added!');
         closeBtn.click();
       })
       .catch(e => {
@@ -97,9 +110,9 @@ export function MyTeams() {
       email: editUser.email ?? '',
       full_name: editUser.full_name ?? '',
       username: editUser.username ?? '',
-      created_at: (new Date()).toISOString().split('.')[0],
+      created_at: editUser.created_at ?? (new Date()).toISOString().split('.')[0],
       updated_at: (new Date()).toISOString().split('.')[0],
-      last_logged_in: (new Date()).toISOString().split('.')[0],
+      last_logged_in: editUser.last_logged_in ?? (new Date()).toISOString().split('.')[0],
       role: roleStr2Num(editUser.role as string),
       hashed_password: 'password',
     })
@@ -136,8 +149,8 @@ export function MyTeams() {
             </div>
             <div className="row mt-6">
               <div className="col-md-12 table-responsive">
-                <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
-                  <thead className='fw-bold text-center'>
+                <table className="table table-rounded table-bordered border cursor-pointer table-hover">
+                  <thead className='fw-bold text-center bg-gray-300'>
                     <tr>
                       <th>Full Name</th>
                       <th>Email</th>
@@ -147,15 +160,15 @@ export function MyTeams() {
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className='text-center'>
                     {users.map((user, index) => (
                       <tr key={`teamuser${index}`}>
-                        <td>{user.full_name}</td>
-                        <td>{user.email}</td>
-                        <td>{user.role}</td>
-                        <td>{user.username}</td>
-                        <td>{user.joined_day}</td>
-                        <td>
+                        <td className='align-content-center'>{user.full_name}</td>
+                        <td className='align-content-center'>{user.email}</td>
+                        <td className='align-content-center'>{roleNum2Str(user.role as number)}</td>
+                        <td className='align-content-center'>{user.username}</td>
+                        <td className='align-content-center'>{(new Date(user.created_at)).toLocaleDateString()}</td>
+                        <td className='align-content-center'>
                           <a className='btn btn-white btn-active-light-primary btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editMember" onClick={() => setEditUser(user)} title='Edit team member'>
                             <i className="bi bi-pencil-square fs-3 p-1"></i>
                           </a>
@@ -206,33 +219,34 @@ export function MyTeams() {
                   </div>
                   <div className="modal-body">
                     <div className="row">
-                      <div className="col-md-6">Full Name:</div>
-                      <div className="col-md-6">
+                      <div className="col-md-6 align-content-center">Full Name:</div>
+                      <div className="col-md-6 align-content-center">
                         <input type="text" className="form-control" value={editUser?.full_name} onChange={e => setEditUser({ ...editUser, full_name: e.target.value })} />
                       </div>
                     </div>
-                    <div className="row">
-                      <div className="col-md-6">Email:</div>
-                      <div className="col-md-6">
+                    <div className="row py-3">
+                      <div className="col-md-6 align-content-center">Email:</div>
+                      <div className="col-md-6 align-content-center">
                         <input type="text" className="form-control" value={editUser?.email} onChange={e => setEditUser({ ...editUser, email: e.target.value })} />
                       </div>
                     </div>
                     <div className="row">
-                      <div className="col-md-6">Role:</div>
-                      <div className="col-md-6">
+                      <div className="col-md-6 align-content-center">Role:</div>
+                      <div className="col-md-6 align-content-center">
                         <Select
                           className='react-select-styled react-select-solid react-select-sm flex-grow-1'
                           options={roleOptions}
-                          value={roleOptions.find(role => role.value == roleStr2Num(editUser?.role as string))}
+                          value={roleOptions.find(role => role.value == editUser?.role)}
                           onChange={value => setEditUser(users.find(user => user.id == value?.value))}
                           isClearable={false}
                           menuPlacement='auto'
+                          menuPortalTarget={document.querySelector('#editMember') as HTMLElement}
                         />
                       </div>
                     </div>
-                    <div className="row">
-                      <div className="col-md-6">Username:</div>
-                      <div className="col-md-6">
+                    <div className="row pt-3">
+                      <div className="col-md-6 align-content-center">Username:</div>
+                      <div className="col-md-6 align-content-center">
                         <input type="text" className="form-control" value={editUser?.username} onChange={e => setEditUser({ ...editUser, username: e.target.value })} />
                       </div>
                     </div>
