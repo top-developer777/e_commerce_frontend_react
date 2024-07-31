@@ -45,7 +45,6 @@ export const createAWB = (data: {
   order_id: number,
   parcel_number: number,
   locker_id: string,
-  rma_id: number,
   insured_value: number,
   observation: string,
   courier_account_id: number,

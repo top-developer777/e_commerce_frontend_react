@@ -15,7 +15,7 @@ const UserInfoCell: FC<Props> = ({user}) => (
       <a href='#'>
         {user.avatar ? (
           <div className='symbol-label'>
-            <img src={toAbsoluteUrl(`media/${user.avatar}`)} alt={user.name} className='w-100' />
+            <img src={toAbsoluteUrl(`media/avatars/blank.png`)} alt={user.name} className='w-100' />
           </div>
         ) : (
           <div

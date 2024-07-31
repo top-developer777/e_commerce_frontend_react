@@ -190,7 +190,7 @@ export const TrendComponent = () => {
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchTrendProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={index < 30} />
+                          <input type="checkbox" value={product.id ?? 0} onClick={checkSelected} defaultChecked={index < 30} />
                         </div>
                         <div className="d-flex">
                           <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />
@@ -236,7 +236,7 @@ export const TrendComponent = () => {
           <thead>
             <tr>
               <th className="start-0 position-sticky bg-white">Product</th>
-              {categories.map(cat => <th key={`trendheader${cat}`} className="text-nowrap">{cat}</th>)}
+              {categories.map((cat, index) => <th key={`trendheader${index}`} className="text-nowrap">{cat}</th>)}
             </tr>
           </thead>
           <tbody>

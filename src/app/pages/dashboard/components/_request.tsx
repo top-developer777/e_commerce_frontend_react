@@ -44,6 +44,10 @@ const getProductInfo = async (ean: string, type: number = 1) => {
     return axios.get(`${API_URL}/products/info/${ean}?type=${type}`)
 }
 
+const deleteProduct = async (id: number) => {
+    return axios.delete(`${API_URL}/products/${id}`)
+}
+
 const getWarehouses = async () => {
     return axios.get(`${API_URL}/warehouse`)
 }
@@ -71,6 +75,7 @@ export {
     getPLInfo,
     getProductAmount,
     getProductsDay,
+    deleteProduct,
     getProductInfo,
     getTrendInfo,
     createWarehouse,

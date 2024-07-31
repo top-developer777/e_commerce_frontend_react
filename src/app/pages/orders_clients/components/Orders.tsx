@@ -177,7 +177,6 @@ const OrderTable: React.FC<{
       order_id: number,
       parcel_number: number,
       locker_id: string,
-      rma_id: number,
       insured_value: number,
       observation: string,
       courier_account_id: number,
@@ -206,7 +205,6 @@ const OrderTable: React.FC<{
       order_id: 0,
       parcel_number: 0,
       locker_id: '',
-      rma_id: 0,
       insured_value: 0,
       observation: '',
       courier_account_id: 0,
@@ -234,7 +232,6 @@ const OrderTable: React.FC<{
     data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked;
     data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
     data.locker_id = (form?.querySelector('[name="locker_id"]') as HTMLInputElement).value;
-    data.rma_id = parseInt((form?.querySelector('[name="rma_id"]') as HTMLInputElement).value);
     data.insured_value = parseFloat((form?.querySelector('[name="insured_value"]') as HTMLInputElement).value);
     data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
     data.parcel_number = parseInt((form?.querySelector('[name="parcel_number"]') as HTMLInputElement).value);
@@ -406,15 +403,6 @@ const OrderTable: React.FC<{
             <div className="modal-body">
               <form action="" method='post' id='createAWBForm'>
                 <input type="number" name='order_id' defaultValue={selectedOrder?.id} disabled style={{ display: 'none' }} />
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">RMA ID:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='rma_id' placeholder="RMA ID" min={0} max={999} required />
-                    </div>
-                  </div>
-                </div>
                 <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Envelope Number:</div>
                   <div className="d-flex ms-auto mr-0 w-75">

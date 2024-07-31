@@ -337,7 +337,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
                     <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
-                          <input type="checkbox" value={product.id} onClick={checkSelected} defaultChecked={index < 30} />
+                          <input type="checkbox" value={product.id ?? 0} onClick={checkSelected} defaultChecked={index < 30} />
                         </div>
                         <div className="d-flex">
                           <img src={product.image_link} className='rounded-lg' alt='' style={{ width: '36px' }} />

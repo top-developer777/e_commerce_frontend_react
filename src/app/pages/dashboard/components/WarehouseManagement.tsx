@@ -17,6 +17,7 @@ const WarehouseTable: React.FC<{
         <th className='text-center'>Sender Contact</th>
         <th className='text-center'>Phone Number</th>
         <th className='text-center'>Legal Entity</th>
+        <th className='text-center'>Locality ID</th>
         <th className='text-center'>Street</th>
         <th className='text-center'>Zip Code</th>
         <th className='text-center'>Action</th>
@@ -38,13 +39,14 @@ const WarehouseTable: React.FC<{
                 </div>
               </div>
             </td>
+            <td className="text-center align-content-center">{warehouse.locality_id}</td>
             <td className='text-center align-content-center'>{warehouse.street}</td>
             <td className='text-center align-content-center'>{warehouse.zipcode}</td>
             <td className='text-center align-content-center'>
-              <a className='btn btn-white btn-active-light-primary btn-sm p-2' onClick={() => props.setEditID(index)}>
+              <a className='btn btn-white btn-active-light-primary btn-sm p-2' onClick={() => props.setEditID(index)} title='Edit warehouse'>
                 <i className="bi bi-pencil-square fs-3 p-1"></i>
               </a>
-              <a className='btn btn-white btn-active-light-danger btn-sm p-2' onClick={() => props.setRemoveID(warehouse.id ?? -1)}>
+              <a className='btn btn-white btn-active-light-danger btn-sm p-2' onClick={() => props.setRemoveID(warehouse.id ?? -1)} title='Delete warehouse'>
                 <i className="bi text-danger bi-slash-circle fs-3 p-1"></i>
               </a>
             </td>
@@ -173,6 +175,18 @@ const AddNewWarehouse: React.FC<{
               <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
                 <input className="form-check-input" type="checkbox" checked={currentWarehouse.legal_entity} onChange={(e) => setCurrentWarehouse({ ...currentWarehouse, legal_entity: e.target.checked })} />
               </div>
+            </div>
+          </div>
+          <div className="row mb-8">
+            <div className="col-md-6 form-label align-content-center">Locality ID</div>
+            <div className="col-md-6">
+              <input
+                type="text"
+                className="form-control form-control-solid"
+                placeholder="Locality ID"
+                value={currentWarehouse.locality_id}
+                onChange={e => setCurrentWarehouse({ ...currentWarehouse, locality_id: e.target.value })}
+              />
             </div>
           </div>
           <div className="row mb-8">

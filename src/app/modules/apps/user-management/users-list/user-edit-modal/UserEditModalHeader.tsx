@@ -7,12 +7,12 @@ const UserEditModalHeader = () => {
   return (
     <div className='modal-header'>
       {/* begin::Modal title */}
-      <h2 className='fw-bolder'>Add User</h2>
+      <h2 className='fw-bolder'>Add / Edit User</h2>
       {/* end::Modal title */}
 
       {/* begin::Close */}
       <div
-        className='btn btn-icon btn-sm btn-active-icon-primary'
+        className='btn btn-icon btn-sm btn-active-icon-primary me-0 ms-auto'
         data-kt-users-modal-action='close'
         onClick={() => setItemIdForUpdate(undefined)}
         style={{cursor: 'pointer'}}

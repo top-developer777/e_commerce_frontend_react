@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify';
 import Select from 'react-select'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { getAllProducts, getProductAmount, getProductInfo } from './_request'
+import { deleteProduct, getAllProducts, getProductAmount, getProductInfo } from './_request'
 import { Product } from '../../models/product'
 import { SalesInformation } from '../../inventory_management/components/SalesInform'
 import { OrdersInformation } from '../../inventory_management/components/OrdersInform'
@@ -233,7 +234,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
             <div className="col-md-4">Stock: {product.stock}</div>
           </div>
           <div className="row py-2 mb-8">
-            <div className="col-md-4">Weight: {parseFloat(product.weight)}</div>
+            <div className="col-md-4">Weight: {product.weight}</div>
             <div className="col-md-4">Dimensions: {product.dimensions}</div>
             <div className="col-md-4">Supplier: {suppliers.find(supp => supp.id === product.supplier_id)?.name}</div>
           </div>
@@ -249,6 +250,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 
 export const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [changed, setChanged] = useState<boolean>(true);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
@@ -257,7 +259,6 @@ export const Products = () => {
   const [limit, setLimit] = useState(50);
   const [editProduct, setEditProduct] = useState<Product>();
   const [showMore, setShowMore] = useState<boolean>(false);
-  const [toast, setToast] = useState<{ msg: string, status: string }>({ msg: '', status: '' });
   const [totalPages, setTotalPages] = useState<number>(0);
   const [suppliers, setSuppliers] = useState<{ [key: string]: string | number }[]>([]);
   const [supplierOptions, setSupplierOptions] = useState<{ value: string, label: string }[]>([]);
@@ -266,16 +267,13 @@ export const Products = () => {
   const [editSupplier, setEditSupplier] = useState<string>('');
   const [marketPlaces, setMarketPlaces] = useState<interMKP[]>([]);
 
-  const toastBtn = document.querySelector('#toastBtn') as HTMLElement;
-  const toastClose = document.querySelector('#toast button') as HTMLElement;
-
   useEffect(() => {
     getAllProducts(currentPage, limit)
       .then(res => {
         setProducts(res.data);
       })
       .catch(err => console.error(err));
-  }, [currentPage, limit]);
+  }, [currentPage, limit, changed]);
   useEffect(() => {
     getProductAmount()
       .then(res => {
@@ -361,7 +359,7 @@ export const Products = () => {
     }
   }
   const handleAddProduct = () => {
-    const modal = document.querySelector('#addProductModal');
+    const closeBtn = document.querySelector('#addProductModal .btn-close') as HTMLElement;
     const form = document.querySelector('#addProductModal form');
     const data: { [key: string]: string | number | boolean } = {};
     const inputs = form?.querySelectorAll('input');
@@ -380,45 +378,27 @@ export const Products = () => {
       // }
     }
     if (data.image_link && !isValidURL(data.image_link as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
+      toast.error('Temp Image Link must be valid url.');
       return;
     }
     if (data.link_address_1688 && !isValidURL(data.link_address_1688 as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
+      toast.error('1688 Link must be valid url.');
       return;
     }
     addProductRequest(data)
-      .then(res => {
-        modal?.classList.remove('show');
-        if (res.status === 200) {
-          handleFilterProduct();
-          setToast({ msg: 'Success to create!', status: 'success' });
-        } else {
-          setToast({ msg: 'Failed to create!', status: 'success' });
-        }
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
+      .then(() => {
+        toast.success('Successfully created!');
+        setChanged(!changed);
+        handleFilterProduct();
+        closeBtn?.click();
+      })
+      .catch(e => {
+        toast.error('Something went wrong.');
+        console.error(e);
       });
-    const closeBtn = document.querySelector('#addProductModal .btn-close') as HTMLElement;
-    closeBtn?.click();
   }
   const handleEditProduct = () => {
-    const modal = document.querySelector('#editProductModal');
+    const closeBtn = document.querySelector('#editProductModal .btn-close') as HTMLElement;
     const form = document.querySelector('#editProductModal form');
     const data: { [key: string]: string | number | boolean } = {};
     const inputs = form?.querySelectorAll('input');
@@ -437,43 +417,30 @@ export const Products = () => {
       // }
     }
     if (!!data.image_link && !isValidURL(data.image_link as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: 'Temp Image Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
+      toast.error('Temp Image Link must be valid url.');
       return;
     }
     if (!!data.link_address_1688 && !isValidURL(data.link_address_1688 as string)) {
-      modal?.classList.remove('show');
-      setToast({ msg: '1688 Link must be valid url.', status: 'danger' });
-      toastBtn.click();
-      modal?.classList.add('show');
-      setTimeout(() => {
-        if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-      }, 5000);
+      toast.error('1688 Link must be valid url.');
       return;
     }
     editProductRequest(editProduct?.id ?? 0, data)
-      .then(res => {
-        modal?.classList.remove('show');
-        if (res.status === 200) {
-          handleFilterProduct();
-          setToast({ msg: 'Success to edit!', status: 'success' });
-        } else {
-          setToast({ msg: 'Failed to edit!', status: 'success' });
-        }
-        toastBtn.click();
-        modal?.classList.add('show');
-        setTimeout(() => {
-          if (document.querySelector('#toast')?.classList.contains('show')) toastClose.click();
-        }, 5000);
+      .then(() => {
+        setChanged(!changed);
+        handleFilterProduct();
+        toast.success('Successfully edited!');
+        closeBtn?.click();
+      })
+      .catch(e => {
+        toast.error('Something went wrong.');
+        console.error(e);
       });
-    const closeBtn = document.querySelector('#editProductModal .btn-close') as HTMLElement;
-    closeBtn?.click();
     setEditProduct(undefined);
+  }
+  const handleDeleteProduct = (id: number) => {
+    deleteProduct(id)
+      .then(() => setChanged(!changed))
+      .catch(e => console.error(e));
   }
 
   return (
@@ -613,6 +580,7 @@ export const Products = () => {
                                   setShowMore(false);
                                   setEditSupplier(`${product.supplier_id}`)
                                 }}>Edit Product</a></li>
+                                <li><a className="dropdown-item" href="#" onClick={() => handleDeleteProduct(product.id ?? 0)}>Delete Product</a></li>
                                 <li><a className="dropdown-item" href="#" onClick={() => setSelectedProductID(index)}>Details</a></li>
                                 <li><a className="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#marketplaceModal" onClick={() => setSelectedProduct(product)}>Offer</a></li>
                               </ul>
@@ -756,7 +724,16 @@ export const Products = () => {
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
                             <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                            <input type="number" className="form-control" name='weight' defaultValue={parseFloat(editProduct.weight)} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                            <input type="number" className="form-control" name='weight' defaultValue={editProduct.weight} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Volumetric Weight:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text" id="volumetric_weight"><i className="bi bi-tag-fill"></i></span>
+                            <input type="number" className="form-control" name='volumetric_weight' defaultValue={editProduct.volumetric_weight} placeholder="Volumetric Weight" required />
                           </div>
                         </div>
                       </div>
@@ -1023,6 +1000,15 @@ export const Products = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Volumetric Weight:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text" id="volumetric_weight"><i className="bi bi-tag-fill"></i></span>
+                            <input type="number" className="form-control" name='volumetric_weight' defaultValue={0} placeholder="Volumetric Weight" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
                         <div className="d-flex fw-bold w-25">Dimensions:</div>
                         <div className="d-flex ms-auto mr-0 w-75">
                           <div className="input-group">
@@ -1163,15 +1149,6 @@ export const Products = () => {
             <DetailedProduct product={products[selectedProductID]} setSelectedProductID={setSelectedProductID} />
           </>
       }
-      <a className='d-none' href="#" id='toastBtn' data-bs-toggle="modal" data-bs-target="#toast"></a>
-      <div className="modal fade" id='toast' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog rounded">
-          <div className="modal-content">
-            <div className={`modal-body text-white text-bg-${toast.status} rounded`}>{toast.msg}</div>
-            <button type="button" className="btn btn-secondary d-none" data-bs-dismiss="modal"></button>
-          </div>
-        </div>
-      </div>
     </Content>
   )
 }

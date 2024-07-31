@@ -12,7 +12,8 @@ export interface Product {
   price_1688: string;
   variation_name_1688: string;
   pcs_ctn: string;
-  weight: string;
+  weight: number;
+  volumetric_weight: number;
   dimensions: string;
   supplier_id: number;
   english_name: string;
