@@ -10,7 +10,7 @@ interface TeamMember {
     created_at: string
     updated_at: string
     last_logged_in: string
-    password: string
+    hashed_password: string
 }
 
 const API_URL = import.meta.env.VITE_APP_API_URL

@@ -73,11 +73,11 @@ export function MyTeams() {
       email: editUser.email ?? '',
       full_name: editUser.full_name ?? '',
       username: editUser.username ?? '',
-      created_at: (new Date()).toISOString(),
-      updated_at: (new Date()).toISOString(),
-      last_logged_in: (new Date()).toISOString(),
+      created_at: (new Date()).toISOString().split('.')[0],
+      updated_at: (new Date()).toISOString().split('.')[0],
+      last_logged_in: (new Date()).toISOString().split('.')[0],
       role: roleStr2Num(editUser.role as string),
-      password: 'password',
+      hashed_password: 'password',
     })
       .then(() => {
         setChanged(!changed);
@@ -97,11 +97,11 @@ export function MyTeams() {
       email: editUser.email ?? '',
       full_name: editUser.full_name ?? '',
       username: editUser.username ?? '',
-      created_at: (new Date()).toISOString(),
-      updated_at: (new Date()).toISOString(),
-      last_logged_in: (new Date()).toISOString(),
+      created_at: (new Date()).toISOString().split('.')[0],
+      updated_at: (new Date()).toISOString().split('.')[0],
+      last_logged_in: (new Date()).toISOString().split('.')[0],
       role: roleStr2Num(editUser.role as string),
-      password: 'password',
+      hashed_password: 'password',
     })
       .then(() => {
         setChanged(!changed);
@@ -148,8 +148,8 @@ export function MyTeams() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(user => (
-                      <tr>
+                    {users.map((user, index) => (
+                      <tr key={`teamuser${index}`}>
                         <td>{user.full_name}</td>
                         <td>{user.email}</td>
                         <td>{user.role}</td>
@@ -223,7 +223,7 @@ export function MyTeams() {
                         <Select
                           className='react-select-styled react-select-solid react-select-sm flex-grow-1'
                           options={roleOptions}
-                          defaultValue={roleOptions.find(role => role.value == roleStr2Num(editUser?.role as string))}
+                          value={roleOptions.find(role => role.value == roleStr2Num(editUser?.role as string))}
                           onChange={value => setEditUser(users.find(user => user.id == value?.value))}
                           isClearable={false}
                           menuPlacement='auto'
