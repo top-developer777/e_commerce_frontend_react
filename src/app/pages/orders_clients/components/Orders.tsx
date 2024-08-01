@@ -138,12 +138,14 @@ const OrderTable: React.FC<{
       .then(res => {
         if (res === null) {
           toast.warning('Can\'t load receiver\'s information.');
+          setCustomer(undefined);
           return;
         }
         setCustomer(res);
       })
       .catch(e => {
-        toast.error('Can\'t load customer information');
+        toast.error('Can\'t load receiver\'s information');
+        setCustomer(undefined);
         console.error(e);
       })
   }, [selectedOrder]);
