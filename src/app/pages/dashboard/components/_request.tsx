@@ -29,10 +29,10 @@ const getProductsDay = (day: string) => {
         .post(`${DASHBOARD_ENDPOINT}/days`, {day: day})
 }
 
-const getAllProducts = (page: number, limit: number = 50, suppliers: string = '') => {
+const getAllProducts = (page: number, limit: number = 50, suppliers: string = '', filter: string = '') => {
     return axios
         .get(`${API_URL}/products`, {
-            params: { page: page, items_per_page: limit, supplier_ids: suppliers }
+            params: { page: page, items_per_page: limit, supplier_ids: suppliers, search_text: filter }
         })
 }
 

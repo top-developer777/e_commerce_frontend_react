@@ -312,7 +312,9 @@ export const Products = () => {
     }
   }
   const handleFilterProduct = () => {
-    getAllProducts(currentPage, limit, selectedSuppliers.join(','))
+    const filterTextComp = document.querySelector('#filterText') as HTMLInputElement;
+    const filterText = filterTextComp.value;
+    getAllProducts(currentPage, limit, selectedSuppliers.join(','), filterText)
       .then(res => {
         setProducts(res.data);
       })
@@ -449,7 +451,10 @@ export const Products = () => {
         selectedProductID == -1 ?
           <>
             <div className="row py-2">
-              <div className="col-md-10">
+              <div className="col-md-5">
+                <input type="text" className="form-control" id='filterText' placeholder='Search products' />
+              </div>
+              <div className="col-md-5">
                 <div className="dropdown">
                   <div className="input-group" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                     <span className="input-group-text" id="filter"><i className="bi bi-search"></i></span>
@@ -608,15 +613,6 @@ export const Products = () => {
                           <div className="input-group">
                             <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
                             <input type="text" className="form-control" name='product_name' defaultValue={editProduct.product_name} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center py-1">
-                        <div className="d-flex fw-bold w-25">Part Number Key:</div>
-                        <div className="d-flex ms-auto mr-0 w-75">
-                          <div className="input-group">
-                            <span className="input-group-text" id="part-number-key"><i className="bi bi-link-45deg"></i></span>
-                            <input type="text" className="form-control" name='part_number_key' defaultValue={editProduct.part_number_key} placeholder="Part Number Key" required />
                           </div>
                         </div>
                       </div>
