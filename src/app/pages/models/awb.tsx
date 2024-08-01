@@ -11,12 +11,12 @@ export interface AWBInterface {
   receiver_contact: string;
   receiver_phone1: string;
   receiver_phone2: string;
-  receiver_legal_entity: boolean;
+  receiver_legal_entity: number;
   receiver_locality_id: number;
   receiver_street: string;
   receiver_zipcode: string;
   locker_id: string;
-  is_oversize: boolean;
+  is_oversize: number;
   insured_value: string;
   weight?: string;
   envelope_number: number;
@@ -24,8 +24,8 @@ export interface AWBInterface {
   observation: string;
   cod: string;
   courier_account_id: number;
-  pickup_and_return: boolean;
-  saturday_delivery: boolean;
-  sameday_delivery: boolean;
-  dropoff_locker: boolean;
+  pickup_and_return: number;
+  saturday_delivery: number;
+  sameday_delivery: number;
+  dropoff_locker: number;
 }

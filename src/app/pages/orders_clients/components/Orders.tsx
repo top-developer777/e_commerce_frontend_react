@@ -190,19 +190,19 @@ const OrderTable: React.FC<{
     const data: AWBInterface = {
       cod: '0',
       envelope_number: 1,
-      is_oversize: false,
+      is_oversize: 0,
       order_id: 0,
       parcel_number: 0,
       locker_id: '',
       insured_value: '0',
       observation: '',
       courier_account_id: 0,
-      pickup_and_return: false,
-      saturday_delivery: false,
-      sameday_delivery: false,
-      dropoff_locker: false,
+      pickup_and_return: 0,
+      saturday_delivery: 0,
+      sameday_delivery: 0,
+      dropoff_locker: 0,
       receiver_contact: '',
-      receiver_legal_entity: false,
+      receiver_legal_entity: 0,
       receiver_locality_id: 0,
       receiver_name: '',
       receiver_phone1: '',
@@ -219,24 +219,24 @@ const OrderTable: React.FC<{
     };
     data.cod = (form?.querySelector('[name="cod"]') as HTMLInputElement).value;
     data.envelope_number = parseFloat((form?.querySelector('[name="envelope_number"]') as HTMLInputElement).value);
-    data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked;
+    data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked ? 1 : 0;
     data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
     data.locker_id = (form?.querySelector('[name="locker_id"]') as HTMLInputElement).value;
     data.insured_value = (form?.querySelector('[name="insured_value"]') as HTMLInputElement).value;
     data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
     data.parcel_number = parseInt((form?.querySelector('[name="parcel_number"]') as HTMLInputElement).value);
     data.observation = (form?.querySelector('[name="observation"]') as HTMLInputElement).value;
-    data.pickup_and_return = (form?.querySelector('[name="pickup_and_return"]') as HTMLInputElement).checked;
-    data.saturday_delivery = (form?.querySelector('[name="saturday_delivery"]') as HTMLInputElement).checked;
-    data.sameday_delivery = (form?.querySelector('[name="sameday_delivery"]') as HTMLInputElement).checked;
-    data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked;
+    data.pickup_and_return = (form?.querySelector('[name="pickup_and_return"]') as HTMLInputElement).checked ? 1 : 0;
+    data.saturday_delivery = (form?.querySelector('[name="saturday_delivery"]') as HTMLInputElement).checked ? 1 : 0;
+    data.sameday_delivery = (form?.querySelector('[name="sameday_delivery"]') as HTMLInputElement).checked ? 1 : 0;
+    data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked ? 1 : 0;
     data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
     data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
     data.receiver_phone1 = (form?.querySelector('[name="receiver.phone1"]') as HTMLInputElement).value;
     data.receiver_phone2 = (form?.querySelector('[name="receiver.phone2"]') as HTMLInputElement).value;
     data.receiver_street = (form?.querySelector('[name="receiver.street"]') as HTMLInputElement).value;
     data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
-    data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked;
+    data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked ? 1 : 0;
     data.receiver_zipcode = (form?.querySelector('[name="receiver.zipcode"]') as HTMLInputElement).value;
     if (!isValidPhone(data.receiver_phone1) || (data.receiver_phone2 && !isValidPhone(data.receiver_phone2 ?? ''))) {
       toast.error('Receiver\'s phone must be valid phone number.');
