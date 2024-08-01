@@ -271,10 +271,10 @@ const OrderTable: React.FC<{
           toast.error(data.messages[0]);
           return;
         } else {
-          toast.success(`AWB Barcode: ${data.results.awb[0].awb_barcode}
-            AWB Number: ${data.results.awb[0].awb_number}
-            Courier Name: ${data.results.courier_name}
-            Courier ID: ${data.results.courier_id}`, {
+          toast.success(<>AWB Barcode: {data.results.awb[0].awb_barcode}
+            AWB Number: {data.results.awb[0].awb_number}
+            Courier Name: {data.results.courier_name}
+            Courier ID: {data.results.courier_id}</>, {
               autoClose: false,
             });
           closeBtn.click();
