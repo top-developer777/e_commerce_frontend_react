@@ -533,7 +533,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.name' defaultValue={customer?.name} placeholder="Name" required />
+                      <input type="text" className="form-control" name='receiver.name' value={customer?.name} onChange={e => {if (customer) setCustomer({ ...customer, name: e.target.value })}} placeholder="Name" required />
                     </div>
                   </div>
                 </div>
@@ -542,7 +542,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.contact' defaultValue={customer?.shipping_contact} placeholder="Contact" required />
+                      <input type="text" className="form-control" name='receiver.contact' value={customer?.shipping_contact} onChange={e => {if (customer) setCustomer({ ...customer, shipping_contact: e.target.value })}} placeholder="Contact" required />
                     </div>
                   </div>
                 </div>
@@ -551,7 +551,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.phone1' defaultValue={customer?.phone_1} placeholder="+11234567890" required />
+                      <input type="text" className="form-control" name='receiver.phone1' value={customer?.phone_1} onChange={e => {if (customer) setCustomer({ ...customer, phone_1: e.target.value })}} placeholder="+11234567890" required />
                     </div>
                   </div>
                 </div>
@@ -568,7 +568,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Legal Entity:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' defaultChecked={customer?.legal_entity === 1} />
+                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' checked={customer?.legal_entity === 1} onChange={e => {if (customer) setCustomer({ ...customer, legal_entity: e.target.checked ? 1 : 0 })}} />
                     </div>
                   </div>
                 </div>
@@ -577,7 +577,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='receiver.locality_id' defaultValue={customer?.shipping_locality_id} min={1} max={4294967295} placeholder="Locality ID" required />
+                      <input type="number" className="form-control" name='receiver.locality_id' value={customer?.shipping_locality_id} onChange={e => {if (customer) setCustomer({ ...customer, shipping_locality_id: e.target.value })}} min={1} max={4294967295} placeholder="Locality ID" required />
                     </div>
                   </div>
                 </div>
@@ -586,7 +586,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.street' defaultValue={customer?.shipping_street} placeholder="Street" required />
+                      <input type="text" className="form-control" name='receiver.street' value={customer?.shipping_street} onChange={e => {if (customer) setCustomer({ ...customer, shipping_street: e.target.value })}} placeholder="Street" required />
                     </div>
                   </div>
                 </div>
