@@ -186,6 +186,7 @@ const OrderTable: React.FC<{
   const handleCreateAWB = () => {
     if (!selectedOrder) return;
     const form = document.querySelector('#createAWBModal form');
+    const closeBtn = document.querySelector('#createAWBModal .btn-close') as HTMLButtonElement;
     const data: AWBInterface = {
       cod: '0',
       envelope_number: 1,
@@ -269,7 +270,8 @@ const OrderTable: React.FC<{
             Courier Name: ${data.results.courier_name}
             Courier ID: ${data.results.courier_id}`, {
               autoClose: false,
-            })
+            });
+          closeBtn.click();
         }
       })
       .catch(e => console.error(e));
