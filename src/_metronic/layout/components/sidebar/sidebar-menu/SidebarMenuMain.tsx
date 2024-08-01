@@ -3,7 +3,7 @@ import { useIntl } from 'react-intl'
 import { SidebarMenuItem } from './SidebarMenuItem'
 import { useAuth } from '../../../../../app/modules/auth'
 import { getAllMarketplaces } from '../../../../../app/pages/config/components/_request';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getOrderAmout } from '../../../../../app/pages/orders_clients/components/_request';
 // import { FALSE } from 'sass'
 
@@ -13,18 +13,18 @@ const SidebarMenuMain = () => {
   const { currentUser } = useAuth();
   const [numOrder, setNumOrder] = useState(0);
 
-  useEffect(() => {
-    getAllMarketplaces()
-      .then(res => res.data.length)
-      .then(res => setNumMKP(res))
-      .catch(e => console.error(e));
+  setInterval(() => {
     getOrderAmout(1)
       .then(res => {
         const num = res.data as number;
         setNumOrder(num);
       })
       .catch(e => console.error(e));
-  }, []);
+    getAllMarketplaces()
+      .then(res => res.data.length)
+      .then(res => setNumMKP(res))
+      .catch(e => console.error(e));
+  }, 900000)
 
   return (
     <>
