@@ -135,7 +135,13 @@ const OrderTable: React.FC<{
     }
     getCustomer(selectedOrder?.id ?? 0)
       .then(res => res.data)
-      .then(res => setCustomer(res))
+      .then(res => {
+        if (res === null) {
+          toast.warning('Can\'t load receiver\'s information.');
+          return;
+        }
+        setCustomer(res);
+      })
       .catch(e => {
         toast.error('Can\'t load customer information');
         console.error(e);
