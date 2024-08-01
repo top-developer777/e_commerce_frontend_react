@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AWBInterface } from "../../models/awb";
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 const ORDERS_ENDPOINT = `${API_URL}/orders`
@@ -38,34 +39,10 @@ export const saveBarcode = (code: number) => {
   return axios.get(`${API_URL}/replaces`)
 }
 
-export const createAWB = (data: {
-  cod: number,
-  envelope_number: number,
-  is_oversize: boolean,
-  order_id: number,
-  parcel_number: number,
-  locker_id: string,
-  insured_value: number,
-  observation: string,
-  courier_account_id: number,
-  pickup_and_return: boolean,
-  saturday_delivery: boolean,
-  sameday_delivery: boolean,
-  dropoff_locker: boolean,
-  receiver_contact: string,
-  receiver_legal_entity: boolean,
-  receiver_locality_id: number,
-  receiver_name: string,
-  receiver_phone1: string,
-  receiver_phone2?: string,
-  receiver_street: string,
-  receiver_zipcode: string,
-  sender_locality_id: number,
-  sender_name: string,
-  sender_phone1: string,
-  sender_phone2?: string,
-  sender_street: string,
-  sender_zipcode: string,
-}, marketplace: string) => {
-  return axios.post(`${API_URL}/../awb/${marketplace}`, data)
+export const createAWB = (data: AWBInterface, marketplace: string) => {
+  return axios.post(`${API_URL}/../awb?marketplace=${marketplace}`, data)
+}
+
+export const getCustomer = async (orderId: number) => {
+  return axios.get(`${API_URL}/../awb/customer?order_id=${orderId}`)
 }

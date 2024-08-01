@@ -1,0 +1,31 @@
+export interface AWBInterface {
+  id?: number;
+  order_id: number;
+  sender_name: string;
+  sender_phone1: string;
+  sender_phone2: string;
+  sender_locality_id: number;
+  sender_street: string;
+  sender_zipcode: string;
+  receiver_name: string;
+  receiver_contact: string;
+  receiver_phone1: string;
+  receiver_phone2: string;
+  receiver_legal_entity: boolean;
+  receiver_locality_id: number;
+  receiver_street: string;
+  receiver_zipcode: string;
+  locker_id: string;
+  is_oversize: boolean;
+  insured_value: string;
+  weight?: string;
+  envelope_number: number;
+  parcel_number: number;
+  observation: string;
+  cod: string;
+  courier_account_id: number;
+  pickup_and_return: boolean;
+  saturday_delivery: boolean;
+  sameday_delivery: boolean;
+  dropoff_locker: boolean;
+}

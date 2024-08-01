@@ -4,12 +4,14 @@ import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
 // import { useAuth } from '../../../modules/auth';
-import { createAWB, getAllOrders, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getCustomer, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
+import { AWBInterface } from '../../models/awb';
+import { CustomerInterface } from '../../models/customer';
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
 
@@ -107,6 +109,7 @@ const OrderTable: React.FC<{
   const [selectedOrder, selectOrder] = useState<Order>();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
   const [senders, setSenders] = useState<{ value: string, label: string }[]>([]);
+  const [customer, setCustomer] = useState<CustomerInterface>();
 
   useEffect(() => {
     getAllProducts()
@@ -125,6 +128,19 @@ const OrderTable: React.FC<{
       })
       .catch(e => console.error(e));
   }, []);
+  useEffect(() => {
+    if (!selectedOrder) {
+      setCustomer(undefined);
+      return;
+    }
+    getCustomer(selectedOrder?.id ?? 0)
+      .then(res => res.data)
+      .then(res => setCustomer(res))
+      .catch(e => {
+        toast.error('Can\'t load customer information');
+        console.error(e);
+      })
+  }, [selectedOrder]);
 
   // const { currentUser } = useAuth();
   // const handleEdit = (id: number) => {
@@ -170,42 +186,14 @@ const OrderTable: React.FC<{
   const handleCreateAWB = () => {
     if (!selectedOrder) return;
     const form = document.querySelector('#createAWBModal form');
-    const data: {
-      cod: number,
-      envelope_number: number,
-      is_oversize: boolean,
-      order_id: number,
-      parcel_number: number,
-      locker_id: string,
-      insured_value: number,
-      observation: string,
-      courier_account_id: number,
-      pickup_and_return: boolean,
-      saturday_delivery: boolean,
-      sameday_delivery: boolean,
-      dropoff_locker: boolean,
-      receiver_contact: string,
-      receiver_legal_entity: boolean,
-      receiver_locality_id: number,
-      receiver_name: string,
-      receiver_phone1: string,
-      receiver_phone2?: string,
-      receiver_street: string,
-      receiver_zipcode: string,
-      sender_locality_id: number,
-      sender_name: string,
-      sender_phone1: string,
-      sender_phone2?: string,
-      sender_street: string,
-      sender_zipcode: string,
-    } = {
-      cod: 0,
-      envelope_number: 0,
+    const data: AWBInterface = {
+      cod: '0',
+      envelope_number: 1,
       is_oversize: false,
       order_id: 0,
       parcel_number: 0,
       locker_id: '',
-      insured_value: 0,
+      insured_value: '0',
       observation: '',
       courier_account_id: 0,
       pickup_and_return: false,
@@ -225,14 +213,15 @@ const OrderTable: React.FC<{
       sender_phone1: '',
       sender_phone2: '',
       sender_street: '',
-      sender_zipcode: ''
+      sender_zipcode: '',
+      weight: '0',
     };
-    data.cod = parseFloat((form?.querySelector('[name="cod"]') as HTMLInputElement).value);
+    data.cod = (form?.querySelector('[name="cod"]') as HTMLInputElement).value;
     data.envelope_number = parseFloat((form?.querySelector('[name="envelope_number"]') as HTMLInputElement).value);
     data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked;
     data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
     data.locker_id = (form?.querySelector('[name="locker_id"]') as HTMLInputElement).value;
-    data.insured_value = parseFloat((form?.querySelector('[name="insured_value"]') as HTMLInputElement).value);
+    data.insured_value = (form?.querySelector('[name="insured_value"]') as HTMLInputElement).value;
     data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
     data.parcel_number = parseInt((form?.querySelector('[name="parcel_number"]') as HTMLInputElement).value);
     data.observation = (form?.querySelector('[name="observation"]') as HTMLInputElement).value;
@@ -243,7 +232,7 @@ const OrderTable: React.FC<{
     data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
     data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
     data.receiver_phone1 = (form?.querySelector('[name="receiver.phone1"]') as HTMLInputElement).value;
-    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone2"]') as HTMLInputElement).value;
+    data.receiver_phone2 = (form?.querySelector('[name="receiver.phone2"]') as HTMLInputElement).value;
     data.receiver_street = (form?.querySelector('[name="receiver.street"]') as HTMLInputElement).value;
     data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
     data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked;
@@ -253,7 +242,7 @@ const OrderTable: React.FC<{
       return;
     }
     const senderId = parseInt((form?.querySelector('[name="sender"]') as HTMLInputElement).value);
-    if (!data.cod || !data.envelope_number || !data.order_id || !data.locker_id || !data.insured_value || !data.parcel_number) {
+    if (!data.cod || !data.order_id) {
       toast.error('Please fill all necessary values.');
       return;
     }
@@ -269,7 +258,20 @@ const OrderTable: React.FC<{
     data.sender_street = sender?.street ?? '';
     data.sender_zipcode = sender?.zipcode ?? '';
     createAWB(data, selectedOrder.order_market_place)
-      .then(() => { })
+      .then(res => {
+        const data = res.data;
+        if (data.isError) {
+          toast.error(data.messages[0]);
+          return;
+        } else {
+          toast.success(`AWB Barcode: ${data.results.awb[0].awb_barcode}
+            AWB Number: ${data.results.awb[0].awb_number}
+            Courier Name: ${data.results.courier_name}
+            Courier ID: ${data.results.courier_id}`, {
+              autoClose: false,
+            })
+        }
+      })
       .catch(e => console.error(e));
   }
 
@@ -328,7 +330,6 @@ const OrderTable: React.FC<{
               <th className='col-md-1 align-content-center text-center'>Status</th>
               <th className='col-md-1 align-content-center text-center py-0'>Payment Method</th>
               <th className='col-md-1 align-content-center text-center py-0'>Shipping Tax</th>
-              <th className='col-md-1 align-content-center text-center'>Customer</th>
               {/* {currentUser && parseInt(currentUser.role ?? '') > 2 && (
                 <th className='col-md-1 align-content-center text-center'>Actions</th>
               )} */}
@@ -375,9 +376,6 @@ const OrderTable: React.FC<{
                   <td className='align-content-center text-center'>
                     {order.shipping_tax}
                   </td>
-                  <td className='align-content-center text-center'>
-                    {order.customer_id}
-                  </td>
                   {/* {currentUser && [3, 4].includes(parseInt(currentUser.role ?? '')) && (
                     <td className='align-content-center text-center'>
                       {(currentUser.role == '3' && [2, 3].includes(order.status)) ? '' : (
@@ -404,11 +402,25 @@ const OrderTable: React.FC<{
               <form action="" method='post' id='createAWBForm'>
                 <input type="number" name='order_id' defaultValue={selectedOrder?.id} disabled style={{ display: 'none' }} />
                 <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Warehouse:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='sender'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={senders}
+                      placeholder='Select a warehouse'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                      defaultValue={senders[0]}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Envelope Number:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='envelope_number' placeholder="Envelope Number" min={0} max={9999} required />
+                      <input type="number" className="form-control" name='envelope_number' placeholder="Envelope Number" defaultValue={0} min={0} max={9999} required />
                     </div>
                   </div>
                 </div>
@@ -417,7 +429,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='parcel_number' placeholder="Parcel Number" min={0} max={999} required />
+                      <input type="number" className="form-control" name='parcel_number' placeholder="Parcel Number" min={0} max={999} defaultValue={1} required />
                     </div>
                   </div>
                 </div>
@@ -430,7 +442,7 @@ const OrderTable: React.FC<{
                     </div>
                   </div>
                 </div>
-                <div className="align-items-center py-1" style={{ display: 'none' }}>
+                <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">COD:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
@@ -452,7 +464,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='insured_value' placeholder="Insured Value" min={0} max={9999} required />
+                      <input type="number" className="form-control" name='insured_value' placeholder="Insured Value" defaultValue={0} min={0} max={9999} required />
                     </div>
                   </div>
                 </div>
@@ -478,7 +490,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Pickup and Return:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='pickup_and_return' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" name='pickup_and_return' defaultChecked={true} />
                     </div>
                   </div>
                 </div>
@@ -486,7 +498,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Saturday Delivery:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='saturday_delivery' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" name='saturday_delivery' defaultChecked={true} />
                     </div>
                   </div>
                 </div>
@@ -494,7 +506,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Sameday Delivery:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='sameday_delivery' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" name='sameday_delivery' defaultChecked={true} />
                     </div>
                   </div>
                 </div>
@@ -506,20 +518,6 @@ const OrderTable: React.FC<{
                     </div>
                   </div>
                 </div>
-                <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Sender:</div>
-                  <div className="d-flex ms-auto mr-0 w-75">
-                    <Select
-                      name='sender'
-                      className='react-select-styled react-select-solid react-select-sm w-100'
-                      options={senders}
-                      placeholder='Select a sender'
-                      isSearchable={false}
-                      noOptionsMessage={e => `No more senders including "${e.inputValue}"`}
-                      defaultValue={senders[0]}
-                    />
-                  </div>
-                </div>
                 <hr />
                 <h2>Receiver</h2>
                 <div className="d-flex align-items-center py-1">
@@ -527,7 +525,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.name' placeholder="Name" required />
+                      <input type="text" className="form-control" name='receiver.name' defaultValue={customer?.name} placeholder="Name" required />
                     </div>
                   </div>
                 </div>
@@ -536,7 +534,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.contact' placeholder="Contact" required />
+                      <input type="text" className="form-control" name='receiver.contact' defaultValue={customer?.shipping_contact} placeholder="Contact" required />
                     </div>
                   </div>
                 </div>
@@ -545,7 +543,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.phone1' placeholder="+11234567890" required />
+                      <input type="text" className="form-control" name='receiver.phone1' defaultValue={customer?.phone_1} placeholder="+11234567890" required />
                     </div>
                   </div>
                 </div>
@@ -562,7 +560,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Legal Entity:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' defaultChecked={customer?.legal_entity === 1} />
                     </div>
                   </div>
                 </div>
@@ -571,7 +569,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='receiver.locality_id' min={1} max={4294967295} placeholder="Locality ID" required />
+                      <input type="number" className="form-control" name='receiver.locality_id' defaultValue={customer?.shipping_locality_id} min={1} max={4294967295} placeholder="Locality ID" required />
                     </div>
                   </div>
                 </div>
@@ -580,7 +578,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.street' placeholder="Street" required />
+                      <input type="text" className="form-control" name='receiver.street' defaultValue={customer?.shipping_street} placeholder="Street" required />
                     </div>
                   </div>
                 </div>
@@ -596,7 +594,7 @@ const OrderTable: React.FC<{
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
+              <button type="button" className="btn btn-secondary" onClick={() => selectOrder(undefined)} data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleCreateAWB}><i className='bi bi-save'></i>Create AWB</button>
             </div>
           </div>

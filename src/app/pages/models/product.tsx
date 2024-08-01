@@ -30,4 +30,6 @@ export interface Product {
   internal_shipping_price: string;
   market_place?: string[];
   sale_price?: string;
+  observation?: string;
+  warehouse_id?: number;
 }

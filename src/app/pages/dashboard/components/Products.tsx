@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import Select from 'react-select'
 import { Content } from '../../../../_metronic/layout/components/content'
-import { deleteProduct, getAllProducts, getProductAmount, getProductInfo } from './_request'
+import { deleteProduct, getAllProducts, getProductAmount, getProductInfo, getWarehouses } from './_request'
 import { Product } from '../../models/product'
 import { SalesInformation } from '../../inventory_management/components/SalesInform'
 import { OrdersInformation } from '../../inventory_management/components/OrdersInform'
 import { addProductRequest, editProductRequest, getAllSuppliers } from '../../inventory_management/components/_request'
 import { Suppliers } from '../../models/supplier'
+import { WarehouseType } from '../../models/warehouse';
 import { getAllMarketplaces } from '../../config/components/_request'
 import { interMKP } from '../../config/components/Integrations'
 
@@ -266,6 +267,7 @@ export const Products = () => {
   const [addSupplier, setAddSupplier] = useState<string>('');
   const [editSupplier, setEditSupplier] = useState<string>('');
   const [marketPlaces, setMarketPlaces] = useState<interMKP[]>([]);
+  const [warehouses, setWarehouses] = useState<{ value: number, label: string }[]>([]);
 
   useEffect(() => {
     getAllProducts(currentPage, limit)
@@ -295,6 +297,14 @@ export const Products = () => {
     getAllMarketplaces()
       .then(res => {
         setMarketPlaces(res.data)
+      })
+      .catch(e => console.error(e));
+    getWarehouses()
+      .then(res => res.data)
+      .then(res => {
+        setWarehouses(res.map((data: WarehouseType) => {
+          return { value: data.id, label: data.name }
+        }));
       })
       .catch(e => console.error(e));
   }, []);
@@ -367,7 +377,7 @@ export const Products = () => {
     const inputs = form?.querySelectorAll('input');
     if (inputs) for (const input of inputs) {
       if (input.name === '') continue;
-      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+      data[input.name] = input.type === 'checkbox' ? input.checked : input.value.trim();
       // if (input.value === '') {
       //   modal?.classList.remove('show');
       //   setToast({ msg: 'All fields must be filled.', status: 'danger' });
@@ -387,6 +397,10 @@ export const Products = () => {
       toast.error('1688 Link must be valid url.');
       return;
     }
+    data['warehouse_id'] = parseInt(data['warehouse_id'] as string);
+    data['stock'] = parseInt(data['stock'] as string);
+    data['supplier_id'] = parseInt(data['supplier_id'] as string);
+    data['buy_button_rank'] = parseInt(data['buy_button_rank'] as string);
     addProductRequest(data)
       .then(() => {
         toast.success('Successfully created!');
@@ -406,7 +420,7 @@ export const Products = () => {
     const inputs = form?.querySelectorAll('input');
     if (inputs) for (const input of inputs) {
       if (input.name === '') continue;
-      data[input.name] = input.type === 'checkbox' ? input.checked : input.value;
+      data[input.name] = input.type === 'checkbox' ? input.checked : input.value.trim();
       // if (input.value === '') {
       //   modal?.classList.remove('show');
       //   setToast({ msg: 'All fields must be filled.', status: 'danger' });
@@ -426,12 +440,17 @@ export const Products = () => {
       toast.error('1688 Link must be valid url.');
       return;
     }
+    data['warehouse_id'] = parseInt(data['warehouse_id'] as string);
+    data['stock'] = parseInt(data['stock'] as string);
+    data['supplier_id'] = parseInt(data['supplier_id'] as string);
+    data['buy_button_rank'] = parseInt(data['buy_button_rank'] as string);
     editProductRequest(editProduct?.id ?? 0, data)
       .then(() => {
         setChanged(!changed);
         handleFilterProduct();
         toast.success('Successfully edited!');
         closeBtn?.click();
+        setEditProduct(undefined);
       })
       .catch(e => {
         toast.error('Something went wrong.');
@@ -536,9 +555,9 @@ export const Products = () => {
                 <table className="table table-rounded table-row-bordered border gy-7 gs-7 table-hover">
                   <thead>
                     <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                      <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
+                      {/* <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
                         <input className="form-check-input" type="checkbox" value="" />
-                      </div></th>
+                      </div></th> */}
                       <th>Product</th>
                       <th>Price</th>
                       <th>Stock</th>
@@ -551,9 +570,9 @@ export const Products = () => {
                     {
                       products.map((product, index) =>
                         <tr key={`productlist${product.id}`}>
-                          <td className='align-content-center'>
+                          {/* <td className='align-content-center'>
                             <input className="form-check-input" type="checkbox" value={index} />
-                          </td>
+                          </td> */}
                           <td className='align-content-center'>
                             <div className="d-flex">
                               <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
@@ -650,6 +669,29 @@ export const Products = () => {
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
                             <input type="url" className="form-control" name='image_link' defaultValue={editProduct.image_link} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Observation:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='observation' defaultValue={editProduct.observation} placeholder="Observation" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Warehouse:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <Select
+                            name='warehouse_id'
+                            className='react-select-styled react-select-solid react-select-sm w-100'
+                            options={warehouses}
+                            placeholder='Select a warehouse'
+                            isSearchable={false}
+                            noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                            defaultValue={warehouses.find(warehouse => warehouse.value === editProduct.warehouse_id)}
+                          />
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
@@ -921,6 +963,28 @@ export const Products = () => {
                             <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
                             <input type="url" className="form-control" name='image_link' placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                           </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Observation:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <div className="input-group">
+                            <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                            <input type="text" className="form-control" name='observation' placeholder="Observation" required />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center py-1">
+                        <div className="d-flex fw-bold w-25">Warehouse:</div>
+                        <div className="d-flex ms-auto mr-0 w-75">
+                          <Select
+                            name='warehouse_id'
+                            className='react-select-styled react-select-solid react-select-sm w-100'
+                            options={warehouses}
+                            placeholder='Select a warehouse'
+                            isSearchable={false}
+                            noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                          />
                         </div>
                       </div>
                       <div className="d-flex align-items-center py-1">
