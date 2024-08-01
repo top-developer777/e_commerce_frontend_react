@@ -237,7 +237,7 @@ export function MyTeams() {
                           className='react-select-styled react-select-solid react-select-sm flex-grow-1'
                           options={roleOptions}
                           value={roleOptions.find(role => role.value == editUser?.role)}
-                          onChange={value => setEditUser({ ...editUser, role: value?.label })}
+                          onChange={value => setEditUser({ ...editUser, role: value?.value })}
                           isClearable={false}
                           menuPlacement='auto'
                           menuPortalTarget={document.querySelector('#editMember') as HTMLElement}
