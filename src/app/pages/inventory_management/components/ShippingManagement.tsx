@@ -449,6 +449,7 @@ export function ShippingManagement() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shippings, setshippings] = useState<Shipping[]>([]);
   const [shipingTypes, setShipingTypes] = useState<{ value: string; label: string; }[]>([]);
+  const [selectedShippingTypes, setSelectedShippingTypes] = useState<{ [key: number]: string }>({});
   const [editID, setEditID] = useState<number>(-1);
   const [productName, setProductName] = useState<string>('');
   const [selectedShipment, setSelectedShipment] = useState<number>(-1);
@@ -1016,10 +1017,10 @@ export function ShippingManagement() {
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '' } }); return;
-                                    case 1: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🛫' } }); return;
-                                    case 2: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚆' } }); return;
-                                    case 3: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚢' } }); return;
+                                    default: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '' }); return;
+                                    case 1: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🛫' }); return;
+                                    case 2: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚆' }); return;
+                                    case 3: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚢' }); return;
                                   }
                                 })
                                 .catch(e => console.error(e));
@@ -1039,7 +1040,7 @@ export function ShippingManagement() {
                                       <i className="bi bi-pencil-square"></i>
                                     </button>
                                   </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedProduct.shippingType}</td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[parseInt(index)]}</td>
                                   <td style={{ minWidth: '50px' }}>
                                     <img src={editProduct?.image_link ?? ''} alt="" width={35} />
                                   </td>
@@ -1455,10 +1456,10 @@ export function ShippingManagement() {
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '' } }); return;
-                                    case 1: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🛫' } }); return;
-                                    case 2: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚆' } }); return;
-                                    case 3: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚢' } }); return;
+                                    default: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '' }); return;
+                                    case 1: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🛫' }); return;
+                                    case 2: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚆' }); return;
+                                    case 3: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚢' }); return;
                                   }
                                 })
                                 .catch(e => console.error(e));
@@ -1478,7 +1479,7 @@ export function ShippingManagement() {
                                       <i className="bi bi-pencil-square"></i>
                                     </button>
                                   </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedProduct.shippingType}</td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[parseInt(index)]}</td>
                                   <td style={{ minWidth: '50px' }}>
                                     <img src={editProduct?.image_link ?? ''} alt="" width={35} />
                                   </td>

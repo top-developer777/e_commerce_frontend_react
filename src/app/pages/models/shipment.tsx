@@ -1,5 +1,4 @@
 export interface ShippingProduct {
-  shippingType?: string;
   ean: string;
   quantity: number;
   item_per_box: number;
