@@ -374,7 +374,7 @@ const OrderTable: React.FC<{
                   </td> */}
                   <td className='align-content-center text-center'>
                     {order.status === 0 && <>None</>}
-                    {[1, 2, 3].findIndex(item => item === order.status) >= 0 && <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
+                    {([1, 2, 3].findIndex(item => item === order.status) >= 0 && order.payment_mode_id !== 2) && <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
                       <i className="bi bi-file-earmark-plus"></i>
                       Create
                     </button>}
