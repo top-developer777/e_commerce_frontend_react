@@ -442,7 +442,6 @@ const TableShipment: React.FC<{
 }
 
 export function ShippingManagement() {
-  const [productShipType, setProductShipType] = useState<string>('');
   const [users, setUsers] = useState<UserModel[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -563,6 +562,10 @@ export function ShippingManagement() {
     const typeComp = document.querySelector(`#${id} input[name="type"][type="hidden"]`) as HTMLInputElement;
     const statusComp = document.querySelector(`#${id} input[name="status"][type="hidden"]`) as HTMLInputElement;
     const warehouseComp = document.querySelector(`#${id} input[name="warehouse"]`) as HTMLInputElement;
+    const awbComp = document.querySelector(`#${id} input[name="awb"]`) as HTMLInputElement;
+    const vatComp = document.querySelector(`#${id} input[name="vat"]`) as HTMLInputElement;
+    const customTaxComp = document.querySelector(`#${id} input[name="custom_taxes"]`) as HTMLInputElement;
+    const shipmentCostComp = document.querySelector(`#${id} input[name="shipment_cost"]`) as HTMLInputElement;
     const noteComp = document.querySelector(`#${id} textarea[name="note"]`) as HTMLInputElement;
     const name = nameComp.value;
     const agent = agentComp.value;
@@ -570,6 +573,10 @@ export function ShippingManagement() {
     const delivery_date = delivery_dateComp.value;
     const type = typeComp.value;
     const status = statusComp.value;
+    const awb = awbComp.value;
+    const vat = parseFloat(vatComp.value);
+    const customTax = parseFloat(customTaxComp.value);
+    const shipmentCost = parseFloat(shipmentCostComp.value);
     const note = noteComp.value;
     const now = new Date();
     // if (!name || !delivery_date) return;
@@ -607,13 +614,18 @@ export function ShippingManagement() {
     }
     const data = {
       agent: agent,
-      created_date: editShipment ? editShipment.create_date : now.toISOString().split('T')[0],
+      create_date: editShipment ? editShipment.create_date : now.toISOString().split('T')[0],
       delivery_date: delivery_date,
       type: type,
       title: name,
       status: status,
       note: note,
       warehouse: warehouse,
+      ...products,
+      awb: awb,
+      vat: vat,
+      custom_taxes: customTax,
+      shipment_cost: shipmentCost,
       ...products
     }
     if (id === 'createShipmentModal') {
@@ -943,6 +955,8 @@ export function ShippingManagement() {
                               <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
+                              <th>Cost</th>
+                              <th>Total Cost</th>
                               <th>Item per box</th>
                               <th>PDF sent</th>
                               <th>Pay URL</th>
@@ -961,16 +975,18 @@ export function ShippingManagement() {
                           <tbody>
                             {Object.keys(selectedProducts).map((index) => {
                               const selectedProduct = selectedProducts[parseInt(index)];
+                              let productShipType = '';
                               getShippingType(selectedProduct.ean)
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: setProductShipType(''); return;
-                                    case 1: setProductShipType('🛫'); return;
-                                    case 2: setProductShipType('🚆'); return;
-                                    case 3: setProductShipType('🚢'); return;
+                                    default: productShipType = ''; return;
+                                    case 1: productShipType = '🛫'; return;
+                                    case 2: productShipType = '🚆'; return;
+                                    case 3: productShipType = '🚢'; return;
                                   }
-                                });
+                                })
+                                .catch(e => console.error(e));
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${index}`}>
                                   <td className='align-content-center'>
@@ -1027,6 +1043,8 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
+                                  <td className="align-content-center">${allProducts.find(product => product.ean === selectedProduct.ean)?.price}</td>
+                                  <td className='align-content-center'>${(parseFloat(allProducts.find(product => product.ean === selectedProduct.ean)?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
@@ -1190,7 +1208,7 @@ export function ShippingManagement() {
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setProductShipType('')} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-plus"></i>Create</button>
             </div>
           </div>
@@ -1369,6 +1387,8 @@ export function ShippingManagement() {
                               <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
+                              <th>Cost</th>
+                              <th>Total Cost</th>
                               <th>Item per box</th>
                               <th>PDF sent</th>
                               <th>Pay URL</th>
@@ -1387,16 +1407,18 @@ export function ShippingManagement() {
                           <tbody>
                             {Object.keys(selectedProducts).map((index) => {
                               const selectedProduct = selectedProducts[parseInt(index)];
+                              let productShipType = '';
                               getShippingType(selectedProduct.ean)
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: setProductShipType(''); return;
-                                    case 1: setProductShipType('🛫'); return;
-                                    case 2: setProductShipType('🚆'); return;
-                                    case 3: setProductShipType('🚢'); return;
+                                    default: productShipType = ''; return;
+                                    case 1: productShipType = '🛫'; return;
+                                    case 2: productShipType = '🚆'; return;
+                                    case 3: productShipType = '🚢'; return;
                                   }
-                                });
+                                })
+                                .catch(e => console.error(e));
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${index}`}>
                                   <td className='align-content-center'>
@@ -1453,6 +1475,8 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
+                                  <td className="align-content-center">${allProducts.find(product => product.ean === selectedProduct.ean)?.price}</td>
+                                  <td className='align-content-center'>${(parseFloat(allProducts.find(product => product.ean === selectedProduct.ean)?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
@@ -1616,7 +1640,7 @@ export function ShippingManagement() {
               </form>}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => { setEditShipment(undefined); setProductShipType('') }} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setEditShipment(undefined)} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
             </div>
           </div>
