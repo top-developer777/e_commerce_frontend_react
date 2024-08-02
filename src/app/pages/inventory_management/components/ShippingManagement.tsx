@@ -488,6 +488,16 @@ export function ShippingManagement() {
           setWarehouses(dict);
         })
         .catch(e => console.error(e));
+      getAllProducts()
+        .then(res => {
+          const data = res.data;
+          setAllProducts(data);
+          const products = data.map((datum: { [key: string]: string }) => {
+            return { value: datum.ean, label: datum.product_name }
+          });
+          setProducts(products);
+        })
+        .catch(e => console.error(e));
       setChanged(false);
     }
   }, [changed]);
@@ -508,16 +518,6 @@ export function ShippingManagement() {
         setAgents(data.filter((user: UserModel) => user.role === 'Order Agent').map((user: UserModel) => {
           return { value: user.email, label: `${user.full_name} (${user.email})` }
         }));
-      })
-      .catch(e => console.error(e));
-    getAllProducts()
-      .then(res => {
-        const data = res.data;
-        setAllProducts(data);
-        const products = data.map((datum: { [key: string]: string }) => {
-          return { value: datum.ean, label: datum.product_name }
-        });
-        setProducts(products);
       })
       .catch(e => console.error(e));
     getAllSuppliers()
@@ -682,7 +682,7 @@ export function ShippingManagement() {
   const handleSetEditProduct = (id: number) => {
     getProductByID(id)
       .then(res => res.data)
-      .then(res => console.log(res))
+      .then(res => setEditProduct(res))
       .catch(e => console.error(e));
   }
   const handleEditProduct = () => {
@@ -690,6 +690,7 @@ export function ShippingManagement() {
     const closeBtn = document.querySelector('#editProductModal button[data-bs-target="#createShipmentModal"]') as HTMLButtonElement;
     editProductRequest(editProduct.id ?? 0, editProduct as unknown as { [key: string]: string | number | boolean })
       .then(() => {
+        setChanged(true);
         toast.success('Successfully edited.');
         closeBtn.click();
       })
@@ -1704,13 +1705,13 @@ export function ShippingManagement() {
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
-              {!!editProduct && <form action="" method='post' id='editProductForm'>
+              {editProduct && <form action="" method='post' id='editProductForm'>
                 <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Product Name:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='product_name' value={editProduct.product_name} onChange={e => setEditProduct({ ...editProduct, product_name: e.target.value })} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
+                      <input type="text" className="form-control" name='product_name' value={editProduct.product_name ?? ''} onChange={e => setEditProduct({ ...editProduct, product_name: e.target.value })} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
                     </div>
                   </div>
                 </div>
@@ -1719,7 +1720,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='model_name' value={editProduct.model_name} onChange={e => setEditProduct({ ...editProduct, model_name: e.target.value })} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
+                      <input type="text" className="form-control" name='model_name' value={editProduct.model_name ?? ''} onChange={e => setEditProduct({ ...editProduct, model_name: e.target.value })} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
                     </div>
                   </div>
                 </div>
@@ -1728,7 +1729,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="ean"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='ean' value={editProduct.ean} onChange={e => setEditProduct({ ...editProduct, ean: e.target.value })} placeholder="EAN" aria-label="EAN" aria-describedby="ean" required />
+                      <input type="text" className="form-control" name='ean' value={editProduct.ean ?? ''} onChange={e => setEditProduct({ ...editProduct, ean: e.target.value })} placeholder="EAN" aria-label="EAN" aria-describedby="ean" required />
                     </div>
                   </div>
                 </div>
@@ -1737,7 +1738,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='price' value={parseFloat(editProduct.price)} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} placeholder="Price" aria-label="Price" aria-describedby="price" required />
+                      <input type="number" className="form-control" name='price' value={parseFloat(editProduct.price ?? '0')} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} placeholder="Price" aria-label="Price" aria-describedby="price" required />
                     </div>
                   </div>
                 </div>
@@ -1746,7 +1747,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
-                      <input type="url" className="form-control" name='image_link' value={editProduct.image_link} onChange={e => setEditProduct({ ...editProduct, image_link: e.target.value })} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
+                      <input type="url" className="form-control" name='image_link' value={editProduct.image_link ?? ''} onChange={e => setEditProduct({ ...editProduct, image_link: e.target.value })} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
                     </div>
                   </div>
                 </div>
@@ -1755,7 +1756,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='observation' value={editProduct.observation} onChange={e => setEditProduct({ ...editProduct, observation: e.target.value })} placeholder="Observation" required />
+                      <input type="text" className="form-control" name='observation' value={editProduct.observation ?? ''} onChange={e => setEditProduct({ ...editProduct, observation: e.target.value })} placeholder="Observation" required />
                     </div>
                   </div>
                 </div>
@@ -1779,7 +1780,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='barcode_title' value={editProduct.barcode_title} onChange={e => setEditProduct({ ...editProduct, barcode_title: e.target.value })} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
+                      <input type="text" className="form-control" name='barcode_title' value={editProduct.barcode_title ?? ''} onChange={e => setEditProduct({ ...editProduct, barcode_title: e.target.value })} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
                     </div>
                   </div>
                 </div>
@@ -1788,7 +1789,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='masterbox_title' value={editProduct.masterbox_title} onChange={e => setEditProduct({ ...editProduct, masterbox_title: e.target.value })} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
+                      <input type="text" className="form-control" name='masterbox_title' value={editProduct.masterbox_title ?? ''} onChange={e => setEditProduct({ ...editProduct, masterbox_title: e.target.value })} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
                     </div>
                   </div>
                 </div>
@@ -1797,7 +1798,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
-                      <input type="url" className="form-control" name='link_address_1688' value={editProduct.link_address_1688} onChange={e => setEditProduct({ ...editProduct, link_address_1688: e.target.value })} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
+                      <input type="url" className="form-control" name='link_address_1688' value={editProduct.link_address_1688 ?? ''} onChange={e => setEditProduct({ ...editProduct, link_address_1688: e.target.value })} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
                     </div>
                   </div>
                 </div>
@@ -1806,7 +1807,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
-                      <input type="number" className="form-control" name='price_1688' value={parseFloat(editProduct.price_1688)} onChange={e => setEditProduct({ ...editProduct, price_1688: e.target.value })} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
+                      <input type="number" className="form-control" name='price_1688' value={parseFloat(editProduct.price_1688 ?? '')} onChange={e => setEditProduct({ ...editProduct, price_1688: e.target.value })} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
                     </div>
                   </div>
                 </div>
@@ -1815,7 +1816,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
-                      <input type="text" className="form-control" name='variation_name_1688' value={editProduct.variation_name_1688} onChange={e => setEditProduct({ ...editProduct, variation_name_1688: e.target.value })} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
+                      <input type="text" className="form-control" name='variation_name_1688' value={editProduct.variation_name_1688 ?? ''} onChange={e => setEditProduct({ ...editProduct, variation_name_1688: e.target.value })} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
                     </div>
                   </div>
                 </div>
@@ -1824,7 +1825,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-coin"></i></span>
-                      <input type="number" className="form-control" name='internal_shipping_price' value={parseFloat(editProduct.internal_shipping_price)} onChange={e => setEditProduct({ ...editProduct, internal_shipping_price: e.target.value })} placeholder="Internal Shipping Price" />
+                      <input type="number" className="form-control" name='internal_shipping_price' value={parseFloat(editProduct.internal_shipping_price ?? '0')} onChange={e => setEditProduct({ ...editProduct, internal_shipping_price: e.target.value })} placeholder="Internal Shipping Price" />
                     </div>
                   </div>
                 </div>
@@ -1833,7 +1834,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
-                      <input type="text" className="form-control" name='pcs_ctn' value={editProduct.pcs_ctn} onChange={e => setEditProduct({ ...editProduct, pcs_ctn: e.target.value })} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
+                      <input type="text" className="form-control" name='pcs_ctn' value={editProduct.pcs_ctn ?? ''} onChange={e => setEditProduct({ ...editProduct, pcs_ctn: e.target.value })} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
                     </div>
                   </div>
                 </div>
@@ -1842,7 +1843,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
-                      <input type="number" className="form-control" name='weight' value={editProduct.weight} onChange={e => setEditProduct({ ...editProduct, weight: e.target.value })} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                      <input type="number" className="form-control" name='weight' value={editProduct.weight ?? 0} onChange={e => setEditProduct({ ...editProduct, weight: e.target.value })} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
                     </div>
                   </div>
                 </div>
@@ -1851,7 +1852,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="volumetric_weight"><i className="bi bi-tag-fill"></i></span>
-                      <input type="number" className="form-control" name='volumetric_weight' value={editProduct.volumetric_weight} onChange={e => setEditProduct({ ...editProduct, volumetric_weight: e.target.value })} placeholder="Volumetric Weight" required />
+                      <input type="number" className="form-control" name='volumetric_weight' value={editProduct.volumetric_weight ?? 0} onChange={e => setEditProduct({ ...editProduct, volumetric_weight: e.target.value })} placeholder="Volumetric Weight" required />
                     </div>
                   </div>
                 </div>
@@ -1860,7 +1861,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
-                      <input type="text" className="form-control" name='dimensions' value={editProduct.dimensions} onChange={e => setEditProduct({ ...editProduct, dimensions: e.target.value })} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
+                      <input type="text" className="form-control" name='dimensions' value={editProduct.dimensions ?? ''} onChange={e => setEditProduct({ ...editProduct, dimensions: e.target.value })} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
                     </div>
                   </div>
                 </div>
@@ -1887,7 +1888,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='english_name' value={editProduct.english_name} onChange={e => setEditProduct({ ...editProduct, english_name: e.target.value })} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
+                      <input type="text" className="form-control" name='english_name' value={editProduct.english_name ?? ''} onChange={e => setEditProduct({ ...editProduct, english_name: e.target.value })} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
                     </div>
                   </div>
                 </div>
@@ -1896,7 +1897,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='romanian_name' value={editProduct.romanian_name} onChange={e => setEditProduct({ ...editProduct, romanian_name: e.target.value })} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
+                      <input type="text" className="form-control" name='romanian_name' value={editProduct.romanian_name ?? ''} onChange={e => setEditProduct({ ...editProduct, romanian_name: e.target.value })} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
                     </div>
                   </div>
                 </div>
@@ -1905,7 +1906,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='material_name_en' value={editProduct.material_name_en} onChange={e => setEditProduct({ ...editProduct, material_name_en: e.target.value })} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
+                      <input type="text" className="form-control" name='material_name_en' value={editProduct.material_name_en ?? ''} onChange={e => setEditProduct({ ...editProduct, material_name_en: e.target.value })} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
                     </div>
                   </div>
                 </div>
@@ -1914,7 +1915,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='material_name_ro' value={editProduct.material_name_ro} onChange={e => setEditProduct({ ...editProduct, material_name_ro: e.target.value })} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
+                      <input type="text" className="form-control" name='material_name_ro' value={editProduct.material_name_ro ?? ''} onChange={e => setEditProduct({ ...editProduct, material_name_ro: e.target.value })} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
                     </div>
                   </div>
                 </div>
@@ -1923,7 +1924,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='hs_code' value={editProduct.hs_code} onChange={e => setEditProduct({ ...editProduct, hs_code: e.target.value })} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
+                      <input type="text" className="form-control" name='hs_code' value={editProduct.hs_code ?? ''} onChange={e => setEditProduct({ ...editProduct, hs_code: e.target.value })} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
                     </div>
                   </div>
                 </div>
@@ -1940,7 +1941,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
-                      <input type="text" className="form-control" name='default_usage' value={editProduct.default_usage} onChange={e => setEditProduct({ ...editProduct, default_usage: e.target.value })} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
+                      <input type="text" className="form-control" name='default_usage' value={editProduct.default_usage ?? ''} onChange={e => setEditProduct({ ...editProduct, default_usage: e.target.value })} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
                     </div>
                   </div>
                 </div>
@@ -1949,7 +1950,7 @@ export function ShippingManagement() {
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
-                      <input type="number" className="form-control" name='production_time' value={parseFloat(editProduct.production_time)} onChange={e => setEditProduct({ ...editProduct, production_time: e.target.value })} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
+                      <input type="number" className="form-control" name='production_time' value={parseFloat(editProduct.production_time ?? '0')} onChange={e => setEditProduct({ ...editProduct, production_time: e.target.value })} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
                     </div>
                   </div>
                 </div>
