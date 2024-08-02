@@ -12,8 +12,8 @@ export interface Product {
   price_1688: string;
   variation_name_1688: string;
   pcs_ctn: string;
-  weight: number;
-  volumetric_weight: number;
+  weight: string;
+  volumetric_weight: string;
   dimensions: string;
   supplier_id: number;
   english_name: string;
@@ -32,4 +32,5 @@ export interface Product {
   sale_price?: string;
   observation?: string;
   warehouse_id?: number;
+  buy_button_rank?: number;
 }

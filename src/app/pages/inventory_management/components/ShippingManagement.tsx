@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import Select, { MultiValue } from 'react-select'
-import { createShipments, deleteShipment, getAllProducts, getShipments, getShippingType, updateShipments } from './_request';
+import { createShipments, deleteShipment, editProductRequest, getAllProducts, getAllSuppliers, getProductByID, getShipments, getShippingType, updateShipments } from './_request';
 import { Shipment, ShippingProduct } from '../../models/shipment';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
 import { Product } from '../../models/product';
 import { getUsers } from '../../config/components/_request';
 import { useAuth, UserModel } from '../../../modules/auth';
+import { Suppliers } from '../../models/supplier';
+import { toast } from 'react-toastify';
 
 const shippingStatus = [
   {
@@ -451,8 +453,10 @@ export function ShippingManagement() {
   const [productName, setProductName] = useState<string>('');
   const [selectedShipment, setSelectedShipment] = useState<number>(-1);
   const [editShipment, setEditShipment] = useState<Shipment>();
+  const [supplierOptions, setSupplierOptions] = useState<{ value: number, label: string }[]>([]);
   const [selectedProductID, setSelectedProductID] = useState<number>(0);
   const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
+  const [editProduct, setEditProduct] = useState<Product>();
   const [products, setProducts] = useState<{ value: string, label: string }[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<{
@@ -460,6 +464,7 @@ export function ShippingManagement() {
   }>({});
   const [agents, setAgents] = useState<{ value: string; label: string; }[]>([]);
   const [warehouses, setWarehouses] = useState<{ value: string; label: string; }[]>([]);
+  const [warehouses2, setWarehouses2] = useState<{ value: number; label: string; }[]>([]);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -476,6 +481,9 @@ export function ShippingManagement() {
           const dict = res.map((data: WarehouseType) => {
             return { value: data.name, label: data.name }
           });
+          setWarehouses2(res.map((data: WarehouseType) => {
+            return { value: data.id, label: data.name }
+          }));
           setWarehouses(dict);
         })
         .catch(e => console.error(e));
@@ -509,6 +517,14 @@ export function ShippingManagement() {
           return { value: datum.ean, label: datum.product_name }
         });
         setProducts(products);
+      })
+      .catch(e => console.error(e));
+    getAllSuppliers(1, 1000)
+      .then(res => {
+        if (!res.data.length) return;
+        setSupplierOptions(res.data.map((datum: Suppliers) => {
+          return { value: datum.id, label: `${datum.group} / ${datum.name} (${datum.wechat})` }
+        }))
       })
       .catch(e => console.error(e));
   }, []);
@@ -661,6 +677,25 @@ export function ShippingManagement() {
   const handleDeleteShipment = (id: number) => {
     deleteShipment(id)
       .then(() => setChanged(true));
+  }
+  const handleSetEditProduct = (id: number) => {
+    getProductByID(id)
+      .then(res => res.data)
+      .then(res => console.log(res))
+      .catch(e => console.error(e));
+  }
+  const handleEditProduct = () => {
+    if (!editProduct) return;
+    const closeBtn = document.querySelector('#editProductModal button[data-bs-target="#createShipmentModal"]') as HTMLButtonElement;
+    editProductRequest(editProduct.id ?? 0, editProduct as unknown as { [key: string]: string | number | boolean })
+      .then(() => {
+        toast.success('Successfully edited.');
+        closeBtn.click();
+      })
+      .catch(e => {
+        toast.error('Something went wrong.');
+        console.error(e);
+      });
   }
 
   return (
@@ -953,6 +988,7 @@ export function ShippingManagement() {
                               <th></th>
                               <th></th>
                               <th></th>
+                              <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
                               <th>Cost</th>
@@ -975,22 +1011,22 @@ export function ShippingManagement() {
                           <tbody>
                             {Object.keys(selectedProducts).map((index) => {
                               const selectedProduct = selectedProducts[parseInt(index)];
-                              let productShipType = '';
+                              const editProduct = allProducts.find(product => product.ean === selectedProduct.ean);
                               getShippingType(selectedProduct.ean)
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: productShipType = ''; return;
-                                    case 1: productShipType = '🛫'; return;
-                                    case 2: productShipType = '🚆'; return;
-                                    case 3: productShipType = '🚢'; return;
+                                    default: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '' } }); return;
+                                    case 1: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🛫' } }); return;
+                                    case 2: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚆' } }); return;
+                                    case 3: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚢' } }); return;
                                   }
                                 })
                                 .catch(e => console.error(e));
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${index}`}>
                                   <td className='align-content-center'>
-                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
+                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" title='Unselect this Product' onClick={() => {
                                       const newProArr = { ...selectedProducts };
                                       delete newProArr[parseInt(index)];
                                       setSelectedProducts(newProArr);
@@ -998,9 +1034,14 @@ export function ShippingManagement() {
                                       <i className="bi bi-trash-fill"></i>
                                     </button>
                                   </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{productShipType}</td>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-primary btn-sm d-flex" title='Edit this Product' onClick={() => handleSetEditProduct(editProduct?.id ?? 0)} data-bs-toggle="modal" data-bs-target="#editProductModal">
+                                      <i className="bi bi-pencil-square"></i>
+                                    </button>
+                                  </td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedProduct.shippingType}</td>
                                   <td style={{ minWidth: '50px' }}>
-                                    <img src={allProducts.find(product => product.ean === selectedProduct.ean)?.image_link ?? ''} alt="" width={35} />
+                                    <img src={editProduct?.image_link ?? ''} alt="" width={35} />
                                   </td>
                                   <td>
                                     <Select
@@ -1043,8 +1084,8 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
-                                  <td className="align-content-center">${allProducts.find(product => product.ean === selectedProduct.ean)?.price}</td>
-                                  <td className='align-content-center'>${(parseFloat(allProducts.find(product => product.ean === selectedProduct.ean)?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
+                                  <td className="align-content-center">${editProduct?.price}</td>
+                                  <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
@@ -1145,6 +1186,7 @@ export function ShippingManagement() {
                               const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${num}`}>
+                                  <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
@@ -1385,6 +1427,7 @@ export function ShippingManagement() {
                               <th></th>
                               <th></th>
                               <th></th>
+                              <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
                               <th>Cost</th>
@@ -1407,22 +1450,22 @@ export function ShippingManagement() {
                           <tbody>
                             {Object.keys(selectedProducts).map((index) => {
                               const selectedProduct = selectedProducts[parseInt(index)];
-                              let productShipType = '';
+                              const editProduct = allProducts.find(product => product.ean === selectedProduct.ean);
                               getShippingType(selectedProduct.ean)
                                 .then(res => res.data)
                                 .then(res => {
                                   switch (res.type as number) {
-                                    default: productShipType = ''; return;
-                                    case 1: productShipType = '🛫'; return;
-                                    case 2: productShipType = '🚆'; return;
-                                    case 3: productShipType = '🚢'; return;
+                                    default: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '' } }); return;
+                                    case 1: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🛫' } }); return;
+                                    case 2: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚆' } }); return;
+                                    case 3: setSelectedProducts({ ...selectedProducts, [parseInt(index)]: { ...selectedProduct, shippingType: '🚢' } }); return;
                                   }
                                 })
                                 .catch(e => console.error(e));
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${index}`}>
                                   <td className='align-content-center'>
-                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
+                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" title='Unselect this Product' onClick={() => {
                                       const newProArr = { ...selectedProducts };
                                       delete newProArr[parseInt(index)];
                                       setSelectedProducts(newProArr);
@@ -1430,9 +1473,14 @@ export function ShippingManagement() {
                                       <i className="bi bi-trash-fill"></i>
                                     </button>
                                   </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{productShipType}</td>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-primary btn-sm d-flex" title='Edit this Product' onClick={() => handleSetEditProduct(editProduct?.id ?? 0)} data-bs-toggle="modal" data-bs-target="#editProductModal">
+                                      <i className="bi bi-pencil-square"></i>
+                                    </button>
+                                  </td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedProduct.shippingType}</td>
                                   <td style={{ minWidth: '50px' }}>
-                                    <img src={allProducts.find(product => product.ean === selectedProduct.ean)?.image_link ?? ''} alt="" width={35} />
+                                    <img src={editProduct?.image_link ?? ''} alt="" width={35} />
                                   </td>
                                   <td>
                                     <Select
@@ -1475,8 +1523,8 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
-                                  <td className="align-content-center">${allProducts.find(product => product.ean === selectedProduct.ean)?.price}</td>
-                                  <td className='align-content-center'>${(parseFloat(allProducts.find(product => product.ean === selectedProduct.ean)?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
+                                  <td className="align-content-center">${editProduct?.price}</td>
+                                  <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
@@ -1580,6 +1628,7 @@ export function ShippingManagement() {
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
+                                  <td style={{ minWidth: '50px' }}></td>
                                   <td>
                                     <Select
                                       name='products'
@@ -1640,8 +1689,282 @@ export function ShippingManagement() {
               </form>}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setEditShipment(undefined)} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setEditShipment(undefined)} data-bs-toggle="modal" data-bs-target="#createShipmentModal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="modal fade" id='editProductModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Product for {editProduct?.product_name}</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              {!!editProduct && <form action="" method='post' id='editProductForm'>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Product Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="product-name"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='product_name' value={editProduct.product_name} onChange={e => setEditProduct({ ...editProduct, product_name: e.target.value })} placeholder="Product Name" aria-label="Product Name" aria-describedby="product-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Model Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="model-name"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='model_name' value={editProduct.model_name} onChange={e => setEditProduct({ ...editProduct, model_name: e.target.value })} placeholder="Model Name" aria-label="Model Name" aria-describedby="model-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">EAN:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="ean"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='ean' value={editProduct.ean} onChange={e => setEditProduct({ ...editProduct, ean: e.target.value })} placeholder="EAN" aria-label="EAN" aria-describedby="ean" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Price:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="price"><i className="bi bi-link-45deg"></i></span>
+                      <input type="number" className="form-control" name='price' value={parseFloat(editProduct.price)} onChange={e => setEditProduct({ ...editProduct, price: e.target.value })} placeholder="Price" aria-label="Price" aria-describedby="price" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Temp Image Link:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="temp-img-link"><i className="bi bi-link-45deg"></i></span>
+                      <input type="url" className="form-control" name='image_link' value={editProduct.image_link} onChange={e => setEditProduct({ ...editProduct, image_link: e.target.value })} placeholder="Temp Image Link" aria-label="Temp Image Link" aria-describedby="temp-img-link" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Observation:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='observation' value={editProduct.observation} onChange={e => setEditProduct({ ...editProduct, observation: e.target.value })} placeholder="Observation" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Warehouse:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='warehouse_id'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={warehouses2}
+                      placeholder='Select a warehouse'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                      value={warehouses2.find(warehouse => warehouse.value === editProduct.warehouse_id)}
+                      onChange={e => setEditProduct({ ...editProduct, warehouse_id: e?.value })}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Barcode Title:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="barcode-title"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='barcode_title' value={editProduct.barcode_title} onChange={e => setEditProduct({ ...editProduct, barcode_title: e.target.value })} placeholder="Barcode Title" aria-label="Barcode Title" aria-describedby="barcode-title" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Masterbox Title:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="masterbox-title"><i className="bi bi-link-45deg"></i></span>
+                      <input type="text" className="form-control" name='masterbox_title' value={editProduct.masterbox_title} onChange={e => setEditProduct({ ...editProduct, masterbox_title: e.target.value })} placeholder="Masterbox Title" aria-label="Masterbox Title" aria-describedby="masterbox-title" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">1688 Link Address:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="link-address-1688"><i className="bi bi-link-45deg"></i></span>
+                      <input type="url" className="form-control" name='link_address_1688' value={editProduct.link_address_1688} onChange={e => setEditProduct({ ...editProduct, link_address_1688: e.target.value })} placeholder="Link address" aria-label="Link address" aria-describedby="link-address-1688" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">1688 Price:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="price1688"><i className="bi bi-coin"></i></span>
+                      <input type="number" className="form-control" name='price_1688' value={parseFloat(editProduct.price_1688)} onChange={e => setEditProduct({ ...editProduct, price_1688: e.target.value })} placeholder="1688 Price" aria-label="1688 Price" aria-describedby="price1688" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">1688 Variation Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="variation-name-1688"><i className="bi bi-globe2"></i></span>
+                      <input type="text" className="form-control" name='variation_name_1688' value={editProduct.variation_name_1688} onChange={e => setEditProduct({ ...editProduct, variation_name_1688: e.target.value })} placeholder="1688 Variation Name" aria-label="1688 Variation Name" aria-describedby="variation-name-1688" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Internal Shipping Price:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text"><i className="bi bi-coin"></i></span>
+                      <input type="number" className="form-control" name='internal_shipping_price' value={parseFloat(editProduct.internal_shipping_price)} onChange={e => setEditProduct({ ...editProduct, internal_shipping_price: e.target.value })} placeholder="Internal Shipping Price" />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">PCS/CTN:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="pcs-ctn"><i className="bi bi-diagram-3"></i></span>
+                      <input type="text" className="form-control" name='pcs_ctn' value={editProduct.pcs_ctn} onChange={e => setEditProduct({ ...editProduct, pcs_ctn: e.target.value })} placeholder="PCS/CTN" aria-label="PCS/CTN" aria-describedby="pcs-ctn" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Weight:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="weight"><i className="bi bi-tag-fill"></i></span>
+                      <input type="number" className="form-control" name='weight' value={editProduct.weight} onChange={e => setEditProduct({ ...editProduct, weight: e.target.value })} placeholder="Weight" aria-label="Weight" aria-describedby="weight" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Volumetric Weight:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="volumetric_weight"><i className="bi bi-tag-fill"></i></span>
+                      <input type="number" className="form-control" name='volumetric_weight' value={editProduct.volumetric_weight} onChange={e => setEditProduct({ ...editProduct, volumetric_weight: e.target.value })} placeholder="Volumetric Weight" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Dimensions:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="dimensions"><i className="bi bi-unity"></i></span>
+                      <input type="text" className="form-control" name='dimensions' value={editProduct.dimensions} onChange={e => setEditProduct({ ...editProduct, dimensions: e.target.value })} placeholder="Width * Height * Length" aria-label="Dimensions" aria-describedby="dimensions" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Supplier:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
+                      <Select
+                        name='supplier_id'
+                        className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                        options={supplierOptions}
+                        placeholder='Select supplier'
+                        noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
+                        value={supplierOptions.filter(option => option.value === editProduct.supplier_id)}
+                        onChange={e => setEditProduct({ ...editProduct, supplier_id: e?.value ?? 0 })}
+                        isClearable={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">English Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="en-name"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='english_name' value={editProduct.english_name} onChange={e => setEditProduct({ ...editProduct, english_name: e.target.value })} placeholder="English Name" aria-label="English Name" aria-describedby="en-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Romanian Name:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="ro-name"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='romanian_name' value={editProduct.romanian_name} onChange={e => setEditProduct({ ...editProduct, romanian_name: e.target.value })} placeholder="Romanian Name" aria-label="Romanian Name" aria-describedby="ro-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Material Name (EN):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="en-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='material_name_en' value={editProduct.material_name_en} onChange={e => setEditProduct({ ...editProduct, material_name_en: e.target.value })} placeholder="Material Name (EN)" aria-label="Material Name (EN)" aria-describedby="en-mat-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Material Name (RO):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="ro-mat-name"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='material_name_ro' value={editProduct.material_name_ro} onChange={e => setEditProduct({ ...editProduct, material_name_ro: e.target.value })} placeholder="Material Name (RO)" aria-label="Material Name (RO)" aria-describedby="ro-mat-name" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">HS Code:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="hs-code"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='hs_code' value={editProduct.hs_code} onChange={e => setEditProduct({ ...editProduct, hs_code: e.target.value })} placeholder="HS Code" aria-label="HS Code" aria-describedby="hs-code" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Battery:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" id="battery" name='battery' checked={editProduct.battery} onChange={e => setEditProduct({ ...editProduct, battery: e.target.checked })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Default Usage:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="usage"><i className="bi bi-chat-dots-fill"></i></span>
+                      <input type="text" className="form-control" name='default_usage' value={editProduct.default_usage} onChange={e => setEditProduct({ ...editProduct, default_usage: e.target.value })} placeholder="Default Usage" aria-label="Default Usage" aria-describedby="usage" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Estimated Production Time:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="input-group">
+                      <span className="input-group-text" id="production-time"><i className="bi bi-coin"></i></span>
+                      <input type="number" className="form-control" name='production_time' value={parseFloat(editProduct.production_time)} onChange={e => setEditProduct({ ...editProduct, production_time: e.target.value })} placeholder="Production Time" aria-label="Production Time" aria-describedby="production-time" required />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Discontinued:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" id="discontinued" name='discontinued' checked={editProduct.discontinued} onChange={e => setEditProduct({ ...editProduct, discontinued: e.target.checked })} />
+                    </div>
+                  </div>
+                </div>
+              </form>}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createShipmentModal" onClick={() => setEditProduct(undefined)}><i className='bi bi-trash'></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleEditProduct}><i className='bi bi-save'></i>Save changes</button>
             </div>
           </div>
         </div>
