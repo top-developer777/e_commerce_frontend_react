@@ -335,6 +335,7 @@ const OrderTable: React.FC<{
                   <div className='d-flex align-items-center'>{props.sort ? <i className='bi bi-caret-down-fill'></i> : <i className='bi bi-caret-up-fill'></i>}</div>
                 </div>
               </th>
+              <th className='col-md-1 align-content-center text-center'>Order ID</th>
               <th className='col-md-1 align-content-center text-center'>Products</th>
               <th className='col-md-1 align-content-center text-center'>Vendor Name</th>
               <th className='col-md-1 align-content-center text-center'>Marketplace</th>
@@ -356,6 +357,7 @@ const OrderTable: React.FC<{
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td> */}
                   <td className='align-content-center text-center '>{(new Date(order.date)).toLocaleString()}</td>
+                  <td className='align-content-center text-center'>{order.id}</td>
                   <td className='align-content-center text-center'>
                     {order.product_id.map(id => {
                       const product = products.find(product => product.id === id);
