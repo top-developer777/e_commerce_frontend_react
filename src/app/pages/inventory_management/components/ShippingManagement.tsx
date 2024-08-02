@@ -431,7 +431,7 @@ const TableShipment: React.FC<{
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent_name}</td>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.type}</td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.create_date.toLocaleString()}
+                {shipment.create_date ? shipment.create_date.toLocaleString() : ''}
               </td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 <StatusBadge status={shipment.status} />
