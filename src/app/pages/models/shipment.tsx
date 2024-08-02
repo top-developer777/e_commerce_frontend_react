@@ -1,32 +1,48 @@
+export interface ShippingProduct {
+  ean: string;
+  quantity: number;
+  item_per_box: number;
+  pdf_sent: boolean;
+  pay_url: string;
+  tracking: string;
+  arrive_agent: boolean;
+  wechat_group: string;
+  pp: string;
+  each_status: string;
+  box_number: number;
+  document: string;
+  date_added: string;
+  date_agent: string;
+  user: number;
+}
+
 export interface Shipment {
   id?: number;
-  order_id: number;
-  create_date: string;
   title: string;
-  agent_name: string;
+  create_date: string;
+  delivery_date: string;
   type: 'Airplain' | 'Sea' | 'Train';
   status: string;
-  delivery_date: string;
   warehouse: string;
-  note?: string;
-  ean: string[],
-  quantity: number[],
-  supplier_name: string[],
-  item: number[],
-  pdf_sent: boolean[],
-  pay_url: string[],
-  tracking: string[],
-  arrive_agent: boolean[],
-  wechat_group: string[],
-  pp: string[],
-  each_status: string[],
-  shipment_name: string[],
-  box_number: number[],
-  document: string[],
-  add_date: string[],
-  date_agent: string[],
-  SID: string[],
-  GID: string[],
-  date_port: string[],
-  newid: string[],
+  note: string;
+  agent: string;
+  awb: string;
+  vat: number;
+  custom_taxes: number;
+  shipment_cost: number;
+  ean: string[];
+  quantity: number[];
+  item_per_box: number[];
+  pdf_sent: boolean[];
+  pay_url: string[];
+  tracking: string[];
+  arrive_agent: boolean[];
+  wechat_group: string[];
+  pp: string[];
+  each_status: string[];
+  box_number: number[];
+  document: string[];
+  date_added: string[];
+  date_agent: string[];
+  user: number[];
 }

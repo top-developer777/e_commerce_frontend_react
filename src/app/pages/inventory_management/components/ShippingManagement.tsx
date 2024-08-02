@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Content } from '../../../../_metronic/layout/components/content'
 import Select, { MultiValue } from 'react-select'
-import { createShipments, deleteShipment, getAllProducts, getShipments, updateShipments } from './_request';
-import { Shipment } from '../../models/shipment';
+import { createShipments, deleteShipment, getAllProducts, getShipments, getShippingType, updateShipments } from './_request';
+import { Shipment, ShippingProduct } from '../../models/shipment';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
 import { Product } from '../../models/product';
+import { getUsers } from '../../config/components/_request';
+import { useAuth, UserModel } from '../../../modules/auth';
 
 const shippingStatus = [
   {
@@ -49,25 +51,6 @@ const fakeShipingType = [
 //     "label": "International Shipping"
 //   }
 // ]
-const fakeAgent = [
-  {
-    "value": 1,
-    "label": "Customer Support Agent"
-  },
-  {
-    "value": 2,
-    "label": "Sales Agent"
-  },
-  {
-    "value": 3,
-    "label": "Technical Support Agent"
-  },
-  {
-    "value": 4,
-    "label": "Order Processing Agent"
-  }
-]
-
 const fakeshippings = [
   {
     "id": 1,
@@ -428,7 +411,7 @@ const TableShipment: React.FC<{
           props.shipments.map((shipment, index) =>
             <tr className='py-1 cursor-pointer' key={`shipment${index}`}>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.title}</td>
-              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent_name}</td>
+              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent}</td>
               <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.type}</td>
               <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
                 {shipment.create_date ? (new Date(shipment.create_date)).toLocaleString() : ''}
@@ -459,6 +442,8 @@ const TableShipment: React.FC<{
 }
 
 export function ShippingManagement() {
+  const [productShipType, setProductShipType] = useState<string>('');
+  const [users, setUsers] = useState<UserModel[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [shippings, setshippings] = useState<Shipping[]>([]);
@@ -471,33 +456,12 @@ export function ShippingManagement() {
   const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
   const [products, setProducts] = useState<{ value: string, label: string }[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  interface SelectedProduct {
-    ean: string;
-    quantity: number;
-    supplier_name: string;
-    item: number;
-    pdf_sent: boolean;
-    pay_url: string;
-    tracking: string;
-    arrive_agent: boolean;
-    wechat_group: string;
-    pp: string;
-    each_status: string;
-    shipment_name: string;
-    box_number: number;
-    document: string;
-    add_date: string;
-    date_agent: string;
-    SID: string;
-    GID: string;
-    date_port: string;
-    newid: string;
-  }
   const [selectedProducts, setSelectedProducts] = useState<{
-    [key: number]: SelectedProduct
+    [key: number]: ShippingProduct
   }>({});
-  // const [agents, setAgents] = useState<{ value: string; label: string; }[]>([]);
+  const [agents, setAgents] = useState<{ value: string; label: string; }[]>([]);
   const [warehouses, setWarehouses] = useState<{ value: string; label: string; }[]>([]);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     if (changed) {
@@ -528,6 +492,16 @@ export function ShippingManagement() {
     setSelectedProductID(0);
   }, [selectedShipment]);
   useEffect(() => {
+    getUsers()
+      .then(res => res.data)
+      .then(res => {
+        const data = res.data;
+        setUsers(data);
+        setAgents(data.filter((user: UserModel) => user.role === 'Order Agent').map((user: UserModel) => {
+          return { value: user.email, label: `${user.full_name} (${user.email})` }
+        }));
+      })
+      .catch(e => console.error(e));
     getAllProducts()
       .then(res => {
         const data = res.data;
@@ -541,13 +515,12 @@ export function ShippingManagement() {
   }, []);
   useEffect(() => {
     if (editShipment) {
-      const dict: { [key: number]: SelectedProduct } = {};
+      const dict: { [key: number]: ShippingProduct } = {};
       for (let i = 0; i < editShipment.ean.length; i++) {
         dict[i + 1] = {
           ean: editShipment.ean[i],
           quantity: editShipment.quantity[i],
-          supplier_name: editShipment.supplier_name[i],
-          item: editShipment.item[i],
+          item_per_box: editShipment.item_per_box[i],
           pdf_sent: editShipment.pdf_sent[i],
           pay_url: editShipment.pay_url[i],
           tracking: editShipment.tracking[i],
@@ -555,15 +528,11 @@ export function ShippingManagement() {
           wechat_group: editShipment.wechat_group[i],
           pp: editShipment.pp[i],
           each_status: editShipment.each_status[i],
-          shipment_name: editShipment.shipment_name[i],
           box_number: editShipment.box_number[i],
           document: editShipment.document[i],
-          add_date: editShipment.add_date[i],
+          date_added: editShipment.date_added[i],
           date_agent: editShipment.date_agent[i],
-          SID: editShipment.SID[i],
-          GID: editShipment.GID[i],
-          date_port: editShipment.date_port[i],
-          newid: editShipment.newid[i],
+          user: editShipment.user[i],
         }
       }
       setSelectedProducts(dict);
@@ -604,9 +573,9 @@ export function ShippingManagement() {
     const note = noteComp.value;
     const now = new Date();
     // if (!name || !delivery_date) return;
-    type keyType = 'ean' | 'quantity' | 'supplier_name' | 'item' | 'pdf_sent' | 'pay_url' | 'tracking' | 'arrive_agent'
-      | 'wechat_group' | 'pp' | 'each_status' | 'shipment_name' | 'box_number' | 'document' | 'add_date' | 'date_agent'
-      | 'SID' | 'GID' | 'date_port' | 'newid';
+    type keyType = 'ean' | 'quantity' | 'item_per_box' | 'pdf_sent' | 'pay_url' | 'tracking' | 'arrive_agent'
+      | 'wechat_group' | 'pp' | 'each_status' | 'box_number' | 'document' | 'date_added' | 'date_agent'
+      | 'user';
     let firstKey;
     for (const key in selectedProducts) {
       firstKey = key.toString();
@@ -621,8 +590,7 @@ export function ShippingManagement() {
       products = {
         ean: [],
         quantity: [],
-        supplier_name: [],
-        item: [],
+        item_per_box: [],
         pdf_sent: [],
         pay_url: [],
         tracking: [],
@@ -630,19 +598,15 @@ export function ShippingManagement() {
         wechat_group: [],
         pp: [],
         each_status: [],
-        shipment_name: [],
         box_number: [],
         document: [],
-        add_date: [],
+        date_added: [],
         date_agent: [],
-        SID: [],
-        GID: [],
-        date_port: [],
-        newid: [],
+        user: [],
       }
     }
     const data = {
-      agent_name: agent,
+      agent: agent,
       created_date: editShipment ? editShipment.create_date : now.toISOString().split('T')[0],
       delivery_date: delivery_date,
       type: type,
@@ -762,21 +726,12 @@ export function ShippingManagement() {
                     <div className='col-md-4'>
                       <span className='text-gray-700'>Total Boxes</span><br />
                       <h4 className='text-gray-900 text-hover-primary'>
-                        {
-                          selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()
-                        }
+                        {!!selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()}
                       </h4>
                     </div>
                     <div className='col-md-8'>
                       <span className='text-gray-700'>Agent</span><br />
-                      <div className='col-md-4'>
-                        <Select
-                          className='react-select-styled react-select-solid react-select-sm'
-                          classNamePrefix='react-select'
-                          options={fakeAgent}
-                          placeholder='Select an Agent'
-                        />
-                      </div>
+                      <div className='col-md-4'>{!!selectedProduct}</div>
                     </div>
                   </div>
                   <div className='row mb-2'>
@@ -828,7 +783,7 @@ export function ShippingManagement() {
                   <div className="col-md-1"></div>
                   <div className="col-md-10">
                     <div className="row">
-                      <div className="col-md-4">
+                      <div className="col-md-12">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-25">Shipment Name:</div>
                           <div className="d-flex ms-auto mr-0 w-75">
@@ -839,6 +794,8 @@ export function ShippingManagement() {
                           </div>
                         </label>
                       </div>
+                    </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <div className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Shipping Type:</div>
@@ -871,8 +828,6 @@ export function ShippingManagement() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="row">
                       <div className="col-md-4">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Warehouse:</div>
@@ -888,6 +843,8 @@ export function ShippingManagement() {
                           </div>
                         </label>
                       </div>
+                    </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Expected Delivery Date:</div>
@@ -903,17 +860,59 @@ export function ShippingManagement() {
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Agent Name:</div>
                           <div className="d-flex ms-auto mr-0 w-50">
-                            {/* <Select
-                              name='name'
+                            <Select
+                              name='agent'
                               className='react-select-styled react-select-solid react-select-sm w-100'
                               options={agents}
                               placeholder='Select an agent'
                               noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
                               defaultValue={agents[0] ?? null}
-                            /> */}
+                            />
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">AWB:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='agent' placeholder="Agent Name" />
+                              <input type="text" className="form-control" name='awb' placeholder="AWB" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">VAT:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='vat' placeholder="VAT" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Custom Taxes:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='custom_taxes' placeholder="Custom Taxes" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipment Cost:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='shipment_cost' placeholder="Shipment Cost" />
                             </div>
                           </div>
                         </label>
@@ -941,10 +940,10 @@ export function ShippingManagement() {
                             <tr className="py-1 fs-4 fw-bold text-center">
                               <th></th>
                               <th></th>
+                              <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
-                              <th>Supplier</th>
-                              <th>Item</th>
+                              <th>Item per box</th>
                               <th>PDF sent</th>
                               <th>Pay URL</th>
                               <th>Tracking</th>
@@ -952,216 +951,183 @@ export function ShippingManagement() {
                               <th>Wechat Group</th>
                               <th>PP</th>
                               <th>Each Status</th>
-                              <th>Shipment Name</th>
                               <th>Box Number</th>
                               <th>Document</th>
                               <th>Created Date</th>
                               <th>Date to Agent</th>
-                              <th>SID</th>
-                              <th>GID</th>
-                              <th>Date to Port</th>
-                              <th>New ID</th>
+                              <th>Username</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.keys(selectedProducts).map((index) => (
-                              <tr className="py-1 fw-bold" key={`tr${index}`}>
-                                <td className='align-content-center'>
-                                  <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
-                                    const newProArr = { ...selectedProducts };
-                                    delete newProArr[parseInt(index)];
-                                    setSelectedProducts(newProArr);
-                                  }}>
-                                    <i className="bi bi-trash-fill"></i>
-                                  </button>
-                                </td>
-                                <td style={{ minWidth: '50px' }}>
-                                  <img src={allProducts.find(product => product.ean === selectedProducts[parseInt(index)].ean)?.image_link ?? ''} alt="" width={35} />
-                                </td>
-                                <td>
-                                  <Select
-                                    name='products'
-                                    className='react-select-styled react-select-solid react-select-sm w-100'
-                                    options={products}
-                                    placeholder='Select a product'
-                                    noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                                    hideSelectedOptions
-                                    captureMenuScroll={true}
-                                    menuPlacement={'auto'}
-                                    menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
-                                    value={products.find(product => product.value === selectedProducts[parseInt(index)].ean)}
-                                    onChange={product => setSelectedProducts({
-                                      ...selectedProducts,
-                                      [parseInt(index)]: {
-                                        ean: product?.value ?? '',
-                                        quantity: 1,
-                                        supplier_name: '',
-                                        item: 1,
-                                        pdf_sent: false,
-                                        pay_url: '',
-                                        tracking: '',
-                                        arrive_agent: false,
-                                        wechat_group: '',
-                                        pp: '',
-                                        each_status: '',
-                                        shipment_name: '',
-                                        box_number: 0,
-                                        document: '',
-                                        add_date: (new Date()).toISOString().split('T')[0],
-                                        date_agent: (new Date()).toISOString().split('T')[0],
-                                        SID: '',
-                                        GID: '',
-                                        date_port: (new Date()).toISOString().split('T')[0],
-                                        newid: '',
-                                      }
-                                    })}
-                                  />
-                                </td>
-                                <td>
-                                  <input type="number" name='numProduct' value={selectedProducts[parseInt(index)].quantity} min={1} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].quantity = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} className='form-control form-control-sm d-flex' />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].supplier_name} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].supplier_name = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].item} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].item = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td className='align-content-center'>
-                                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                    <input className="form-check-input" type="checkbox" checked={selectedProducts[parseInt(index)].pdf_sent} onChange={(e) => {
+                            {Object.keys(selectedProducts).map((index) => {
+                              const selectedProduct = selectedProducts[parseInt(index)];
+                              getShippingType(selectedProduct.ean)
+                                .then(res => res.data)
+                                .then(res => {
+                                  switch (res.type as number) {
+                                    default: setProductShipType(''); return;
+                                    case 1: setProductShipType('🛫'); return;
+                                    case 2: setProductShipType('🚆'); return;
+                                    case 3: setProductShipType('🚢'); return;
+                                  }
+                                });
+                              return (
+                                <tr className="py-1 fw-bold" key={`tr${index}`}>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
+                                      const newProArr = { ...selectedProducts };
+                                      delete newProArr[parseInt(index)];
+                                      setSelectedProducts(newProArr);
+                                    }}>
+                                      <i className="bi bi-trash-fill"></i>
+                                    </button>
+                                  </td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{productShipType}</td>
+                                  <td style={{ minWidth: '50px' }}>
+                                    <img src={allProducts.find(product => product.ean === selectedProduct.ean)?.image_link ?? ''} alt="" width={35} />
+                                  </td>
+                                  <td>
+                                    <Select
+                                      name='products'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      options={products}
+                                      placeholder='Select a product'
+                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                      value={products.find(product => product.value === selectedProduct.ean)}
+                                      onChange={product => setSelectedProducts({
+                                        ...selectedProducts,
+                                        [parseInt(index)]: {
+                                          ean: product?.value ?? '',
+                                          quantity: 1,
+                                          item_per_box: 1,
+                                          pdf_sent: false,
+                                          pay_url: '',
+                                          tracking: '',
+                                          arrive_agent: false,
+                                          wechat_group: '',
+                                          pp: '',
+                                          each_status: '',
+                                          box_number: 0,
+                                          document: '',
+                                          date_added: (new Date()).toISOString().split('T')[0],
+                                          date_agent: (new Date()).toISOString().split('T')[0],
+                                          user: currentUser?.id ?? 0,
+                                        }
+                                      })}
+                                    />
+                                  </td>
+                                  <td>
+                                    <input type="number" name='numProduct' value={selectedProduct.quantity} min={1} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].pdf_sent = e.target.checked;
+                                      newProducts[parseInt(index)].quantity = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} className='form-control form-control-sm d-flex' />
+                                  </td>
+                                  <td style={{ minWidth: '100px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].item_per_box = parseInt(e.target.value);
                                       setSelectedProducts(newProducts);
                                     }} />
-                                  </div>
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].pay_url} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].pay_url = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].tracking} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].tracking = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td className='align-content-center'>
-                                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                    <input className="form-check-input" type="checkbox" checked={selectedProducts[parseInt(index)].arrive_agent} onChange={(e) => {
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.pdf_sent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].pdf_sent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pay_url} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].arrive_agent = e.target.checked;
+                                      newProducts[parseInt(index)].pay_url = e.target.value;
                                       setSelectedProducts(newProducts);
                                     }} />
-                                  </div>
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].wechat_group} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].wechat_group = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].pp} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].pp = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].each_status} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].each_status = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].shipment_name} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].shipment_name = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].box_number} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].box_number = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].document} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].document = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].add_date} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].add_date = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].date_agent} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].date_agent = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].SID} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].SID = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].GID} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].GID = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].date_port} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].date_port = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].newid} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].newid = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                              </tr>
-                            ))}
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.tracking} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].tracking = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.arrive_agent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].arrive_agent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].wechat_group = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].pp = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.each_status} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].each_status = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.box_number} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].box_number = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.document} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].document = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_added} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_added = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_agent} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_agent = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center' style={{ minWidth: '100px' }}>
+                                    {users.find(user => user.id === selectedProduct.user)?.full_name}
+                                  </td>
+                                </tr>
+                              )
+                            })}
                             {(() => {
                               const objects = Object.keys(selectedProducts);
                               const len = objects.length;
                               const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${num}`}>
+                                  <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td>
@@ -1180,8 +1146,7 @@ export function ShippingManagement() {
                                         [parseInt(num)]: {
                                           ean: product?.value ?? '',
                                           quantity: 1,
-                                          supplier_name: '',
-                                          item: 1,
+                                          item_per_box: 1,
                                           pdf_sent: false,
                                           pay_url: '',
                                           tracking: '',
@@ -1189,24 +1154,15 @@ export function ShippingManagement() {
                                           wechat_group: '',
                                           pp: '',
                                           each_status: '',
-                                          shipment_name: '',
                                           box_number: 0,
                                           document: '',
-                                          add_date: (new Date()).toISOString().split('T')[0],
+                                          date_added: (new Date()).toISOString().split('T')[0],
                                           date_agent: (new Date()).toISOString().split('T')[0],
-                                          SID: '',
-                                          GID: '',
-                                          date_port: (new Date()).toISOString().split('T')[0],
-                                          newid: '',
+                                          user: currentUser?.id ?? 0,
                                         }
                                       })}
                                     />
                                   </td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
                                   <td></td>
                                   <td></td>
                                   <td></td>
@@ -1234,7 +1190,7 @@ export function ShippingManagement() {
               </form>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setProductShipType('')} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-plus"></i>Create</button>
             </div>
           </div>
@@ -1253,7 +1209,7 @@ export function ShippingManagement() {
                   <div className="col-md-1"></div>
                   <div className="col-md-10">
                     <div className="row">
-                      <div className="col-md-4">
+                      <div className="col-md-12">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-25">Shipment Name:</div>
                           <div className="d-flex ms-auto mr-0 w-75">
@@ -1264,6 +1220,8 @@ export function ShippingManagement() {
                           </div>
                         </label>
                       </div>
+                    </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <div className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Shipping Type:</div>
@@ -1296,8 +1254,6 @@ export function ShippingManagement() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="row">
                       <div className="col-md-4">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Warehouse:</div>
@@ -1313,6 +1269,8 @@ export function ShippingManagement() {
                           </div>
                         </label>
                       </div>
+                    </div>
+                    <div className="row">
                       <div className="col-md-4">
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Expected Delivery Date:</div>
@@ -1328,17 +1286,59 @@ export function ShippingManagement() {
                         <label className="d-flex align-items-center py-1">
                           <div className="d-flex fw-bold w-50">Agent Name:</div>
                           <div className="d-flex ms-auto mr-0 w-50">
-                            {/* <Select
-                              name='name'
+                            <Select
+                              name='agent'
                               className='react-select-styled react-select-solid react-select-sm w-100'
                               options={agents}
                               placeholder='Select an agent'
                               noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
-                              defaultValue={agents[0] ?? null}
-                            /> */}
+                              defaultValue={agents.find(user => user.value === editShipment.agent)}
+                            />
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">AWB:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='agent' defaultValue={editShipment.agent_name} placeholder="Agent Name" />
+                              <input type="text" className="form-control" name='awb' defaultValue={editShipment.awb} placeholder="AWB" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">VAT:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='vat' defaultValue={editShipment.vat} placeholder="VAT" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Custom Taxes:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='custom_taxes' defaultValue={editShipment.custom_taxes} placeholder="Custom Taxes" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipment Cost:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='shipment_cost' defaultValue={editShipment.shipment_cost} placeholder="Shipment Cost" />
                             </div>
                           </div>
                         </label>
@@ -1365,10 +1365,11 @@ export function ShippingManagement() {
                           <thead>
                             <tr className="py-1 fs-4 fw-bold text-center">
                               <th></th>
+                              <th></th>
+                              <th></th>
                               <th style={{ minWidth: '500px' }}>Product</th>
                               <th>Quantity</th>
-                              <th>Supplier</th>
-                              <th>Item</th>
+                              <th>Item per box</th>
                               <th>PDF sent</th>
                               <th>Pay URL</th>
                               <th>Tracking</th>
@@ -1376,213 +1377,184 @@ export function ShippingManagement() {
                               <th>Wechat Group</th>
                               <th>PP</th>
                               <th>Each Status</th>
-                              <th>Shipment Name</th>
                               <th>Box Number</th>
                               <th>Document</th>
                               <th>Created Date</th>
                               <th>Date to Agent</th>
-                              <th>SID</th>
-                              <th>GID</th>
-                              <th>Date to Port</th>
-                              <th>New ID</th>
+                              <th>Username</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.keys(selectedProducts).map((index) => (
-                              <tr className="py-1 fw-bold" key={`tr${index}`}>
-                                <td className='align-content-center'>
-                                  <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
-                                    const newProArr = { ...selectedProducts };
-                                    delete newProArr[parseInt(index)];
-                                    setSelectedProducts(newProArr);
-                                  }}>
-                                    <i className="bi bi-trash-fill"></i>
-                                  </button>
-                                </td>
-                                <td>
-                                  <Select
-                                    name='products'
-                                    className='react-select-styled react-select-solid react-select-sm w-100'
-                                    options={products}
-                                    placeholder='Select a product'
-                                    noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                                    hideSelectedOptions
-                                    captureMenuScroll={true}
-                                    menuPlacement={'auto'}
-                                    menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
-                                    value={products.find(product => product.value === selectedProducts[parseInt(index)].ean)}
-                                    onChange={product => setSelectedProducts({
-                                      ...selectedProducts,
-                                      [parseInt(index)]: {
-                                        ean: product?.value ?? '',
-                                        quantity: 1,
-                                        supplier_name: '',
-                                        item: 1,
-                                        pdf_sent: false,
-                                        pay_url: '',
-                                        tracking: '',
-                                        arrive_agent: false,
-                                        wechat_group: '',
-                                        pp: '',
-                                        each_status: '',
-                                        shipment_name: '',
-                                        box_number: 0,
-                                        document: '',
-                                        add_date: '',
-                                        date_agent: '',
-                                        SID: '',
-                                        GID: '',
-                                        date_port: '',
-                                        newid: '',
-                                      }
-                                    })}
-                                  />
-                                </td>
-                                <td>
-                                  <input type="number" name='numProduct' value={selectedProducts[parseInt(index)].quantity} min={1} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].quantity = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} className='form-control form-control-sm d-flex' />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].supplier_name} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].supplier_name = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].item} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].item = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td className='align-content-center'>
-                                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                    <input className="form-check-input" type="checkbox" checked={selectedProducts[parseInt(index)].pdf_sent} onChange={(e) => {
+                            {Object.keys(selectedProducts).map((index) => {
+                              const selectedProduct = selectedProducts[parseInt(index)];
+                              getShippingType(selectedProduct.ean)
+                                .then(res => res.data)
+                                .then(res => {
+                                  switch (res.type as number) {
+                                    default: setProductShipType(''); return;
+                                    case 1: setProductShipType('🛫'); return;
+                                    case 2: setProductShipType('🚆'); return;
+                                    case 3: setProductShipType('🚢'); return;
+                                  }
+                                });
+                              return (
+                                <tr className="py-1 fw-bold" key={`tr${index}`}>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" onClick={() => {
+                                      const newProArr = { ...selectedProducts };
+                                      delete newProArr[parseInt(index)];
+                                      setSelectedProducts(newProArr);
+                                    }}>
+                                      <i className="bi bi-trash-fill"></i>
+                                    </button>
+                                  </td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{productShipType}</td>
+                                  <td style={{ minWidth: '50px' }}>
+                                    <img src={allProducts.find(product => product.ean === selectedProduct.ean)?.image_link ?? ''} alt="" width={35} />
+                                  </td>
+                                  <td>
+                                    <Select
+                                      name='products'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      options={products}
+                                      placeholder='Select a product'
+                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                      value={products.find(product => product.value === selectedProduct.ean)}
+                                      onChange={product => setSelectedProducts({
+                                        ...selectedProducts,
+                                        [parseInt(index)]: {
+                                          ean: product?.value ?? '',
+                                          quantity: 1,
+                                          item_per_box: 1,
+                                          pdf_sent: false,
+                                          pay_url: '',
+                                          tracking: '',
+                                          arrive_agent: false,
+                                          wechat_group: '',
+                                          pp: '',
+                                          each_status: '',
+                                          box_number: 0,
+                                          document: '',
+                                          date_added: '',
+                                          date_agent: '',
+                                          user: currentUser?.id ?? 0,
+                                        }
+                                      })}
+                                    />
+                                  </td>
+                                  <td>
+                                    <input type="number" name='numProduct' value={selectedProduct.quantity} min={1} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].pdf_sent = e.target.checked;
+                                      newProducts[parseInt(index)].quantity = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} className='form-control form-control-sm d-flex' />
+                                  </td>
+                                  <td style={{ minWidth: '100px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].item_per_box = parseInt(e.target.value);
                                       setSelectedProducts(newProducts);
                                     }} />
-                                  </div>
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].pay_url} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].pay_url = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].tracking} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].tracking = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td className='align-content-center'>
-                                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                    <input className="form-check-input" type="checkbox" checked={selectedProducts[parseInt(index)].arrive_agent} onChange={(e) => {
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.pdf_sent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].pdf_sent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pay_url} onChange={(e) => {
                                       const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].arrive_agent = e.target.checked;
+                                      newProducts[parseInt(index)].pay_url = e.target.value;
                                       setSelectedProducts(newProducts);
                                     }} />
-                                  </div>
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].wechat_group} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].wechat_group = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '200px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].pp} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].pp = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].each_status} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].each_status = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].shipment_name} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].shipment_name = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].box_number} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].box_number = parseInt(e.target.value);
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].document} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].document = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].add_date.split('T')[0]} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].add_date = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].date_agent.split('T')[0]} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].date_agent = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].SID} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].SID = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].GID} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].GID = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td>
-                                  <input type="date" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].date_port.split('T')[0]} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].date_port = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                                <td style={{ minWidth: '100px' }}>
-                                  <input type="text" className='form-control form-control-sm' value={selectedProducts[parseInt(index)].newid} onChange={(e) => {
-                                    const newProducts = { ...selectedProducts };
-                                    newProducts[parseInt(index)].newid = e.target.value;
-                                    setSelectedProducts(newProducts);
-                                  }} />
-                                </td>
-                              </tr>
-                            ))}
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.tracking} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].tracking = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.arrive_agent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].arrive_agent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].wechat_group = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].pp = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.each_status} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].each_status = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.box_number} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].box_number = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.document} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].document = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_added.split('T')[0]} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_added = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_agent.split('T')[0]} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_agent = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center' style={{ minWidth: '100px' }}>
+                                    {users.find(user => user.id === selectedProduct.user)?.full_name}
+                                  </td>
+                                </tr>
+                              )
+                            })}
                             {(() => {
                               const objects = Object.keys(selectedProducts);
                               const len = objects.length;
                               const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${num}`}>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td style={{ minWidth: '50px' }}></td>
                                   <td style={{ minWidth: '50px' }}></td>
                                   <td>
                                     <Select
@@ -1600,8 +1572,7 @@ export function ShippingManagement() {
                                         [parseInt(num)]: {
                                           ean: product?.value ?? '',
                                           quantity: 1,
-                                          supplier_name: '',
-                                          item: 1,
+                                          item_per_box: 1,
                                           pdf_sent: false,
                                           pay_url: '',
                                           tracking: '',
@@ -1609,24 +1580,15 @@ export function ShippingManagement() {
                                           wechat_group: '',
                                           pp: '',
                                           each_status: '',
-                                          shipment_name: '',
                                           box_number: 0,
                                           document: '',
-                                          add_date: '',
+                                          date_added: '',
                                           date_agent: '',
-                                          SID: '',
-                                          GID: '',
-                                          date_port: '',
-                                          newid: '',
+                                          user: currentUser?.id ?? 0,
                                         }
                                       })}
                                     />
                                   </td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
                                   <td></td>
                                   <td></td>
                                   <td></td>
@@ -1654,7 +1616,7 @@ export function ShippingManagement() {
               </form>}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { setEditShipment(undefined); setProductShipType('') }} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
             </div>
           </div>

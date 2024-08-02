@@ -80,3 +80,7 @@ export const deleteShipment = (id: number) => {
 export const updateShipments = (id: number, data: { [key: string]: string | number | boolean }) => {
   return axios.put(`${SHIPMENT_ENDPOINT}/${id}`, data);
 }
+
+export const getShippingType = (ean: string) => {
+  return axios.get(`${SHIPMENT_ENDPOINT}/product_info`, { params: { ean: ean } })
+}
