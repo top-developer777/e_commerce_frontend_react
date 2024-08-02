@@ -44,9 +44,9 @@ export const getProductImageByID = async (id: number) => {
   return images.length > 0 ? images[0]["url"] : [{ "url": "" }]
 }
 
-export const getAllSuppliers = async (page: number, limit = 50) => {
+export const getAllSuppliers = async () => {
   return axios
-    .get(SUPPLIERS_ENDPOINT, { params: { page: page, items_per_page: limit } })
+    .get(SUPPLIERS_ENDPOINT)
 }
 
 export const createSupplier = async (data: { name: string, group: string, wechat: string }) => {

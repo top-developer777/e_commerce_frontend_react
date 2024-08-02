@@ -205,7 +205,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
         }
       })
       .catch(e => console.error(e));
-    getAllSuppliers(1, 1000)
+    getAllSuppliers()
       .then(res => setSuppliers(res.data))
       .catch(e => console.error(e));
   }, [product.ean]);
@@ -284,7 +284,7 @@ export const Products = () => {
       })
   }, [limit, products.length]);
   useEffect(() => {
-    getAllSuppliers(1, 1000)
+    getAllSuppliers()
       .then(res => {
         setSuppliers(res.data);
         if (!res.data.length) return;

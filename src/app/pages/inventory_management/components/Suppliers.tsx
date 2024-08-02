@@ -24,7 +24,7 @@ export const Suppliers = () => {
 
   useEffect(() => {
     if (handleChanged) {
-      getAllSuppliers(currentPage, limit)
+      getAllSuppliers()
         .then(res => {
           setSuppliers(res.data);
         })

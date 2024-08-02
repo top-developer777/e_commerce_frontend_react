@@ -519,7 +519,7 @@ export function ShippingManagement() {
         setProducts(products);
       })
       .catch(e => console.error(e));
-    getAllSuppliers(1, 1000)
+    getAllSuppliers()
       .then(res => {
         if (!res.data.length) return;
         setSupplierOptions(res.data.map((datum: Suppliers) => {
