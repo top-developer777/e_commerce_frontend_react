@@ -689,7 +689,8 @@ export function ShippingManagement() {
     if (!editProduct) return;
     const closeBtn = document.querySelector('#editProductModal button[data-bs-target="#createShipmentModal"]') as HTMLButtonElement;
     editProductRequest(editProduct.id ?? 0, editProduct as unknown as { [key: string]: string | number | boolean })
-      .then(() => {
+      .then(res => {
+        setEditProduct(res.data);
         setChanged(true);
         toast.success('Successfully edited.');
         closeBtn.click();
