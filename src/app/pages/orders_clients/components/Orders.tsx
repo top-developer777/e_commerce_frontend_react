@@ -453,7 +453,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="string" className="form-control" name='locker_id' placeholder="Locker ID" required />
+                      <input type="string" className="form-control" name='locker_id' defaultValue={JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? ''} placeholder="Locker ID" required />
                     </div>
                   </div>
                 </div>
