@@ -6,7 +6,7 @@ export interface WarehouseType {
   phone1: string;
   phone2?: string;
   legal_entity: boolean;
-  locality_id: string;
+  locality_id: number;
   street: string;
   zipcode: string;
 }

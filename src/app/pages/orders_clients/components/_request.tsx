@@ -2,7 +2,8 @@ import axios from "axios";
 import { AWBInterface } from "../../models/awb";
 
 const API_URL = import.meta.env.VITE_APP_API_URL
-const ORDERS_ENDPOINT = `${API_URL}/orders`
+const ORDERS_ENDPOINT = `${API_URL}/orders`;
+const COURIER_ENDPOINT = `${API_URL}/courier`;
 
 export const getAllOrders = (page: number, limit = 50, status = -1, searchText = '', sort = true) => {
   return axios
@@ -45,4 +46,8 @@ export const createAWB = (data: AWBInterface, marketplace: string) => {
 
 export const getCustomer = async (orderId: number) => {
   return axios.get(`${API_URL}/../awb/customer?order_id=${orderId}`)
+}
+
+export const getCouriers = async (page: number = 1, limit: number = 50) => {
+  return axios.get(COURIER_ENDPOINT, { params: { page, limit }})
 }

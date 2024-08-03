@@ -4,14 +4,14 @@ import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
 // import { useAuth } from '../../../modules/auth';
-import { createAWB, getAllOrders, getCustomer, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getCouriers, getCustomer, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
 import { AWBInterface } from '../../models/awb';
-import { CustomerInterface } from '../../models/customer';
+import { CourierType } from '../../models/courier';
 // import Select from 'react-select'
 // import { getProductImageByID } from '../../inventory_management/components/_request'
 
@@ -108,8 +108,10 @@ const OrderTable: React.FC<{
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedOrder, selectOrder] = useState<Order>();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
-  const [senders, setSenders] = useState<{ value: string, label: string }[]>([]);
-  const [customer, setCustomer] = useState<CustomerInterface>();
+  const [senders, setSenders] = useState<{ value: number, label: string }[]>([]);
+  const [couriers, setCouriers] = useState<{ value: number, label: string }[]>([]);
+  const [awbForm, setAwbForm] = useState<AWBInterface>();
+  const [senderId, setSenderId] = useState<number>(0);
 
   useEffect(() => {
     getAllProducts()
@@ -127,28 +129,125 @@ const OrderTable: React.FC<{
         setSenders(warehouse);
       })
       .catch(e => console.error(e));
+    getCouriers()
+      .then(res => res.data)
+      .then((res: CourierType[]) => {
+        setCouriers(res.map(data => {
+          return { value: data.account_id, label: data.account_display_name }
+        }));
+      })
+      .catch(e => console.error(e));
   }, []);
   useEffect(() => {
     if (!selectedOrder) {
-      setCustomer(undefined);
+      setAwbForm(undefined);
       return;
     }
+    const sender = warehouses.find(house => house.id === senderId);
     getCustomer(selectedOrder?.id ?? 0)
       .then(res => res.data)
       .then(res => {
         if (res === null) {
           toast.warning('Can\'t load receiver\'s information.');
-          setCustomer(undefined);
+          setAwbForm({
+            cod: selectedOrder.cashed_cod.toString(),
+            envelope_number: 1,
+            is_oversize: 0,
+            order_id: selectedOrder?.id ?? 0,
+            parcel_number: 0,
+            locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
+            insured_value: '0',
+            observation: '',
+            courier_account_id: null,
+            pickup_and_return: 0,
+            saturday_delivery: 0,
+            sameday_delivery: 0,
+            dropoff_locker: 0,
+            receiver_contact: '',
+            receiver_legal_entity: 0,
+            receiver_locality_id: 0,
+            receiver_name: '',
+            receiver_phone1: '',
+            receiver_phone2: '',
+            receiver_street: '',
+            receiver_zipcode: '',
+            sender_locality_id: sender?.locality_id ?? 0,
+            sender_name: sender?.sender_name ?? '',
+            sender_phone1: sender?.phone1 ?? '',
+            sender_phone2: sender?.phone2 ?? '',
+            sender_street: sender?.street ?? '',
+            sender_zipcode: sender?.zipcode ?? '',
+            weight: '0',
+          });
           return;
         }
-        setCustomer(res);
+        setAwbForm({
+          cod: selectedOrder.cashed_cod.toString(),
+          envelope_number: 1,
+          is_oversize: 0,
+          order_id: selectedOrder?.id ?? 0,
+          parcel_number: 0,
+          locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
+          insured_value: '0',
+          observation: '',
+          courier_account_id: null,
+          pickup_and_return: 0,
+          saturday_delivery: 0,
+          sameday_delivery: 0,
+          dropoff_locker: 0,
+          receiver_contact: res.shipping_contact,
+          receiver_legal_entity: res.legal_entity,
+          receiver_locality_id: parseInt(res.shipping_locality_id),
+          receiver_name: res.name,
+          receiver_phone1: res.phone_1,
+          receiver_phone2: '',
+          receiver_street: res.shipping_street,
+          receiver_zipcode: '',
+          sender_locality_id: sender?.locality_id ?? 0,
+          sender_name: sender?.sender_name ?? '',
+          sender_phone1: sender?.phone1 ?? '',
+          sender_phone2: sender?.phone2 ?? '',
+          sender_street: sender?.street ?? '',
+          sender_zipcode: sender?.zipcode ?? '',
+          weight: '0',
+        });
       })
       .catch(e => {
         toast.error('Can\'t load receiver\'s information');
-        setCustomer(undefined);
+        setAwbForm({
+          cod: selectedOrder.cashed_cod.toString(),
+          envelope_number: 1,
+          is_oversize: 0,
+          order_id: selectedOrder?.id ?? 0,
+          parcel_number: 0,
+          locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
+          insured_value: '0',
+          observation: '',
+          courier_account_id: null,
+          pickup_and_return: 0,
+          saturday_delivery: 0,
+          sameday_delivery: 0,
+          dropoff_locker: 0,
+          receiver_contact: '',
+          receiver_legal_entity: 0,
+          receiver_locality_id: 0,
+          receiver_name: '',
+          receiver_phone1: '',
+          receiver_phone2: '',
+          receiver_street: '',
+          receiver_zipcode: '',
+          sender_locality_id: sender?.locality_id ?? 0,
+          sender_name: sender?.sender_name ?? '',
+          sender_phone1: sender?.phone1 ?? '',
+          sender_phone2: sender?.phone2 ?? '',
+          sender_street: sender?.street ?? '',
+          sender_zipcode: sender?.zipcode ?? '',
+          weight: '0',
+        });
         console.error(e);
-      })
-  }, [selectedOrder]);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [senderId, warehouses, selectedOrder]);
 
   // const { currentUser } = useAuth();
   // const handleEdit = (id: number) => {
@@ -192,66 +291,11 @@ const OrderTable: React.FC<{
     return false;
   }
   const handleCreateAWB = () => {
-    if (!selectedOrder) return;
-    const form = document.querySelector('#createAWBModal form');
+    if (!selectedOrder || !awbForm) return;
+
     const closeBtn = document.querySelector('#createAWBModal .btn-close') as HTMLButtonElement;
-    const data: AWBInterface = {
-      cod: '0',
-      envelope_number: 1,
-      is_oversize: 0,
-      order_id: 0,
-      parcel_number: 0,
-      locker_id: '',
-      insured_value: '0',
-      observation: '',
-      courier_account_id: 0,
-      pickup_and_return: 0,
-      saturday_delivery: 0,
-      sameday_delivery: 0,
-      dropoff_locker: 0,
-      receiver_contact: '',
-      receiver_legal_entity: 0,
-      receiver_locality_id: 0,
-      receiver_name: '',
-      receiver_phone1: '',
-      receiver_phone2: '',
-      receiver_street: '',
-      receiver_zipcode: '',
-      sender_locality_id: 0,
-      sender_name: '',
-      sender_phone1: '',
-      sender_phone2: '',
-      sender_street: '',
-      sender_zipcode: '',
-      weight: '0',
-    };
-    data.cod = (form?.querySelector('[name="cod"]') as HTMLInputElement).value;
-    data.envelope_number = parseFloat((form?.querySelector('[name="envelope_number"]') as HTMLInputElement).value);
-    data.is_oversize = (form?.querySelector('[name="is_oversize"]') as HTMLInputElement).checked ? 1 : 0;
-    data.order_id = parseInt((form?.querySelector('[name="order_id"]') as HTMLInputElement).value);
-    data.locker_id = (form?.querySelector('[name="locker_id"]') as HTMLInputElement).value;
-    data.insured_value = (form?.querySelector('[name="insured_value"]') as HTMLInputElement).value;
-    data.courier_account_id = parseInt((form?.querySelector('[name="courier_account_id"]') as HTMLInputElement).value);
-    data.parcel_number = parseInt((form?.querySelector('[name="parcel_number"]') as HTMLInputElement).value);
-    data.observation = (form?.querySelector('[name="observation"]') as HTMLInputElement).value;
-    data.pickup_and_return = (form?.querySelector('[name="pickup_and_return"]') as HTMLInputElement).checked ? 1 : 0;
-    data.saturday_delivery = (form?.querySelector('[name="saturday_delivery"]') as HTMLInputElement).checked ? 1 : 0;
-    data.sameday_delivery = (form?.querySelector('[name="sameday_delivery"]') as HTMLInputElement).checked ? 1 : 0;
-    data.dropoff_locker = (form?.querySelector('[name="dropoff_locker"]') as HTMLInputElement).checked ? 1 : 0;
-    data.receiver_locality_id = parseInt((form?.querySelector('[name="receiver.locality_id"]') as HTMLInputElement).value);
-    data.receiver_name = (form?.querySelector('[name="receiver.name"]') as HTMLInputElement).value;
-    data.receiver_phone1 = (form?.querySelector('[name="receiver.phone1"]') as HTMLInputElement).value;
-    data.receiver_phone2 = (form?.querySelector('[name="receiver.phone2"]') as HTMLInputElement).value;
-    data.receiver_street = (form?.querySelector('[name="receiver.street"]') as HTMLInputElement).value;
-    data.receiver_contact = (form?.querySelector('[name="receiver.contact"]') as HTMLInputElement).value;
-    data.receiver_legal_entity = (form?.querySelector('[name="receiver.legal_entity"]') as HTMLInputElement).checked ? 1 : 0;
-    data.receiver_zipcode = (form?.querySelector('[name="receiver.zipcode"]') as HTMLInputElement).value;
-    if (!isValidPhone(data.receiver_phone1) || (data.receiver_phone2 && !isValidPhone(data.receiver_phone2 ?? ''))) {
-      toast.error('Receiver\'s phone must be valid phone number.');
-      return;
-    }
-    const senderId = parseInt((form?.querySelector('[name="sender"]') as HTMLInputElement).value);
-    if (!data.cod || !data.order_id) {
+    const senderId = parseInt((document.querySelector('#createAWBModal form [name="sender"]') as HTMLInputElement).value);
+    if (!awbForm?.cod || !awbForm?.order_id) {
       toast.error('Please fill all necessary values.');
       return;
     }
@@ -259,14 +303,11 @@ const OrderTable: React.FC<{
       toast.error('Please select a sender.');
       return;
     }
-    const sender = warehouses.find(house => house.id === senderId);
-    data.sender_locality_id = parseInt(sender?.locality_id ?? '0');
-    data.sender_name = sender?.sender_name ?? '';
-    data.sender_phone1 = sender?.phone1 ?? '';
-    data.sender_phone2 = sender?.phone2 ?? '';
-    data.sender_street = sender?.street ?? '';
-    data.sender_zipcode = sender?.zipcode ?? '';
-    createAWB(data, selectedOrder.order_market_place)
+    if (!isValidPhone(awbForm.receiver_phone1) || (awbForm.receiver_phone2 && !isValidPhone(awbForm.receiver_phone2))) {
+      toast.error('Receiver\'s phones must be valid phone numbers.');
+      return;
+    }
+    createAWB(awbForm, selectedOrder.order_market_place)
       .then(res => {
         const data = res.data;
         if (data.isError) {
@@ -275,13 +316,13 @@ const OrderTable: React.FC<{
         } else {
           toast.success(
             <table>
-            <tr><td className='text-nowrap fw-bold'>AWB Barcode: </td><td>{data.results.awb[0].awb_barcode}</td></tr>
-            <tr><td className='text-nowrap fw-bold'>AWB Number: </td><td>{data.results.awb[0].awb_number}</td></tr>
-            <tr><td className='text-nowrap fw-bold'>Courier ID: </td><td>{data.results.courier_id}</td></tr>
-            <tr><td className='text-nowrap fw-bold'>Courier Name: </td><td>{data.results.courier_name}</td></tr>
+              <tr><td className='text-nowrap fw-bold'>AWB Barcode: </td><td>{data.results.awb[0].awb_barcode}</td></tr>
+              <tr><td className='text-nowrap fw-bold'>AWB Number: </td><td>{data.results.awb[0].awb_number}</td></tr>
+              <tr><td className='text-nowrap fw-bold'>Courier ID: </td><td>{data.results.courier_id}</td></tr>
+              <tr><td className='text-nowrap fw-bold'>Courier Name: </td><td>{data.results.courier_name}</td></tr>
             </table>, {
-              autoClose: false,
-            });
+            autoClose: false,
+          });
           closeBtn.click();
         }
       })
@@ -414,8 +455,7 @@ const OrderTable: React.FC<{
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
-              <form action="" method='post' id='createAWBForm'>
-                <input type="number" name='order_id' defaultValue={selectedOrder?.id} disabled style={{ display: 'none' }} />
+              {!!awbForm && <form action="" method='post' id='createAWBForm'>
                 <div className="d-flex align-items-center py-1">
                   <div className="d-flex fw-bold w-25">Warehouse:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
@@ -426,7 +466,8 @@ const OrderTable: React.FC<{
                       placeholder='Select a warehouse'
                       isSearchable={false}
                       noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
-                      defaultValue={senders[0]}
+                      value={senders.find(sender => sender.value === senderId)}
+                      onChange={e => setSenderId(e?.value ?? 0)}
                     />
                   </div>
                 </div>
@@ -435,7 +476,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='envelope_number' placeholder="Envelope Number" defaultValue={0} min={0} max={9999} required />
+                      <input type="number" className="form-control" placeholder="Envelope Number" value={awbForm.envelope_number} onChange={e => setAwbForm({ ...awbForm, envelope_number: parseInt(e.target.value) })} min={0} max={9999} required />
                     </div>
                   </div>
                 </div>
@@ -444,7 +485,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='parcel_number' placeholder="Parcel Number" min={0} max={999} defaultValue={1} required />
+                      <input type="number" className="form-control" placeholder="Parcel Number" min={0} max={999} value={awbForm.parcel_number} onChange={e => setAwbForm({ ...awbForm, parcel_number: parseInt(e.target.value) })} required />
                     </div>
                   </div>
                 </div>
@@ -453,7 +494,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="string" className="form-control" name='locker_id' defaultValue={JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? ''} placeholder="Locker ID" required />
+                      <input type="string" className="form-control" value={awbForm.locker_id} onChange={e => setAwbForm({ ...awbForm, locker_id: e.target.value })} placeholder="Locker ID" required />
                     </div>
                   </div>
                 </div>
@@ -462,7 +503,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='cod' placeholder="COD" defaultValue={selectedOrder?.cashed_cod} />
+                      <input type="number" className="form-control" placeholder="COD" value={awbForm.cod} onChange={e => setAwbForm({ ...awbForm, cod: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -470,7 +511,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Contain Oversize Product:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='is_oversize' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.is_oversize === 1} onChange={e => setAwbForm({ ...awbForm, is_oversize: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -479,7 +520,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='insured_value' placeholder="Insured Value" defaultValue={0} min={0} max={9999} required />
+                      <input type="number" className="form-control" placeholder="Insured Value" value={awbForm.insured_value} onChange={e => setAwbForm({ ...awbForm, insured_value: e.target.value })} min={0} max={9999} required />
                     </div>
                   </div>
                 </div>
@@ -488,24 +529,30 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='observation' placeholder="Observation" required />
+                      <input type="text" className="form-control" value={awbForm.observation} onChange={e => setAwbForm({ ...awbForm, observation: e.target.value })} placeholder="Observation" required />
                     </div>
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-1">
-                  <div className="d-flex fw-bold w-25">Courier Account ID:</div>
+                  <div className="d-flex fw-bold w-25">Courier Account (Optional):</div>
                   <div className="d-flex ms-auto mr-0 w-75">
-                    <div className="input-group">
-                      <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='courier_account_id' placeholder="Courier Account ID" min={0} max={9999} required />
-                    </div>
+                    <Select
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={couriers}
+                      placeholder='Select a courier'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more courier including "${e.inputValue}"`}
+                      isClearable={true}
+                      value={couriers.find(courier => courier.value === awbForm.courier_account_id)}
+                      onChange={e => setAwbForm({ ...awbForm, courier_account_id: e?.value ?? null })}
+                    />
                   </div>
                 </div>
                 <div className="d-flex align-items-center py-3">
                   <div className="d-flex fw-bold w-25">Pickup and Return:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='pickup_and_return' defaultChecked={true} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.pickup_and_return === 1} onChange={e => setAwbForm({ ...awbForm, pickup_and_return: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -513,7 +560,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Saturday Delivery:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='saturday_delivery' defaultChecked={true} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.saturday_delivery === 1} onChange={e => setAwbForm({ ...awbForm, saturday_delivery: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -521,7 +568,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Sameday Delivery:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='sameday_delivery' defaultChecked={true} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.sameday_delivery === 1} onChange={e => setAwbForm({ ...awbForm, sameday_delivery: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -529,7 +576,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Dropoff Locker:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='dropoff_locker' defaultChecked={false} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.dropoff_locker === 1} onChange={e => setAwbForm({ ...awbForm, dropoff_locker: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -540,7 +587,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.name' value={customer?.name} onChange={e => {if (customer) setCustomer({ ...customer, name: e.target.value })}} placeholder="Name" required />
+                      <input type="text" className="form-control" value={awbForm.receiver_name} onChange={e => setAwbForm({ ...awbForm, receiver_name: e.target.value })} placeholder="Name" required />
                     </div>
                   </div>
                 </div>
@@ -549,7 +596,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.contact' value={customer?.shipping_contact} onChange={e => {if (customer) setCustomer({ ...customer, shipping_contact: e.target.value })}} placeholder="Contact" required />
+                      <input type="text" className="form-control" value={awbForm.receiver_contact} onChange={e => setAwbForm({ ...awbForm, receiver_contact: e.target.value })} placeholder="Contact" required />
                     </div>
                   </div>
                 </div>
@@ -558,7 +605,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.phone1' value={customer?.phone_1} onChange={e => {if (customer) setCustomer({ ...customer, phone_1: e.target.value })}} placeholder="+11234567890" required />
+                      <input type="text" className="form-control" value={awbForm.receiver_phone1} onChange={e => setAwbForm({ ...awbForm, receiver_phone1: e.target.value })} placeholder="+11234567890" required />
                     </div>
                   </div>
                 </div>
@@ -567,7 +614,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.phone2' placeholder="+11234567890" required />
+                      <input type="text" className="form-control" placeholder="+11234567890" value={awbForm.receiver_phone2} onChange={e => setAwbForm({ ...awbForm, receiver_phone2: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -575,7 +622,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex fw-bold w-25">Legal Entity:</div>
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="form-check form-switch form-check-custom form-check-solid">
-                      <input className="form-check-input" type="checkbox" name='receiver.legal_entity' checked={customer?.legal_entity === 1} onChange={e => {if (customer) setCustomer({ ...customer, legal_entity: e.target.checked ? 1 : 0 })}} />
+                      <input className="form-check-input" type="checkbox" checked={awbForm.receiver_legal_entity === 1} onChange={e => setAwbForm({ ...awbForm, receiver_legal_entity: e.target.checked ? 1 : 0 })} />
                     </div>
                   </div>
                 </div>
@@ -584,7 +631,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="number" className="form-control" name='receiver.locality_id' value={customer?.shipping_locality_id} onChange={e => {if (customer) setCustomer({ ...customer, shipping_locality_id: e.target.value })}} min={1} max={4294967295} placeholder="Locality ID" required />
+                      <input type="number" className="form-control" value={awbForm.receiver_locality_id} onChange={e => setAwbForm({ ...awbForm, receiver_locality_id: parseInt(e.target.value) })} min={1} max={4294967295} placeholder="Locality ID" required />
                     </div>
                   </div>
                 </div>
@@ -593,7 +640,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.street' value={customer?.shipping_street} onChange={e => {if (customer) setCustomer({ ...customer, shipping_street: e.target.value })}} placeholder="Street" required />
+                      <input type="text" className="form-control" value={awbForm.receiver_street} onChange={e => setAwbForm({ ...awbForm, receiver_street: e.target.value })} placeholder="Street" required />
                     </div>
                   </div>
                 </div>
@@ -602,11 +649,11 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <div className="input-group">
                       <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                      <input type="text" className="form-control" name='receiver.zipcode' placeholder="Zipcode" required />
+                      <input type="text" className="form-control" placeholder="Zipcode" value={awbForm.receiver_zipcode} onChange={e => setAwbForm({ ...awbForm, receiver_zipcode: e.target.value })} required />
                     </div>
                   </div>
                 </div>
-              </form>
+              </form>}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={() => selectOrder(undefined)} data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>

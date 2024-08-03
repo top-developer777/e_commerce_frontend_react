@@ -70,7 +70,7 @@ const AddNewWarehouse: React.FC<{
     sender_name: '',
     sender_contact: '',
     legal_entity: false,
-    locality_id: '',
+    locality_id: 0,
     phone1: '',
     phone2: '',
     street: '',
@@ -181,11 +181,13 @@ const AddNewWarehouse: React.FC<{
             <div className="col-md-6 form-label align-content-center">Locality ID</div>
             <div className="col-md-6">
               <input
-                type="text"
+                type="number"
                 className="form-control form-control-solid"
                 placeholder="Locality ID"
                 value={currentWarehouse.locality_id}
-                onChange={e => setCurrentWarehouse({ ...currentWarehouse, locality_id: e.target.value })}
+                min={0}
+                max={4294967295}
+                onChange={e => setCurrentWarehouse({ ...currentWarehouse, locality_id: parseInt(e.target.value) })}
               />
             </div>
           </div>
@@ -243,7 +245,7 @@ export function WarehouseManagement() {
     sender_name: '',
     sender_contact: '',
     legal_entity: false,
-    locality_id: '',
+    locality_id: 0,
     phone1: '',
     phone2: '',
     street: '',

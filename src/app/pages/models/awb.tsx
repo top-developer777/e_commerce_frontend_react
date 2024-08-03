@@ -23,7 +23,7 @@ export interface AWBInterface {
   parcel_number: number;
   observation: string;
   cod: string;
-  courier_account_id: number;
+  courier_account_id: number | null;
   pickup_and_return: number;
   saturday_delivery: number;
   sameday_delivery: number;
