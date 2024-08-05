@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
-import { createAWB, getAllOrders, getCouriers, getCustomer, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getCouriers, getCustomer, getNewOrders, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
@@ -75,6 +75,15 @@ export const StatusBadge: React.FC<{ status: number }> = props => {
   }
 }
 
+interface AllAWBInterface {
+  senderID: number;
+  courier_account_id: number | null;
+  pickup_and_return: number;
+  saturday_delivery: number;
+  sameday_delivery: number;
+  dropoff_locker: number;
+}
+
 const OrderTable: React.FC<{
   orders: Order[];
   products: Product[];
@@ -92,7 +101,9 @@ const OrderTable: React.FC<{
   const [senders, setSenders] = useState<{ value: number, label: string }[]>([]);
   const [couriers, setCouriers] = useState<{ value: number, label: string }[]>([]);
   const [awbForm, setAwbForm] = useState<AWBInterface>();
+  const [awbsForm, setAwbsForm] = useState<AllAWBInterface>();
   const [senderId, setSenderId] = useState<number>(0);
+  const [newOrders, setNewOrders] = useState<Order[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,6 +116,14 @@ const OrderTable: React.FC<{
         const warehouse = res.map((data: WarehouseType) => {
           return { value: data.id, label: `${data.sender_name} (${data.phone1})` };
         });
+        setAwbsForm({
+          senderID: warehouse[0].value,
+          courier_account_id: null,
+          pickup_and_return: 0,
+          sameday_delivery: 0,
+          saturday_delivery: 0,
+          dropoff_locker: 0,
+        });
         setSenders(warehouse);
       })
       .catch(e => console.error(e));
@@ -115,6 +134,10 @@ const OrderTable: React.FC<{
           return { value: data.account_id, label: data.account_display_name }
         }));
       })
+      .catch(e => console.error(e));
+    getNewOrders()
+      .then(res => res.data)
+      .then(res => setNewOrders(res))
       .catch(e => console.error(e));
   }, []);
   useEffect(() => {
@@ -301,10 +324,77 @@ const OrderTable: React.FC<{
       })
       .catch(e => console.error(e));
   }
+  const handleCreateAWBs = () => {
+    if (!awbsForm) return;
+    const sender = warehouses.find(warehouse => warehouse.id === awbsForm.senderID);
+    if (!sender) {
+      toast.error('Can\'t find warehouse.');
+      return;
+    }
+    newOrders.forEach(order => {
+      getCustomer(order.id ?? 0)
+        .then(res => res.data as CustomerInterface)
+        .then(res => {
+          const products = props.products.filter(product => order.product_id.findIndex(id => id === product.id) >= 0);
+          const observation = products.map((product, index) => {
+            const quantity = order.quantity[index];
+            return `${product.ean}, ${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
+          }).join('➕');
+          const data: AWBInterface = {
+            order_id: order.id ?? 0,
+            sender_name: sender.sender_name,
+            sender_phone1: sender.phone1,
+            sender_phone2: sender.phone2 ?? '',
+            sender_locality_id: sender.locality_id,
+            sender_street: sender.street,
+            sender_zipcode: sender.zipcode,
+            receiver_contact: res.shipping_contact,
+            receiver_legal_entity: res.legal_entity,
+            receiver_locality_id: parseInt(res.shipping_locality_id),
+            receiver_name: res.name,
+            receiver_phone1: res.phone_1,
+            receiver_phone2: '',
+            receiver_street: res.shipping_street,
+            receiver_zipcode: '',
+            cod: order.cashed_cod.toString(),
+            envelope_number: 0,
+            is_oversize: 0,
+            parcel_number: 1,
+            locker_id: JSON.parse(order?.details ?? '{}').locker_id ?? '',
+            insured_value: '0',
+            observation: observation,
+            courier_account_id: awbsForm.courier_account_id,
+            pickup_and_return: awbsForm.pickup_and_return,
+            saturday_delivery: awbsForm.saturday_delivery,
+            sameday_delivery: awbsForm.sameday_delivery,
+            dropoff_locker: awbsForm.dropoff_locker,
+            weight: '0',
+          }
+          createAWB(data, order.order_market_place)
+            .then(res => {
+              const data = res.data;
+              if (data.isError) {
+                toast.error(<>
+                  Failed to create AWB for order {order.id}<br />
+                  {data.messages[0]}
+                </>);
+                return;
+              }
+            })
+            .then(() => toast.success('Successfully created AWBs for all new orders.'))
+            .catch(e => console.error(e));
+        })
+        .catch(e => {
+          toast.error(`Can't create awb for order ${order.id}`);
+          console.error(e);
+        });
+    });
+  }
+
   return (
     <>
       <div className='d-flex flex-row justify-content-between mb-4'>
-        <div className='d-flex flex-row '>
+        <div className='d-flex flex-row'>
           <button type='button' key={-1} className='btn btn-light p-2 px-3 mx-1 fs-7' onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
             <i className="bi bi-chevron-double-left"></i>
           </button>
@@ -315,6 +405,12 @@ const OrderTable: React.FC<{
           <div className='align-content-center mx-10'>
             Total: {props.totalOrders}
           </div>
+        </div>
+        <div className='d-flex ms-auto me-0'>
+          <button type='button' className='btn btn-primary p-2 px-3 mx-1 fs-7' data-bs-toggle="modal" data-bs-target="#createAllAWBModal">
+            <i className="bi bi-cart-plus"></i>
+            Create AWBs for new Orders
+          </button>
         </div>
         {/* <div>
           <button type='button' className='btn btn-light btn-light-primary p-2 px-3 mx-1 fs-7'>
@@ -644,6 +740,86 @@ const OrderTable: React.FC<{
           </div>
         </div>
       </div>
+      <div className="modal fade" id='createAllAWBModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5">Create AWBs</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              {!!awbsForm && <form action="" method='post'>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Warehouse:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      name='sender'
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={senders}
+                      placeholder='Select a warehouse'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                      value={senders.find(sender => sender.value === awbsForm.senderID)}
+                      onChange={e => setAwbsForm({ ...awbsForm, senderID: e?.value ?? senders[0].value })}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-1">
+                  <div className="d-flex fw-bold w-25">Courier Account (Optional):</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <Select
+                      className='react-select-styled react-select-solid react-select-sm w-100'
+                      options={couriers}
+                      placeholder='Select a courier'
+                      isSearchable={false}
+                      noOptionsMessage={e => `No more courier including "${e.inputValue}"`}
+                      isClearable={true}
+                      value={couriers.find(courier => courier.value === awbsForm.courier_account_id)}
+                      onChange={e => setAwbsForm({ ...awbsForm, courier_account_id: e?.value ?? null })}
+                    />
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Pickup and Return:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" checked={awbsForm.pickup_and_return === 1} onChange={e => setAwbsForm({ ...awbsForm, pickup_and_return: e.target.checked ? 1 : 0 })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Saturday Delivery:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" checked={awbsForm.saturday_delivery === 1} onChange={e => setAwbsForm({ ...awbsForm, saturday_delivery: e.target.checked ? 1 : 0 })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Sameday Delivery:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" checked={awbsForm.sameday_delivery === 1} onChange={e => setAwbsForm({ ...awbsForm, sameday_delivery: e.target.checked ? 1 : 0 })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center py-3">
+                  <div className="d-flex fw-bold w-25">Dropoff Locker:</div>
+                  <div className="d-flex ms-auto mr-0 w-75">
+                    <div className="form-check form-switch form-check-custom form-check-solid">
+                      <input className="form-check-input" type="checkbox" checked={awbsForm.dropoff_locker === 1} onChange={e => setAwbsForm({ ...awbsForm, dropoff_locker: e.target.checked ? 1 : 0 })} />
+                    </div>
+                  </div>
+                </div>
+              </form>}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className='bi bi-trash'></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleCreateAWBs}><i className='bi bi-save'></i>Create AWBs</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   )
 }
@@ -868,8 +1044,6 @@ export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products
                   return res;
                 })()}
               </div>
-            </div>
-            <div className="row row-cols-6">
             </div>
           </div>
         </div>

@@ -51,3 +51,7 @@ export const getCustomer = async (orderId: number) => {
 export const getCouriers = async (page: number = 1, limit: number = 50) => {
   return axios.get(COURIER_ENDPOINT, { params: { page, limit }})
 }
+
+export const getNewOrders = async () => {
+  return axios.get(`${ORDERS_ENDPOINT}/new_order`, { params: { flag: false, search_text: '' } });
+}
