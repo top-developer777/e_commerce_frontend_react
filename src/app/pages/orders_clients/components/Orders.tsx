@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
-import { createAWB, getAllOrders, getAWBByOrderID, getCouriers, getCustomer, getNewOrders, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getAWBByOrderID, getCouriers, getCustomer, getNewOrders, getOrder, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
@@ -960,7 +960,7 @@ export const Orders: React.FC = () => {
 
   const params = useParams();
 
-  if (params.id && !isNaN(parseInt(params.id))) return <OrderDetails orderID={parseInt(params.id)} orders={orders} products={products} awbs={awbs} />
+  if (params.id && !isNaN(parseInt(params.id))) return <OrderDetails orderID={parseInt(params.id)} products={products} awbs={awbs} />
   else return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
@@ -969,12 +969,21 @@ export const Orders: React.FC = () => {
   )
 }
 
-export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products: Product[], awbs: { orderID: number, data: any }[] }> = ({ orderID, orders, products, awbs }) => {
+export const OrderDetails: React.FC<{ orderID: number, products: Product[], awbs: { orderID: number, data: any }[] }> = ({ orderID, products, awbs }) => {
   const [customer, setCustomer] = useState<CustomerInterface>();
   const navigate = useNavigate();
-  const order = orders.find(order => order.id === orderID);
+  const [order, setOrder] = useState<Order>();
 
   useEffect(() => {
+    getOrder(orderID)
+      .then(res => {
+        if (res.data) setOrder(res.data);
+        else toast.error('This order doesn\'t exist.');
+      })
+      .catch(e => {
+        toast.error('Failed to load order.');
+        console.error(e);
+      });
     getCustomer(orderID)
       .then(res => res.data)
       .then(res => setCustomer(res))

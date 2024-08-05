@@ -580,11 +580,11 @@ export function ShippingManagement() {
                     </div>
                     <div className='row mb-2'>
                       <div className="align-content-center col-md-2 fw-bold">VAT</div>
-                      <div className="align-content-center col-md-2">{parseFloat(shipment.vat.toString()).toFixed(3)}</div>
+                      <div className="align-content-center col-md-2">{parseFloat((shipment.vat ?? '0').toString()).toFixed(3)}</div>
                       <div className="align-content-center col-md-2 fw-bold">Custom Taxes</div>
-                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat(shipment.custom_taxes.toString()))}</div>
+                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat((shipment.custom_taxes ?? '0').toString()))}</div>
                       <div className="align-content-center col-md-2 fw-bold">Shipping Cost</div>
-                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat(shipment.shipment_cost.toString()))}</div>
+                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat((shipment.shipment_cost ?? '0').toString()))}</div>
                     </div>
                   </div>
                 </div>
@@ -715,7 +715,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='vat' defaultValue={editShipment.vat} placeholder="VAT" />
+                              <input type="number" className="form-control" name='vat' defaultValue={editShipment.vat} placeholder="VAT" />
                             </div>
                           </div>
                         </label>
@@ -726,7 +726,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='custom_taxes' defaultValue={editShipment.custom_taxes} placeholder="Custom Taxes" />
+                              <input type="number" className="form-control" name='custom_taxes' defaultValue={editShipment.custom_taxes} placeholder="Custom Taxes" />
                             </div>
                           </div>
                         </label>
@@ -737,7 +737,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='shipment_cost' defaultValue={editShipment.shipment_cost} placeholder="Shipment Cost" />
+                              <input type="number" className="form-control" name='shipment_cost' defaultValue={editShipment.shipment_cost} placeholder="Shipment Cost" />
                             </div>
                           </div>
                         </label>
@@ -1143,7 +1143,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='vat' placeholder="VAT" />
+                              <input type="number" className="form-control" name='vat' placeholder="VAT" />
                             </div>
                           </div>
                         </label>
@@ -1154,7 +1154,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='custom_taxes' placeholder="Custom Taxes" />
+                              <input type="number" className="form-control" name='custom_taxes' placeholder="Custom Taxes" />
                             </div>
                           </div>
                         </label>
@@ -1165,7 +1165,7 @@ export function ShippingManagement() {
                           <div className="d-flex ms-auto mr-0 w-50">
                             <div className="input-group">
                               <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='shipment_cost' placeholder="Shipment Cost" />
+                              <input type="number" className="form-control" name='shipment_cost' placeholder="Shipment Cost" />
                             </div>
                           </div>
                         </label>

@@ -12,6 +12,10 @@ export const getAllOrders = (page: number, limit = 50, status = -1, searchText =
     })
 }
 
+export const getOrder = (id: number) => {
+  return axios.get(ORDERS_ENDPOINT, { params: { order_id: id } })
+}
+
 export const getOrderAmout = (status = -1, searchText = '') => {
   return axios.get(`${API_URL}/orders/count`, {
     params: { status: status, search_text: searchText }
