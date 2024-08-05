@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
-import { createAWB, getAllOrders, getCouriers, getCustomer, getNewOrders, getOrderAmout } from './_request'
+import { createAWB, getAllOrders, getAWBByOrderID, getCouriers, getCustomer, getNewOrders, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { Product } from '../../models/product';
@@ -91,6 +91,7 @@ const OrderTable: React.FC<{
   totalPages: number;
   totalOrders: number;
   sort: boolean;
+  awbs: { orderID: number, data: any }[];
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   setSort: React.Dispatch<React.SetStateAction<boolean>>;
   setEditID?: React.Dispatch<React.SetStateAction<number>>;
@@ -440,24 +441,24 @@ const OrderTable: React.FC<{
               {/* <th className='align-content-center'>
                 <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
               </th> */}
-              <th className='col-md-1 align-content-center text-center cursor-pointer' onClick={() => props.setSort(!props.sort)} title='Assending/Decending'>
+              <th className='align-content-center text-center cursor-pointer' onClick={() => props.setSort(!props.sort)} title='Assending/Decending'>
                 <div className="d-flex">
                   <div className='d-flex align-items-center'>Order Date</div>
                   <div className='d-flex align-items-center'>{props.sort ? <i className='bi bi-caret-down-fill'></i> : <i className='bi bi-caret-up-fill'></i>}</div>
                 </div>
               </th>
-              <th className='col-md-1 align-content-center text-center'>Order ID</th>
-              <th className='col-md-1 align-content-center text-center'>Products</th>
-              <th className='col-md-1 align-content-center text-center'>Marketplace/Warehouse</th>
-              <th className='col-md-2 align-content-center text-center px-1'>AWB</th>
-              <th className='col-md-2 align-content-center text-center px-1'>Invoice</th>
-              <th className='col-md-1 align-content-center text-center'>Status</th>
-              <th className='col-md-1 align-content-center text-center'>Shipping Address</th>
-              <th className='col-md-1 align-content-center text-center py-0'>Payment Method</th>
-              <th className='col-md-1 align-content-center text-center py-0'>Total</th>
-              <th className='col-md-1 align-content-center text-center'>Stock</th>
+              <th className='align-content-center text-center'>Order ID</th>
+              <th className='align-content-center text-center'>Products</th>
+              <th className='align-content-center text-center'>Marketplace/Warehouse</th>
+              <th className='align-content-center text-center px-1'>AWB</th>
+              <th className='align-content-center text-center px-1'>Invoice</th>
+              <th className='align-content-center text-center'>Status</th>
+              <th className='align-content-center text-center'>Shipping Address</th>
+              <th className='align-content-center text-center'>Payment Method</th>
+              <th className='align-content-center text-center'>Total</th>
+              <th className='align-content-center text-center'>Stock</th>
               {/* {currentUser && parseInt(currentUser.role ?? '') > 2 && (
-                <th className='col-md-1 align-content-center text-center'>Actions</th>
+                <th className='align-content-center text-center'>Actions</th>
               )} */}
             </tr>
           </thead>
@@ -485,11 +486,24 @@ const OrderTable: React.FC<{
                   </td>
                   <td className='align-content-center text-center'>
                     {order.status === 0 && <>None</>}
-                    {([1, 2, 3].findIndex(item => item === order.status) >= 0 && order.payment_mode_id !== 2) && <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
-                      <i className="bi bi-file-earmark-plus"></i>
-                      Create
-                    </button>}
-                    {[4, 5].findIndex(item => item === order.status) >= 0 && <>{order.awb ?? 'None'}</>}
+                    {(() => {
+                      if ([1, 2, 3].findIndex(item => item === order.status) >= 0 && order.payment_mode_id !== 2) {
+                        const awb = props.awbs.find(awb => awb.orderID === order.id);
+                        if (awb && awb.data) return <>{awb.data}</>
+                        else {
+                          return (
+                            <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
+                              <i className="bi bi-file-earmark-plus"></i>
+                              Create
+                            </button>
+                          );
+                        }
+                      } else if ([4, 5].findIndex(item => item === order.status) >= 0) {
+                        return <>{order.awb ?? 'None'}</>
+                      } else {
+                        return <></>
+                      }
+                    })()}
                   </td>
                   <td className='align-content-center text-center'>
                     <button type='button' className='btn btn-primary p-1 px-3'>
@@ -898,6 +912,7 @@ export const Orders: React.FC = () => {
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [currentState, setCurrentState] = useState<[number, string]>([-1, '']);
   const [sort, setSort] = useState<boolean>(true);
+  const [awbs, setAWBs] = useState<{ orderID: number, data: any }[]>([]);
 
   useEffect(() => {
     getAllProducts()
@@ -927,19 +942,34 @@ export const Orders: React.FC = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, limit, selectedStatus, searchText, sort]);
+  useEffect(() => {
+    const result: { orderID: number, data: any }[] = [];
+    const len = orders.length;
+    orders.forEach((order, index) => {
+      getAWBByOrderID(order.id ?? 0)
+        .then(res => {
+          result.push({ orderID: order.id ?? 0, data: res.data });
+          if (index === len - 1) setAWBs(result);
+        })
+        .catch(e => console.error(e));
+    })
+  }, [orders]);
+  useEffect(() => {
+    console.log(awbs);
+  }, [awbs]);
 
   const params = useParams();
 
-  if (params.id && !isNaN(parseInt(params.id))) return <OrderDetails orderID={parseInt(params.id)} orders={orders} products={products} />
+  if (params.id && !isNaN(parseInt(params.id))) return <OrderDetails orderID={parseInt(params.id)} orders={orders} products={products} awbs={awbs} />
   else return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
-      <OrderTable orders={orders} products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} />
+      <OrderTable orders={orders} products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} awbs={awbs} />
     </Content>
   )
 }
 
-export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products: Product[] }> = ({ orderID, orders, products }) => {
+export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products: Product[], awbs: { orderID: number, data: any }[] }> = ({ orderID, orders, products, awbs }) => {
   const [customer, setCustomer] = useState<CustomerInterface>();
   const navigate = useNavigate();
   const order = orders.find(order => order.id === orderID);
@@ -1012,8 +1042,8 @@ export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products
             <div className="row mb-3">
               <div className="align-content-center col-md-2 fw-bold">eMAG Club</div>
               <div className="align-content-center col-md-2">{order?.emag_club}</div>
-              <div className="align-content-center col-md-2 fw-bold">Payment Mode ID</div>
-              <div className="align-content-center col-md-2">{order?.payment_mode_id}</div>
+              <div className="align-content-center col-md-2 fw-bold">AWB</div>
+              <div className="align-content-center col-md-2">{awbs.find(awb => awb.orderID === order?.id)?.data ?? 'None'}</div>
               <div className="align-content-center col-md-2 fw-bold">Marketplace</div>
               <div className="align-content-center col-md-2">{order?.order_market_place}</div>
             </div>

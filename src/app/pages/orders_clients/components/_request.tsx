@@ -24,6 +24,10 @@ export const getNewOrderAmount = () => {
   })
 }
 
+export const getAWBByOrderID = (id: number) => {
+  return axios.get(`${API_URL}/../awb/order_id`, { params: { order_id: id } });
+}
+
 export const getAllReplaces = (page: number, limit = 50, status = -1) => {
   return axios
     .get(`${API_URL}/replaces`, {
