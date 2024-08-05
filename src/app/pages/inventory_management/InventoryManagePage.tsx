@@ -48,6 +48,15 @@ const InventoryManagePage = () => (
         }
       />
       <Route
+        path='shipping-management/:id'
+        element={
+          <>
+            <PageTitle breadcrumbs={inventoryManBreadCrumbs}>Shipping Management</PageTitle>
+            <ShippingManagement />
+          </>
+        }
+      />
+      <Route
         path='warehouse'
         element={
           <>

@@ -44,6 +44,15 @@ const DashboardManagePage = () => (
         }
       />
       <Route
+        path='products/:id'
+        element={
+          <>
+            <PageTitle breadcrumbs={dashboardManBreadCrumbs}></PageTitle>
+            <Products />
+          </>
+        }
+      />
+      <Route
         path='warehouses'
         element={
           <>

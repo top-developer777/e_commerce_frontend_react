@@ -16,8 +16,18 @@ const SidebarMenuMain = () => {
   useEffect(() => {
     getOrderAmout(1)
       .then(res => {
-        const num = res.data as number;
-        setNumOrder(num);
+        let num = res.data as number;
+        getOrderAmout(2)
+          .then(res => {
+            num += res.data as number;
+            getOrderAmout(3)
+              .then(res => {
+                num += res.data as number;
+                setNumOrder(num);
+              })
+              .catch(e => console.error(e));
+          })
+          .catch(e => console.error(e));
       })
       .catch(e => console.error(e));
     getAllMarketplaces()
@@ -29,8 +39,18 @@ const SidebarMenuMain = () => {
   setInterval(() => {
     getOrderAmout(1)
       .then(res => {
-        const num = res.data as number;
-        setNumOrder(num);
+        let num = res.data as number;
+        getOrderAmout(2)
+          .then(res => {
+            num += res.data as number;
+            getOrderAmout(3)
+              .then(res => {
+                num += res.data as number;
+                setNumOrder(num);
+              })
+              .catch(e => console.error(e));
+          })
+          .catch(e => console.error(e));
       })
       .catch(e => console.error(e));
     getAllMarketplaces()

@@ -11,6 +11,7 @@ import { Suppliers } from '../../models/supplier'
 import { WarehouseType } from '../../models/warehouse';
 import { getAllMarketplaces } from '../../config/components/_request'
 import { interMKP } from '../../config/components/Integrations'
+import { useNavigate, useParams } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 
@@ -168,7 +169,7 @@ interface Return {
   refunded_number: number;
 }
 
-const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.Dispatch<React.SetStateAction<number>> }> = ({ product, setSelectedProductID }) => {
+const DetailedProduct: React.FC<{ product: Product | undefined }> = ({ product }) => {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
   // const [seriesSales, setSeriesSales] = useState<{ name: string, data: number[] }[]>([]);
@@ -180,9 +181,10 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
     order_status: number;
   }[]>([]);
   const [suppliers, setSuppliers] = useState<Suppliers[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getProductInfo(product.ean ?? '')
+    getProductInfo(product?.ean ?? '')
       .then(res => {
         if (res.data !== '') {
           const data = res.data.sales_info as [{ date_string: string, sales: number }];
@@ -208,12 +210,13 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
     getAllSuppliers()
       .then(res => setSuppliers(res.data))
       .catch(e => console.error(e));
-  }, [product.ean]);
+  }, [product?.ean]);
 
+  if (!product) return <></>;
   return (
     <div>
       <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-        <button type='button' className='btn btn-light btn-light-primary btn-pull-right p-2 px-3 mx-1 fs-7' onClick={() => setSelectedProductID(-1)}>
+        <button type='button' className='btn btn-light btn-light-primary btn-pull-right p-2 px-3 mx-1 fs-7' onClick={() => navigate('./../')}>
           <i className="bi bi-backspace-fill"></i> Back to Product List
         </button>
       </div>
@@ -249,11 +252,10 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
   )
 }
 
-export const Products = () => {
+export const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [totalProducts, setTotalProducts] = useState<number>(0);
-  const [selectedProductID, setSelectedProductID] = useState<number>(-1);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -268,6 +270,8 @@ export const Products = () => {
   const [editSupplier, setEditSupplier] = useState<string>('');
   const [marketPlaces, setMarketPlaces] = useState<interMKP[]>([]);
   const [warehouses, setWarehouses] = useState<{ value: number, label: string }[]>([]);
+  const navigate = useNavigate();
+  const params = useParams();
 
   useEffect(() => {
     getAllProducts(currentPage, limit)
@@ -467,7 +471,11 @@ export const Products = () => {
   return (
     <Content>
       {
-        selectedProductID == -1 ?
+        params.id && !isNaN(parseInt(params.id)) ?
+          <>
+            <DetailedProduct product={products.find(product => product.id === parseInt(params.id ?? ''))} />
+          </>
+          :
           <>
             <div className="row py-2">
               <div className="col-md-5">
@@ -568,14 +576,14 @@ export const Products = () => {
                   </thead>
                   <tbody>
                     {
-                      products.map((product, index) =>
+                      products.map(product =>
                         <tr key={`productlist${product.id}`}>
                           {/* <td className='align-content-center'>
                             <input className="form-check-input" type="checkbox" value={index} />
                           </td> */}
                           <td className='align-content-center'>
                             <div className="d-flex">
-                              <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
+                              <div className="d-flex align-items-center" onClick={() => navigate(`./${product.id}`)}>
                                 {
                                   product.image_link
                                     ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
@@ -586,7 +594,7 @@ export const Products = () => {
                                 <div className="d-flex align-items-center">
                                   <span className='d-flex fw-bold'>{product.model_name}</span>
                                 </div>
-                                <div className="d-flex">{product.product_name}</div>
+                                <div className="d-flex text-primary cursor-pointer" onClick={() => navigate(`./${product.id}`)}>{product.product_name}</div>
                                 <div className="d-flex"><a href={product.link_address_1688} target='_blank'>{product.link_address_1688}</a></div>
                               </div>
                             </div>
@@ -605,7 +613,7 @@ export const Products = () => {
                                   setEditSupplier(`${product.supplier_id}`)
                                 }}>Edit Product</a></li>
                                 <li><a className="dropdown-item" href="#" onClick={() => handleDeleteProduct(product.id ?? 0)}>Delete Product</a></li>
-                                <li><a className="dropdown-item" href="#" onClick={() => setSelectedProductID(index)}>Details</a></li>
+                                <li><a className="dropdown-item" href="#" onClick={() => navigate(`./${product.id}`)}>Details</a></li>
                                 <li><a className="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#marketplaceModal" onClick={() => setSelectedProduct(product)}>Offer</a></li>
                               </ul>
                             </div>
@@ -1203,10 +1211,6 @@ export const Products = () => {
                 </div>
               </div>
             </div>
-          </>
-          :
-          <>
-            <DetailedProduct product={products[selectedProductID]} setSelectedProductID={setSelectedProductID} />
           </>
       }
     </Content>

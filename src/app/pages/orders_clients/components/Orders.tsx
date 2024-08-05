@@ -3,7 +3,6 @@ import Select from 'react-select';
 import { toast } from 'react-toastify';
 
 import { Content } from '../../../../_metronic/layout/components/content'
-// import { useAuth } from '../../../modules/auth';
 import { createAWB, getAllOrders, getCouriers, getCustomer, getOrderAmout } from './_request'
 import { Order } from '../../models/order';
 import { getAllProducts } from '../../inventory_management/components/_request';
@@ -12,27 +11,9 @@ import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
 import { AWBInterface } from '../../models/awb';
 import { CourierType } from '../../models/courier';
-// import Select from 'react-select'
-// import { getProductImageByID } from '../../inventory_management/components/_request'
-
-// const fakeShipingType = [
-//   {
-//     "value": 1,
-//     "label": "Standard Shipping"
-//   },
-//   {
-//     "value": 2,
-//     "label": "Express Shipping"
-//   },
-//   {
-//     "value": 3,
-//     "label": "Overnight Shipping"
-//   },
-//   {
-//     "value": 4,
-//     "label": "International Shipping"
-//   }
-// ]
+import { useNavigate, useParams } from 'react-router-dom';
+import { CustomerInterface } from '../../models/customer';
+import { formatCurrency } from '../../dashboard/components/_function';
 
 export const StatusBadge: React.FC<{ status: number }> = props => {
   switch (props.status) {
@@ -95,28 +76,26 @@ export const StatusBadge: React.FC<{ status: number }> = props => {
 }
 
 const OrderTable: React.FC<{
-  orders: Order[],
-  currentPage: number,
-  totalPages: number,
-  totalOrders: number,
-  sort: boolean,
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>,
-  setSort: React.Dispatch<React.SetStateAction<boolean>>,
-  setEditID?: React.Dispatch<React.SetStateAction<number>>,
+  orders: Order[];
+  products: Product[];
+  currentPage: number;
+  totalPages: number;
+  totalOrders: number;
+  sort: boolean;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  setSort: React.Dispatch<React.SetStateAction<boolean>>;
+  setEditID?: React.Dispatch<React.SetStateAction<number>>;
 }> = props => {
-  const { currentPage, setCurrentPage } = props;
-  const [products, setProducts] = useState<Product[]>([]);
+  const { currentPage, setCurrentPage, products } = props;
   const [selectedOrder, selectOrder] = useState<Order>();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
   const [senders, setSenders] = useState<{ value: number, label: string }[]>([]);
   const [couriers, setCouriers] = useState<{ value: number, label: string }[]>([]);
   const [awbForm, setAwbForm] = useState<AWBInterface>();
   const [senderId, setSenderId] = useState<number>(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getAllProducts()
-      .then(res => setProducts(res.data))
-      .catch(e => console.error(e))
     getWarehouses()
       .then(res => res.data)
       .then(res => {
@@ -249,12 +228,6 @@ const OrderTable: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [senderId, warehouses, selectedOrder]);
 
-  // const { currentUser } = useAuth();
-  // const handleEdit = (id: number) => {
-  //   if (props.setEditID) {
-  //     props.setEditID(id);
-  //   }
-  // }
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const startPage = Math.max(2, currentPage - 2);
@@ -328,7 +301,6 @@ const OrderTable: React.FC<{
       })
       .catch(e => console.error(e));
   }
-
   return (
     <>
       <div className='d-flex flex-row justify-content-between mb-4'>
@@ -378,13 +350,14 @@ const OrderTable: React.FC<{
               </th>
               <th className='col-md-1 align-content-center text-center'>Order ID</th>
               <th className='col-md-1 align-content-center text-center'>Products</th>
-              <th className='col-md-1 align-content-center text-center'>Vendor Name</th>
-              <th className='col-md-1 align-content-center text-center'>Marketplace</th>
-              {/* <th className='col-md-2 align-content-center text-center px-1'>Invoice</th> */}
+              <th className='col-md-1 align-content-center text-center'>Marketplace/Warehouse</th>
               <th className='col-md-2 align-content-center text-center px-1'>AWB</th>
+              <th className='col-md-2 align-content-center text-center px-1'>Invoice</th>
               <th className='col-md-1 align-content-center text-center'>Status</th>
+              <th className='col-md-1 align-content-center text-center'>Shipping Address</th>
               <th className='col-md-1 align-content-center text-center py-0'>Payment Method</th>
-              <th className='col-md-1 align-content-center text-center py-0'>Shipping Tax</th>
+              <th className='col-md-1 align-content-center text-center py-0'>Total</th>
+              <th className='col-md-1 align-content-center text-center'>Stock</th>
               {/* {currentUser && parseInt(currentUser.role ?? '') > 2 && (
                 <th className='col-md-1 align-content-center text-center'>Actions</th>
               )} */}
@@ -392,29 +365,26 @@ const OrderTable: React.FC<{
           </thead>
           <tbody>
             {
-              props.orders.map((order: Order, index: number) =>
-                <tr key={`order${index}`}>
+              props.orders.map((order: Order, index: number) => {
+                const selectedProducts = products.filter(product => order.product_id.findIndex(id => product.id === id) >= 0);
+
+                return <tr key={`order${index}`}>
                   {/* <td className='align-content-center'>
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td> */}
                   <td className='align-content-center text-center '>{(new Date(order.date)).toLocaleString()}</td>
-                  <td className='align-content-center text-center'>{order.id}</td>
-                  <td className='align-content-center text-center'>
-                    {order.product_id.map(id => {
-                      const product = products.find(product => product.id === id);
-                      return <div key={`product${order.id}:${id}`}><a href='#'><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></a></div>
+                  <td className='align-content-center text-center text-primary cursor-pointer' onClick={() => navigate(`./${order.id}`)}>{order.id}</td>
+                  <td className='align-content-center text-center cursor-pointer'>
+                    {selectedProducts.map(product => {
+                      return <div key={`product${order.id}:${product.id}`} onClick={() => navigate(`./${order.id}`)}><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></div>
                     })}
                   </td>
-                  <td className='align-content-center text-center '>{order.vendor_name}</td>
                   <td className='align-content-center text-center'>
-                    {order.order_market_place}
+                    {order.order_market_place}<br />
+                    {selectedProducts.map(product => {
+                      return warehouses.find(warehouse => warehouse.id === product?.warehouse_id)?.name
+                    }).join('+')}
                   </td>
-                  {/* <td className='align-content-center text-center'>
-                    <button type='button' className='btn btn-primary p-1 px-3'>
-                      <i className="bi bi-file-earmark-plus"></i>
-                      Create
-                    </button>
-                  </td> */}
                   <td className='align-content-center text-center'>
                     {order.status === 0 && <>None</>}
                     {([1, 2, 3].findIndex(item => item === order.status) >= 0 && order.payment_mode_id !== 2) && <button type='button' className='btn btn-primary p-1 px-3' onClick={() => selectOrder(order)} data-bs-toggle="modal" data-bs-target="#createAWBModal">
@@ -424,13 +394,25 @@ const OrderTable: React.FC<{
                     {[4, 5].findIndex(item => item === order.status) >= 0 && <>{order.awb ?? 'None'}</>}
                   </td>
                   <td className='align-content-center text-center'>
+                    <button type='button' className='btn btn-primary p-1 px-3'>
+                      <i className="bi bi-file-earmark-plus"></i>
+                      Create
+                    </button>
+                  </td>
+                  <td className='align-content-center text-center'>
                     <StatusBadge status={order.status} />
+                  </td>
+                  <td className='align-content-center text-center'>
+                    {'shipping addr'}
                   </td>
                   <td className='align-content-center text-center'>
                     {order.payment_mode}
                   </td>
                   <td className='align-content-center text-center'>
-                    {order.shipping_tax}
+                    ${order.cashed_co ?? order.cashed_cod}
+                  </td>
+                  <td className='align-content-center text-center'>
+                    {selectedProducts.map(product => product.stock ?? 0).join(', ')}
                   </td>
                   {/* {currentUser && [3, 4].includes(parseInt(currentUser.role ?? '')) && (
                     <td className='align-content-center text-center'>
@@ -442,7 +424,7 @@ const OrderTable: React.FC<{
                     </td>
                   )} */}
                 </tr>
-              )
+              })
             }
           </tbody>
         </table>
@@ -726,8 +708,9 @@ const SearchBar: React.FC<{
   )
 }
 
-export function Orders() {
-  const [orders, setOrders] = useState<Order[]>([])
+export const Orders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchText, setSearchText] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -738,6 +721,11 @@ export function Orders() {
   const [currentState, setCurrentState] = useState<[number, string]>([-1, '']);
   const [sort, setSort] = useState<boolean>(true);
 
+  useEffect(() => {
+    getAllProducts()
+      .then(res => setProducts(res.data))
+      .catch(e => console.error(e))
+  }, []);
   useEffect(() => {
     if (currentState[0] !== selectedStatus || currentState[1] !== searchText) {
       setCurrentState([selectedStatus, searchText]);
@@ -762,10 +750,163 @@ export function Orders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, limit, selectedStatus, searchText, sort]);
 
-  return (
+  const params = useParams();
+
+  if (params.id && !isNaN(parseInt(params.id))) return <OrderDetails orderID={parseInt(params.id)} orders={orders} products={products} />
+  else return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
-      <OrderTable orders={orders} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} />
+      <OrderTable orders={orders} products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} />
     </Content>
   )
+}
+
+export const OrderDetails: React.FC<{ orderID: number, orders: Order[], products: Product[] }> = ({ orderID, orders, products }) => {
+  const [customer, setCustomer] = useState<CustomerInterface>();
+  const navigate = useNavigate();
+  const order = orders.find(order => order.id === orderID);
+
+  useEffect(() => {
+    getCustomer(orderID)
+      .then(res => res.data)
+      .then(res => setCustomer(res))
+      .catch(e => console.error(e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return <Content>
+    <div className="row">
+      <div className="col-md-12 text-end">
+        <button className="btn btn-light-primary btn-sm" onClick={() => navigate('./../')}>
+          <i className="bi bi-backspace-fill"></i> Back to Order List
+        </button>
+      </div>
+    </div>
+    <div className="row">
+      <div className="col-md-12">
+        <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
+          <div className="card-header pt-6 w-full">
+            <div>
+              <h3 className="text-gray-800 card-title align-content-center">Order {orderID}</h3>
+            </div>
+          </div>
+          <div className="card-body p-6">
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">Vendor Name</div>
+              <div className="align-content-center col-md-2">{order?.vendor_name}</div>
+              <div className="align-content-center col-md-2 fw-bold">Order Type</div>
+              <div className="align-content-center col-md-2">{order?.type}</div>
+              <div className="align-content-center col-md-2 fw-bold">Date</div>
+              <div className="align-content-center col-md-2">{new Date(order?.date ?? '').toLocaleDateString()}</div>
+            </div>
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">Payment Mode</div>
+              <div className="align-content-center col-md-2">{order?.payment_mode}</div>
+              <div className="align-content-center col-md-2 fw-bold">Detailed Payment Method</div>
+              <div className="align-content-center col-md-2">{order?.detailed_payment_method}</div>
+              <div className="align-content-center col-md-2 fw-bold">Delivery Mode</div>
+              <div className="align-content-center col-md-2">{order?.delivery_mode}</div>
+            </div>
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">Status</div>
+              <div className="align-content-center col-md-2">{order?.status}</div>
+              <div className="align-content-center col-md-2 fw-bold">Payment Status</div>
+              <div className="align-content-center col-md-2">{order?.payment_status}</div>
+              <div className="align-content-center col-md-2 fw-bold">Customer</div>
+              <div className="align-content-center col-md-2">{customer?.name}</div>
+            </div>
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">Shipping Tax</div>
+              <div className="align-content-center col-md-2">${order?.shipping_tax.toFixed(2)}</div>
+              <div className="align-content-center col-md-2 fw-bold">Cashed COD</div>
+              <div className="align-content-center col-md-2">{order?.cashed_cod}</div>
+              <div className="align-content-center col-md-2 fw-bold">Refunded Amount</div>
+              <div className="align-content-center col-md-2">{order?.refunded_amount}</div>
+            </div>
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">Completed</div>
+              <div className="align-content-center col-md-2">{order?.is_complete ? 'Completed' : 'In progress'}</div>
+              <div className="align-content-center col-md-2 fw-bold">Maximum date for shipment</div>
+              <div className="align-content-center col-md-2">{new Date(order?.maximum_date_for_shipment ?? '').toLocaleDateString()}</div>
+              <div className="align-content-center col-md-2 fw-bold">Late Shipment</div>
+              <div className="align-content-center col-md-2">{order?.late_shipment}</div>
+            </div>
+            <div className="row mb-3">
+              <div className="align-content-center col-md-2 fw-bold">eMAG Club</div>
+              <div className="align-content-center col-md-2">{order?.emag_club}</div>
+              <div className="align-content-center col-md-2 fw-bold">Payment Mode ID</div>
+              <div className="align-content-center col-md-2">{order?.payment_mode_id}</div>
+              <div className="align-content-center col-md-2 fw-bold">Marketplace</div>
+              <div className="align-content-center col-md-2">{order?.order_market_place}</div>
+            </div>
+            <div className="row mb-10">
+              <div className="align-content-center col-md-2 fw-bold">Cancelled Reason</div>
+              <div className="align-content-center col-md-2">{order?.cancellation_reason ?? 'None'}</div>
+              <div className="align-content-center col-md-2 fw-bold">Refunded Status</div>
+              <div className="align-content-center col-md-2">{order?.refund_status ?? 'None'}</div>
+              <div className="align-content-center col-md-2 fw-bold">Cashed CO</div>
+              <div className="align-content-center col-md-2">{order?.cashed_co}</div>
+            </div>
+            <div className="row">
+              <div className="col-md-6">
+                <h3>Flags</h3>
+                {JSON.parse(order?.flags ?? '[]').map((flag: { flag: string, value: string }, index: number) => (
+                  <div key={`flag${index}`}>
+                    <span className='fw-bold text-capitalize'>{flag.flag.replace('_', ' ').replace('_', ' ')}: </span>
+                    <span>{flag.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="col-md-6">
+                <h3>Details</h3>
+                {(() => {
+                  const dict = JSON.parse(order?.details ?? '{}');
+                  let res = <></>;
+                  for (const key in dict) {
+                    res = <>{res}<div><span className='fw-bold text-capitalize'>{key.replace('_', ' ').replace('_', ' ')}: </span><span>{dict[key]}</span></div></>
+                  }
+                  return res;
+                })()}
+              </div>
+            </div>
+            <div className="row row-cols-6">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {!!order?.product_id.length && (
+      <div className="row">
+        <div className="col-md-12 table-responsive">
+          <table className="table table-rounded table-hover table-striped table-bordered border text-center">
+            <thead>
+              <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200 bg-gray-300 text-nowrap">
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.product_id.map((id, index) => {
+                const product = products.find(product => product.id === id);
+                return (
+                  <tr key={`product${index}`}>
+                    <td className='align-content-center'><img src={product?.image_link} alt={product?.model_name} width={60} height={60} /></td>
+                    <td className='align-content-center text-start cursor-pointer text-primary' onClick={() => navigate(`/dashboard/products/${product?.id}`)}>
+                      {product?.product_name}
+                    </td>
+                    <td className='align-content-center'>{formatCurrency(parseFloat(product?.price ?? '0'))}</td>
+                    <td className='align-content-center'>{order.quantity[index]}</td>
+                    <td className='align-content-center'>{product?.stock ?? 0}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+  </Content>
 }

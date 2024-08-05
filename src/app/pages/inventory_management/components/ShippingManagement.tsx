@@ -10,148 +10,19 @@ import { getUsers } from '../../config/components/_request';
 import { useAuth, UserModel } from '../../../modules/auth';
 import { Suppliers } from '../../models/supplier';
 import { toast } from 'react-toastify';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const shippingStatus = [
-  {
-    "value": "Customs",
-    "label": "Customs"
-  },
-  {
-    "value": "Arrived",
-    "label": "Arrived"
-  },
-  {
-    "value": 'New',
-    "label": "New"
-  },
-  {
-    "value": 'Shipped',
-    "label": "Shipped"
-  }
+const shippingStatus: { value: string, label: string }[] = [
+  { value: "Customs", label: "Customs" },
+  { value: "Arrived", label: "Arrived" },
+  { value: 'New', label: "New" },
+  { value: 'Shipped', label: "Shipped" }
 ];
-const fakeShipingType = [
+const shipingTypeOptions: { value: string, label: string }[] = [
   { value: 'Train', label: 'Train' },
   { value: 'Airplain', label: 'Airplain' },
   { value: 'Sea', label: 'Sea' },
-]
-
-// const fakeShipingType = [
-//   {
-//     "value": 1,
-//     "label": "Standard Shipping"
-//   },
-//   {
-//     "value": 2,
-//     "label": "Express Shipping"
-//   },
-//   {
-//     "value": 3,
-//     "label": "Overnight Shipping"
-//   },
-//   {
-//     "value": 4,
-//     "label": "International Shipping"
-//   }
-// ]
-const fakeshippings = [
-  {
-    "id": 1,
-    "shippingType": "Standard Shipping",
-    "picture": "https://via.placeholder.com/100",
-    "productName": "Wireless Mouse",
-    "quantity": 50,
-    "price": 20.99,
-    "total": 1049.50,
-    "stock": 200,
-    "salesPerDay": 10,
-    "imports": "China",
-    "unitsPerBox": 25,
-    "supplier": {
-      "name": "Tech Supplies Ltd.",
-      "wechat": "techsupplies123"
-    },
-    "recommendedReorderQuantity": 100,
-    "numberOfBoxes": 2,
-    "orderSent": "2024-06-01",
-    "payment": "Paid",
-    "trackingNumber": "123456789",
-    "arrivedAtAgent": "2024-06-05",
-    "author": "John Doe"
-  },
-  {
-    "id": 2,
-    "shippingType": "Express Shipping",
-    "picture": "https://via.placeholder.com/100",
-    "productName": "Bluetooth Headphones",
-    "quantity": 30,
-    "price": 49.99,
-    "total": 1499.70,
-    "stock": 120,
-    "salesPerDay": 15,
-    "imports": "Vietnam",
-    "unitsPerBox": 15,
-    "supplier": {
-      "name": "Audio Gear Inc.",
-      "wechat": "audiogear456"
-    },
-    "recommendedReorderQuantity": 50,
-    "numberOfBoxes": 2,
-    "orderSent": "2024-06-02",
-    "payment": "Pending",
-    "trackingNumber": "987654321",
-    "arrivedAtAgent": "2024-06-06",
-    "author": "Jane Smith"
-  },
-  {
-    "id": 3,
-    "shippingType": "International Shipping",
-    "picture": "https://via.placeholder.com/100",
-    "productName": "Laptop",
-    "quantity": 20,
-    "price": 899.99,
-    "total": 17999.80,
-    "stock": 30,
-    "salesPerDay": 5,
-    "imports": "Romania",
-    "unitsPerBox": 5,
-    "supplier": {
-      "name": "Electronics Hub",
-      "wechat": "electronichub001"
-    },
-    "recommendedReorderQuantity": 40,
-    "numberOfBoxes": 4,
-    "orderSent": "2024-06-04",
-    "payment": "Pending",
-    "trackingNumber": "321654987",
-    "arrivedAtAgent": "2024-06-08",
-    "author": "Michael Brown"
-  }
-]
-
-interface Shipping {
-  id: number;
-  shippingType: string;
-  picture: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  total: number;
-  stock: number;
-  salesPerDay: number;
-  imports: string;
-  unitsPerBox: number;
-  supplier: {
-    name: string;
-    wechat: string;
-  }
-  recommendedReorderQuantity: number;
-  numberOfBoxes: number;
-  orderSent: string;
-  payment: string;
-  trackingNumber: string;
-  arrivedAtAgent: string;
-  author: string;
-}
+];
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -160,31 +31,31 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-const Icon: React.FC<{
-  payment: string;
-}> = props => (
-  <>
-    {
-      props.payment == "Paid" ?
-        <div>
-          <span className="badge badge-light-success fw-bold fs-7 p-2">
-            <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
-            {props.payment}
-          </span>
-        </div>
-        : props.payment == "Pending" ?
-          <div>
-            <span className="badge badge-light-warning fw-bold fs-7 p-2">
-              <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
-              {props.payment}
-            </span>
-          </div>
-          : <div>
+// const Icon: React.FC<{
+//   payment: string;
+// }> = props => (
+//   <>
+//     {
+//       props.payment == "Paid" ?
+//         <div>
+//           <span className="badge badge-light-success fw-bold fs-7 p-2">
+//             <i className='bi bi-check2-circle text-success fw-bold'></i>&nbsp;
+//             {props.payment}
+//           </span>
+//         </div>
+//         : props.payment == "Pending" ?
+//           <div>
+//             <span className="badge badge-light-warning fw-bold fs-7 p-2">
+//               <i className='bi bi-slash-circle text-warning fw-bold'></i>&nbsp;
+//               {props.payment}
+//             </span>
+//           </div>
+//           : <div>
 
-          </div>
-    }
-  </>
-)
+//           </div>
+//     }
+//   </>
+// )
 
 const StatusBadge: React.FC<{
   status: string;
@@ -194,194 +65,115 @@ const StatusBadge: React.FC<{
       props.status == "Customs" ?
         <div>
           <span className="badge badge-light-danger fw-bold fs-7 p-2">
+            <i className="bi bi-gear me-2 text-danger"></i>
             {props.status}
           </span>
         </div>
         : props.status == "Arrived" ?
           <div>
-            <span className="badge badge-light-success fw-bold fs-7 p-2">
+            <span className="badge badge-light-primary fw-bold fs-7 p-2">
+              <i className="bi bi-check me-2 text-primary"></i>
               {props.status}
             </span>
           </div>
           : props.status == "New" ?
             <div>
-              <span className="badge badge-light-dark text-gray-800 fw-bold fs-7 p-2">
+              <span className="badge badge-light-success fw-bold fs-7 p-2">
+                <i className="bi bi-star me-2 text-success"></i>
                 {props.status}
               </span>
             </div>
             : props.status == "Shipped" ?
               <div>
                 <span className="badge badge-light-warning fw-bold fs-7 p-2">
+                  <i className="bi bi-truck me-2 text-warning"></i>
                   {props.status}
                 </span>
               </div>
-              : <div>
-
-              </div>
+              : <div />
     }
   </>
 )
 
+const ShippingType: React.FC<{ type: string }> = props => {
+  if (props.type === 'Train') return <>🚆</>
+  else if (props.type === 'Air') return <>🛫</>
+  else if (props.type === 'Sea') return <>🚢</>
+  else return <></>
+}
+
 const TableProductPlanner: React.FC<{
-  editID?: number;
-  confirm: () => void;
-  productName: string;
-  selectedProductID: number;
-  shippings: Shipping[];
-  setEditID: React.Dispatch<React.SetStateAction<number>>;
-  setProductName: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedProduct: React.Dispatch<React.SetStateAction<Shipping>>;
-  setSelectedProductID: React.Dispatch<React.SetStateAction<number>>;
+  products: ShippingProduct[];
+  users: UserModel[];
+  allProducts: Product[];
+  selectedShippingTypes: { [key: string]: string };
 }> = props => {
+  if (!props.products.length) return <></>
   return (
-    <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7">
+    <table className="table table-rounded table-hover table-striped table-bordered border gy-7 gs-7">
       <thead>
-        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-          <th className='text-center align-content-center px-1'>Shipping type</th>
-          <th className='text-center align-content-center px-1'>Picture</th>
-          <th className='text-start align-content-center px-1 col-md-2'>Product name</th>
-          <th className='text-center align-content-center px-0'>Quantity</th>
-          <th className='text-center align-content-center px-1'>Price</th>
-          <th className='text-center align-content-center px-1'>Total</th>
-          <th className='text-center align-content-center px-1'>Stock</th>
-          <th className='text-center align-content-center px-1'>Sales<br />per day</th>
-          <th className='text-center align-content-center px-1'>Imports</th>
-          <th className='text-center align-content-center px-1'>Nr pf<br />units<br />perbox</th>
-          <th className='text-center align-content-center px-1 py-0'>Supplier Name<br />/ WeChat</th>
-          <th className='text-center align-content-center px-1 py-0'>Recommended<br />quantity for<br />reordering</th>
-          <th className='text-center align-content-center px-1'>Number<br />of boxes</th>
-          <th className='text-center align-content-center px-0'>Order Sent</th>
-          <th className='text-center align-content-center px-1'>Payment</th>
-          <th className='text-center align-content-center px-1'>Tracking Number</th>
-          <th className='text-center align-content-center px-1'>Arrived at agent</th>
-          <th className='text-center align-content-center px-1'>Author</th>
+        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200 text-nowrap">
+          <th></th>
+          <th></th>
+          <th style={{ minWidth: '500px' }}>Product Name</th>
+          <th>Quantity</th>
+          <th>Cost</th>
+          <th>Total Cost</th>
+          <th>Item per box</th>
+          <th>PDF sent</th>
+          <th>Pay URL</th>
+          <th>Tracking</th>
+          <th>Arrive to Agent</th>
+          <th>Wechat Group</th>
+          <th>PP</th>
+          <th>Each Status</th>
+          <th>Box Number</th>
+          <th>Document</th>
+          <th>Created Date</th>
+          <th>Date to Agent</th>
+          <th>Username</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className='text-center'>
         {
-          props.shippings.map((shipping, index) =>
-            <tr key={`planner${index}`} className='py-1 cursor-pointer' onClick={() => props.setSelectedProduct(props.shippings[index])}>
-              <td className='align-content-center text-center'>
-                {
-                  shipping.shippingType
-                }
-              </td>
-              <td className='align-content-center py-3 px-0'>
-                <div className='p-2 align-content-center text-center'>
-                  {
-                    shipping.picture.length > 0 ? <img width={60} height={60} src={shipping.picture} alt={`${shipping.id}`} />
-                      :
-                      <div>
-                        No Image
-                      </div>
-                  }
-                </div>
-              </td>
-              <td className='text-start align-content-center'>
-                {
-                  index == props.editID ?
-                    <div className='d-flex flex-row-fluid align-content-center'>
-                      <input
-                        type="text"
-                        className="form-control form-control-solid py-2"
-                        placeholder="Product Name"
-                        value={props.productName}
-                        onChange={e => props.setProductName(e.target.value)}
-                      />
-                      <a className='btn btn-white btn-sm p-0 align-content-center' onClick={() => props.confirm()}>
-                        <i className="bi bi-check-lg fs-3 p-1"></i>
-                      </a>
-                    </div>
-                    :
-                    <>
-                      {
-                        shipping.productName
-                      }
-                      <a className='btn btn-white btn-sm p-0' onClick={() => props.setEditID(index)}>
-                        <i className="bi bi-pencil-square fs-3 p-1"></i>
-                      </a>
-                    </>
-                }
-
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.quantity.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  formatCurrency(shipping.price)
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  formatCurrency(shipping.total)
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.stock.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.salesPerDay.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.imports
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.unitsPerBox.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.supplier.name
-                }<br />
-                {
-                  shipping.supplier.wechat
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.recommendedReorderQuantity.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.numberOfBoxes.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.orderSent.toLocaleString()
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                <Icon payment={shipping.payment} />
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.trackingNumber
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.arrivedAtAgent
-                }
-              </td>
-              <td className='text-center align-content-center'>
-                {
-                  shipping.author
-                }
-              </td>
-            </tr>
-          )
+          props.products.map((product, index) => {
+            const selectedProduct = props.allProducts.find(pro => pro.ean === product.ean);
+            return (
+              <tr className="py-1 fw-bold" key={`tr${index}`}>
+                <td className='align-content-center fs-1' style={{ minWidth: '50px' }}>{props.selectedShippingTypes[product.ean]}</td>
+                <td className='align-content-center' style={{ minWidth: '50px' }}>
+                  <img src={selectedProduct?.image_link} alt="" width={35} />
+                </td>
+                <td className='align-content-center text-start'>{selectedProduct?.product_name}</td>
+                <td className='align-content-center'>{product.quantity}</td>
+                <td className="align-content-center">${parseFloat(selectedProduct?.price ?? '0').toFixed(2)}</td>
+                <td className='align-content-center'>${(parseFloat(selectedProduct?.price ?? '0') * product.quantity).toFixed(2)}</td>
+                <td className='align-content-center'>{product.item_per_box}</td>
+                <td className='align-content-center'>
+                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                    <input className="form-check-input" type="checkbox" checked={product.pdf_sent} onChange={() => { }} />
+                  </div>
+                </td>
+                <td className='align-content-center'>{product.pay_url}</td>
+                <td className='align-content-center'>{product.tracking}</td>
+                <td className='align-content-center'>
+                  <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                    <input className="form-check-input" type="checkbox" checked={product.arrive_agent} onChange={() => { }} />
+                  </div>
+                </td>
+                <td className='align-content-center'>{product.wechat_group}</td>
+                <td className='align-content-center'>{product.pp}</td>
+                <td className='align-content-center'>{product.each_status}</td>
+                <td className='align-content-center'>{product.box_number}</td>
+                <td className='align-content-center'>{product.document}</td>
+                <td className='align-content-center'>{new Date(product.date_added).toLocaleDateString()}</td>
+                <td className='align-content-center'>{new Date(product.date_agent).toLocaleDateString()}</td>
+                <td className='align-content-center'>
+                  {props.users.find(user => user.id === product.user)?.full_name}
+                </td>
+              </tr>
+            )
+          })
         }
       </tbody>
     </table>
@@ -391,19 +183,18 @@ const TableProductPlanner: React.FC<{
 const TableShipment: React.FC<{
   shipments: Shipment[];
   handleDeleteShipment: (id: number) => void;
-  setSelectedShipment: React.Dispatch<React.SetStateAction<number>>;
   setEditShipment: React.Dispatch<React.SetStateAction<Shipment | undefined>>;
 }> = props => {
+  const navigate = useNavigate();
   return (
-    <table className="table table-rounded table-hover table-striped table-row-bordered border gy-7 gs-7" id='table-shipment'>
+    <table className="table table-rounded table-hover table-striped table-bordered border text-center" id='table-shipment'>
       <thead>
-        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+        <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200 bg-gray-300">
           <th className='align-content-center'>Shipment Name</th>
           <th className='align-content-center'>Agent Name</th>
           <th className='align-content-center'>Shipping Type</th>
           <th className='text-center align-content-center px-1'>Created Date</th>
           <th className='text-center align-content-center px-1'>Status</th>
-          <th className='text-center align-content-center px-1'>Note</th>
           <th className='text-center align-content-center px-1'>Estimated Date</th>
           <th className='text-center align-content-center px-1'>Actions</th>
         </tr>
@@ -411,21 +202,20 @@ const TableShipment: React.FC<{
       <tbody>
         {
           props.shipments.map((shipment, index) =>
-            <tr className='py-1 cursor-pointer' key={`shipment${index}`}>
-              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.title}</td>
-              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.agent}</td>
-              <td className='align-content-center' onClick={() => props.setSelectedShipment(index)}>{shipment.type}</td>
-              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.create_date ? (new Date(shipment.create_date)).toLocaleString() : ''}
+            <tr className='py-1' key={`shipment${index}`}>
+              <td className='align-content-center text-primary cursor-pointer' onClick={() => navigate(`./${shipment.id ?? 0}`)}>
+                {shipment.title}
               </td>
-              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
+              <td className='align-content-center'>{shipment.agent}</td>
+              <td className='align-content-center fs-1'><ShippingType type={shipment.type} /></td>
+              <td className='text-center align-content-center'>
+                {shipment.create_date ? (new Date(shipment.create_date)).toLocaleDateString() : ''}
+              </td>
+              <td className='text-center align-content-center'>
                 <StatusBadge status={shipment.status} />
               </td>
-              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.note}
-              </td>
-              <td className='text-center align-content-center' onClick={() => props.setSelectedShipment(index)}>
-                {shipment.delivery_date ? shipment.delivery_date.toLocaleString() : ''}
+              <td className='text-center align-content-center'>
+                {shipment.delivery_date ? new Date(shipment.delivery_date).toLocaleDateString() : ''}
               </td>
               <td className='text-center align-content-center'>
                 <a className='btn btn-white btn-active-light-info btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => props.setEditShipment(shipment)}>
@@ -447,32 +237,30 @@ export function ShippingManagement() {
   const [users, setUsers] = useState<UserModel[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [shippings, setshippings] = useState<Shipping[]>([]);
-  const [shipingTypes, setShipingTypes] = useState<{ value: string; label: string; }[]>([]);
-  const [selectedShippingTypes, setSelectedShippingTypes] = useState<{ [key: number]: string }>({});
-  const [editID, setEditID] = useState<number>(-1);
-  const [productName, setProductName] = useState<string>('');
+  const [selectedShippingTypes, setSelectedShippingTypes] = useState<{ [key: string]: string }>({});
   const [selectedShipment, setSelectedShipment] = useState<number>(-1);
   const [editShipment, setEditShipment] = useState<Shipment>();
   const [supplierOptions, setSupplierOptions] = useState<{ value: number, label: string }[]>([]);
-  const [selectedProductID, setSelectedProductID] = useState<number>(0);
-  const [selectedProduct, setSelectedProduct] = useState<Shipping>(fakeshippings[0]);
   const [editProduct, setEditProduct] = useState<Product>();
   const [products, setProducts] = useState<{ value: string, label: string }[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<{
-    [key: number]: ShippingProduct
-  }>({});
+  const [selectedProducts, setSelectedProducts] = useState<{ [key: number]: ShippingProduct }>({});
   const [agents, setAgents] = useState<{ value: string; label: string; }[]>([]);
   const [warehouses, setWarehouses] = useState<{ value: string; label: string; }[]>([]);
   const [warehouses2, setWarehouses2] = useState<{ value: number; label: string; }[]>([]);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
+  const params = useParams();
+  useEffect(() => {
+    if (params.id && params.id !== '0') {
+      setSelectedShipment(parseInt(params.id));
+    } else {
+      setSelectedShipment(0);
+    }
+  }, [params.id])
   useEffect(() => {
     if (changed) {
-      setShipingTypes(fakeShipingType);
-      setshippings(fakeshippings);
-      setSelectedProduct(fakeshippings[0]);
       getShipments()
         .then(res => setShipments(res.data))
         .catch(e => console.error(e));
@@ -502,13 +290,23 @@ export function ShippingManagement() {
     }
   }, [changed]);
   useEffect(() => {
-    if (editID != -1) {
-      setProductName(shippings[editID]['productName'])
-    }
-  }, [editID, shippings]);
-  useEffect(() => {
-    setSelectedProductID(0);
-  }, [selectedShipment]);
+    const selectedShippingTypes: { [key: string]: string } = {};
+    const len = allProducts.length;
+    allProducts.forEach((product, index) => {
+      const ean = product.ean;
+      getShippingType(ean)
+        .then(res => res.data)
+        .then(res => {
+          const type = res.type as number;
+          if (type === 1) selectedShippingTypes[ean] = '🛫';
+          else if (type === 2) selectedShippingTypes[ean] = '🚆';
+          else if (type === 3) selectedShippingTypes[ean] = '🚢';
+          else selectedShippingTypes[ean] = '';
+          if (index === len - 1) setSelectedShippingTypes(selectedShippingTypes);
+        })
+        .catch(e => console.error(e));
+    });
+  }, [allProducts]);
   useEffect(() => {
     getUsers()
       .then(res => res.data)
@@ -557,19 +355,6 @@ export function ShippingManagement() {
     }
   }, [editShipment])
 
-  const confirm = () => {
-    setshippings(shippings.map((shipping, index) => {
-      if (index == editID) {
-        const obj = shipping
-        obj.productName = productName
-        return obj
-      } else {
-        return shipping
-      }
-    }
-    ))
-    setEditID(-1);
-  }
   const handleSave = () => {
     let id = 'createShipmentModal';
     if (editShipment) id = 'editShipmentModal';
@@ -665,7 +450,7 @@ export function ShippingManagement() {
   }
   const filterByShippingType = (shippingType: MultiValue<{ value: string, label: string }> = []) => {
     const values = shippingType.map(type => type.value);
-    const filter = shipingTypes.map(type => {
+    const filter = shipingTypeOptions.map(type => {
       if (values.findIndex(value => value === type.label) >= 0) return type.label;
     }).filter(value => value !== undefined).join(', ');
     const trs = document.querySelectorAll('table#table-shipment > tbody > tr');
@@ -704,7 +489,7 @@ export function ShippingManagement() {
   return (
     <Content>
       {
-        selectedShipment === -1 ?
+        selectedShipment === 0 ?
           <>
             <div className="row">
               <div className="col-md-6">
@@ -716,7 +501,7 @@ export function ShippingManagement() {
               <div className="col-md-3">
                 <Select
                   className='react-select-styled react-select-solid react-select-sm'
-                  options={shipingTypes}
+                  options={shipingTypeOptions}
                   isMulti
                   isSearchable={false}
                   onChange={e => filterByShippingType(e)}
@@ -724,24 +509,48 @@ export function ShippingManagement() {
                 />
               </div>
             </div>
-            <TableShipment shipments={shipments} setSelectedShipment={setSelectedShipment} setEditShipment={setEditShipment} handleDeleteShipment={handleDeleteShipment} />
+            <TableShipment shipments={shipments} setEditShipment={setEditShipment} handleDeleteShipment={handleDeleteShipment} />
           </>
           :
-          <>
-            <div className="row">
-              <div className="col-md-12">
-                <button className="btn btn-sm btn-primary" onClick={() => setSelectedShipment(-1)}>
-                  <i className="bi bi-backspace-fill"></i> Back to Shipment List
-                </button>
+          (() => {
+            const shipment = shipments.find(shipment => shipment.id === selectedShipment);
+            if (!shipment) return <></>;
+            const products: ShippingProduct[] = [];
+            const len = shipment.arrive_agent.length;
+            for (let i = 0; i < len; i++) {
+              products.push({
+                ean: shipment.ean[i],
+                quantity: shipment.quantity[i],
+                item_per_box: shipment.item_per_box[i],
+                pdf_sent: shipment.pdf_sent[i],
+                pay_url: shipment.pay_url[i],
+                tracking: shipment.tracking[i],
+                arrive_agent: shipment.arrive_agent[i],
+                wechat_group: shipment.wechat_group[i],
+                pp: shipment.pp[i],
+                each_status: shipment.each_status[i],
+                box_number: shipment.box_number[i],
+                document: shipment.document[i],
+                date_added: shipment.date_added[i],
+                date_agent: shipment.date_agent[i],
+                user: shipment.user[i]
+              });
+            }
+            return (<>
+              <div className="row">
+                <div className="col-md-12">
+                  <button className="btn btn-sm btn-primary" onClick={() => navigate('./../')}>
+                    <i className="bi bi-backspace-fill"></i> Back to Shipment List
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className='row'>
-              <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
-                <div className="card-header pt-4 w-full">
-                  <div>
-                    <h3 className="text-gray-800 card-title align-content-center">Details of {shipments[selectedShipment].title}</h3>
-                  </div>
-                  {/* <div>
+              <div className='row'>
+                <div className="card card-custom card-stretch shadow cursor-pointer mb-4">
+                  <div className="card-header pt-6 w-full">
+                    <div>
+                      <h3 className="text-gray-800 card-title align-content-center">Details of "{shipment.title}"</h3>
+                    </div>
+                    {/* <div>
                     <button type='button' className='btn btn-light btn-light-primary p-3' onClick={() => setEditID(-2)}>
                       <i className="bi bi-cloud-arrow-down"></i>
                       Download Invoice
@@ -751,75 +560,469 @@ export function ShippingManagement() {
                       Generate Order Agent
                     </button>
                   </div> */}
-                </div>
-                <div className="card-body p-6">
-                  <div className='row mb-2'>
-                    <div className='col-md-4'>
-                      <span className='text-gray-700'>Total Units</span><br />
-                      <h4 className='text-gray-900 text-hover-primary'>
-                        {selectedProduct && (selectedProduct.numberOfBoxes * selectedProduct.unitsPerBox).toLocaleString()}
-                      </h4>
+                  </div>
+                  <div className="card-body p-6">
+                    <div className='row mb-2'>
+                      <div className="align-content-center col-md-2 fw-bold">Shipping Type</div>
+                      <div className="align-content-center col-md-2 fs-2"><ShippingType type={shipment.type} /></div>
+                      <div className="align-content-center col-md-2 fw-bold">Shipment Status</div>
+                      <div className="align-content-center col-md-2"><StatusBadge status={shipment.status} /></div>
+                      <div className="align-content-center col-md-2 fw-bold">Warehouse</div>
+                      <div className="align-content-center col-md-2">{warehouses.find(warehouse => warehouse.value === shipment.warehouse)?.label}</div>
                     </div>
-                    <div className='col-md-8'>
-                      <span className='text-gray-700'>Shiping Type</span><br />
-                      <div className='col-md-4'>
-                        <Select
-                          className='react-select-styled react-select-solid react-select-sm'
-                          classNamePrefix='react-select'
-                          options={shipingTypes}
-                          placeholder='Select Shiping Type'
-                        />
+                    <div className='row mb-2'>
+                      <div className="align-content-center col-md-2 fw-bold">Expected Delivery Type</div>
+                      <div className="align-content-center col-md-2">{new Date(shipment.delivery_date).toLocaleDateString()}</div>
+                      <div className="align-content-center col-md-2 fw-bold">Agent</div>
+                      <div className="align-content-center col-md-2">{shipment.agent}</div>
+                      <div className="align-content-center col-md-2 fw-bold">AWB</div>
+                      <div className="align-content-center col-md-2">{shipment.awb}</div>
+                    </div>
+                    <div className='row mb-2'>
+                      <div className="align-content-center col-md-2 fw-bold">VAT</div>
+                      <div className="align-content-center col-md-2">{parseFloat(shipment.vat.toString()).toFixed(3)}</div>
+                      <div className="align-content-center col-md-2 fw-bold">Custom Taxes</div>
+                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat(shipment.custom_taxes.toString()))}</div>
+                      <div className="align-content-center col-md-2 fw-bold">Shipping Cost</div>
+                      <div className="align-content-center col-md-2">{formatCurrency(parseFloat(shipment.shipment_cost.toString()))}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-12 table-responsive">
+                  <TableProductPlanner products={products} users={users} allProducts={allProducts} selectedShippingTypes={selectedShippingTypes} />
+                </div>
+              </div>
+            </>)
+          })()
+      }
+      <div className="modal fade" id='editShipmentModal' tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-scrollable modal-fullscreen">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Shipment</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              {!!editShipment && <form action="" method='post' id='editProductForm'>
+                <div className="row">
+                  <div className="col-md-1"></div>
+                  <div className="col-md-10">
+                    <div className="row">
+                      <div className="col-md-12">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-25">Shipment Name:</div>
+                          <div className="d-flex ms-auto mr-0 w-75">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='shipment_name' defaultValue={editShipment.title} placeholder="Shipment Name" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <div className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipping Type:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='type'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={shipingTypeOptions}
+                              placeholder='Select shipping type'
+                              isSearchable={false}
+                              noOptionsMessage={e => `No more shipping type${e.inputValue}`}
+                              defaultValue={shipingTypeOptions.find(type => type.value === editShipment.type)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipment Status:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='status'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={shippingStatus}
+                              placeholder='Select shipment status'
+                              isSearchable={false}
+                              noOptionsMessage={e => `No more shipping status${e.inputValue}`}
+                              defaultValue={shippingStatus.find(status => status.label == editShipment.status)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Warehouse:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='warehouse'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={warehouses}
+                              placeholder='Select a warehouse'
+                              noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
+                              defaultValue={warehouses.find(house => house.value == editShipment.warehouse)}
+                            />
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Expected Delivery Date:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="date" className="form-control" name='delivery_date' defaultValue={editShipment.delivery_date?.split('T')[0]} placeholder="Expected Delivery Date" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Agent Name:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <Select
+                              name='agent'
+                              className='react-select-styled react-select-solid react-select-sm w-100'
+                              options={agents}
+                              placeholder='Select an agent'
+                              noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
+                              defaultValue={agents.find(user => user.value === editShipment.agent)}
+                            />
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">AWB:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='awb' defaultValue={editShipment.awb} placeholder="AWB" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">VAT:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='vat' defaultValue={editShipment.vat} placeholder="VAT" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Custom Taxes:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='custom_taxes' defaultValue={editShipment.custom_taxes} placeholder="Custom Taxes" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-50">Shipment Cost:</div>
+                          <div className="d-flex ms-auto mr-0 w-50">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <input type="text" className="form-control" name='shipment_cost' defaultValue={editShipment.shipment_cost} placeholder="Shipment Cost" />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-md-12">
+                        <label className="d-flex align-items-center py-1">
+                          <div className="d-flex fw-bold w-25">Note (Optional):</div>
+                          <div className="d-flex ms-auto mr-0 w-75">
+                            <div className="input-group">
+                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
+                              <textarea className="form-control" name='note' placeholder="Note" defaultValue={editShipment.note ?? ''} rows={3} />
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <hr />
+                    <h1>Products</h1>
+                    <div className="row">
+                      <div className="col-md-12 overflow-auto">
+                        <table className='table table-bordered table-hover w-100 text-nowrap' style={{ overflowY: 'visible' }}>
+                          <thead>
+                            <tr className="py-1 fs-4 fw-bold text-center">
+                              <th></th>
+                              <th></th>
+                              <th></th>
+                              <th></th>
+                              <th style={{ minWidth: '500px' }}>Product</th>
+                              <th>Quantity</th>
+                              <th>Cost</th>
+                              <th>Total Cost</th>
+                              <th>Item per box</th>
+                              <th>PDF sent</th>
+                              <th>Pay URL</th>
+                              <th>Tracking</th>
+                              <th>Arrive to Agent</th>
+                              <th>Wechat Group</th>
+                              <th>PP</th>
+                              <th>Each Status</th>
+                              <th>Box Number</th>
+                              <th>Document</th>
+                              <th>Created Date</th>
+                              <th>Date to Agent</th>
+                              <th>Username</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.keys(selectedProducts).map((index) => {
+                              const selectedProduct = selectedProducts[parseInt(index)];
+                              const editProduct = allProducts.find(product => product.ean === selectedProduct.ean);
+                              return (
+                                <tr className="py-1 fw-bold" key={`tr${index}`}>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" title='Unselect this Product' onClick={() => {
+                                      const newProArr = { ...selectedProducts };
+                                      delete newProArr[parseInt(index)];
+                                      setSelectedProducts(newProArr);
+                                    }}>
+                                      <i className="bi bi-trash-fill"></i>
+                                    </button>
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <button type='button' className="btn btn-light-primary btn-sm d-flex" title='Edit this Product' onClick={() => handleSetEditProduct(editProduct?.id ?? 0)} data-bs-toggle="modal" data-bs-target="#editProductModal">
+                                      <i className="bi bi-pencil-square"></i>
+                                    </button>
+                                  </td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[selectedProduct.ean]}</td>
+                                  <td style={{ minWidth: '50px' }}>
+                                    <img src={editProduct?.image_link ?? ''} alt="" width={35} />
+                                  </td>
+                                  <td>
+                                    <Select
+                                      name='products'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      options={products}
+                                      placeholder='Select a product'
+                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#editShipmentModal') as HTMLElement}
+                                      value={products.find(product => product.value === selectedProduct.ean)}
+                                      onChange={product => setSelectedProducts({
+                                        ...selectedProducts,
+                                        [parseInt(index)]: {
+                                          ean: product?.value ?? '',
+                                          quantity: 1,
+                                          item_per_box: 1,
+                                          pdf_sent: false,
+                                          pay_url: '',
+                                          tracking: '',
+                                          arrive_agent: false,
+                                          wechat_group: '',
+                                          pp: '',
+                                          each_status: '',
+                                          box_number: 0,
+                                          document: '',
+                                          date_added: (new Date()).toISOString().split('T')[0],
+                                          date_agent: (new Date()).toISOString().split('T')[0],
+                                          user: currentUser?.id ?? 0,
+                                        }
+                                      })}
+                                    />
+                                  </td>
+                                  <td>
+                                    <input type="number" name='numProduct' value={selectedProduct.quantity} min={1} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].quantity = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} className='form-control form-control-sm d-flex' />
+                                  </td>
+                                  <td className="align-content-center">${editProduct?.price}</td>
+                                  <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
+                                  <td style={{ minWidth: '100px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].item_per_box = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.pdf_sent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].pdf_sent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pay_url} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].pay_url = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.tracking} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].tracking = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center'>
+                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
+                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.arrive_agent} onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].arrive_agent = e.target.checked;
+                                        setSelectedProducts(newProducts);
+                                      }} />
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].wechat_group = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td style={{ minWidth: '200px' }}>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].pp = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.each_status} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].each_status = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.box_number} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].box_number = parseInt(e.target.value);
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.document} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].document = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_added.split('T')[0]} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_added = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td>
+                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_agent.split('T')[0]} onChange={(e) => {
+                                      const newProducts = { ...selectedProducts };
+                                      newProducts[parseInt(index)].date_agent = e.target.value;
+                                      setSelectedProducts(newProducts);
+                                    }} />
+                                  </td>
+                                  <td className='align-content-center' style={{ minWidth: '100px' }}>
+                                    {users.find(user => user.id === selectedProduct.user)?.full_name}
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                            {(() => {
+                              const objects = Object.keys(selectedProducts);
+                              const len = objects.length;
+                              const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
+                              return (
+                                <tr className="py-1 fw-bold" key={`tr${num}`}>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td style={{ minWidth: '50px' }}></td>
+                                  <td>
+                                    <Select
+                                      name='products'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      options={products}
+                                      placeholder='Select a product'
+                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#editShipmentModal') as HTMLElement}
+                                      onChange={product => setSelectedProducts({
+                                        ...selectedProducts,
+                                        [parseInt(num)]: {
+                                          ean: product?.value ?? '',
+                                          quantity: 1,
+                                          item_per_box: 1,
+                                          pdf_sent: false,
+                                          pay_url: '',
+                                          tracking: '',
+                                          arrive_agent: false,
+                                          wechat_group: '',
+                                          pp: '',
+                                          each_status: '',
+                                          box_number: 0,
+                                          document: '',
+                                          date_added: (new Date()).toISOString().split('T')[0],
+                                          date_agent: (new Date()).toISOString().split('T')[0],
+                                          user: currentUser?.id ?? 0,
+                                        }
+                                      })}
+                                    />
+                                  </td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                </tr>
+                              )
+                            })()}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
-                  <div className='row mb-2'>
-                    <div className='col-md-4'>
-                      <span className='text-gray-700'>Total Boxes</span><br />
-                      <h4 className='text-gray-900 text-hover-primary'>
-                        {!!selectedProduct && selectedProduct.numberOfBoxes.toLocaleString()}
-                      </h4>
-                    </div>
-                    <div className='col-md-8'>
-                      <span className='text-gray-700'>Agent</span><br />
-                      <div className='col-md-4'>{!!selectedProduct}</div>
-                    </div>
-                  </div>
-                  <div className='row mb-2'>
-                    <div className='col-md-4'>
-                      <span className='text-gray-700'>Total</span><br />
-                      <h4 className='text-gray-900 text-hover-primary'>
-                        {
-                          selectedProduct && formatCurrency(selectedProduct.total)
-                        }
-                      </h4>
-                    </div>
-                    <div className='col-md-8'>
-                      <span className='text-gray-700'>Tracking Number</span><br />
-                      <input
-                        type="text"
-                        className="form-control form-control-solid p-2"
-                        placeholder="Tracking Number"
-                        value={selectedProduct?.trackingNumber}
-                        onChange={e => setSelectedProduct({ ...selectedProduct, trackingNumber: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className='row'>
-                    <div className='col-md-4'>
-                      <span className='text-gray-700'>Total Volume</span><br />
-                      <h4 className='text-gray-900 text-hover-primary'>
-                        483,223,223
-                      </h4>
-                    </div>
-                  </div>
+                  <div className="col-md-1"></div>
                 </div>
-              </div>
-              <div className="col-md-12 table-responsive">
-                <TableProductPlanner selectedProductID={selectedProductID} setSelectedProduct={setSelectedProduct} setSelectedProductID={setSelectedProductID} confirm={confirm} setEditID={setEditID} editID={editID} setProductName={setProductName} productName={productName} shippings={shippings} />
-              </div>
+              </form>}
             </div>
-          </>
-      }
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setEditShipment(undefined)} data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="modal fade" id='createShipmentModal' tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog modal-dialog modal-dialog-scrollable modal-fullscreen">
           <div className="modal-content">
@@ -853,7 +1056,7 @@ export function ShippingManagement() {
                             <Select
                               name='type'
                               className='react-select-styled react-select-solid react-select-sm w-100'
-                              options={shipingTypes}
+                              options={shipingTypeOptions}
                               placeholder='Select shipping type'
                               isSearchable={false}
                               noOptionsMessage={e => `No more shipping type${e.inputValue}`}
@@ -1015,17 +1218,6 @@ export function ShippingManagement() {
                             {Object.keys(selectedProducts).map((index) => {
                               const selectedProduct = selectedProducts[parseInt(index)];
                               const editProduct = allProducts.find(product => product.ean === selectedProduct.ean);
-                              getShippingType(selectedProduct.ean)
-                                .then(res => res.data)
-                                .then(res => {
-                                  switch (res.type as number) {
-                                    default: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '' }); return;
-                                    case 1: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🛫' }); return;
-                                    case 2: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚆' }); return;
-                                    case 3: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚢' }); return;
-                                  }
-                                })
-                                .catch(e => console.error(e));
                               return (
                                 <tr className="py-1 fw-bold" key={`tr${index}`}>
                                   <td className='align-content-center'>
@@ -1042,7 +1234,7 @@ export function ShippingManagement() {
                                       <i className="bi bi-pencil-square"></i>
                                     </button>
                                   </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[parseInt(index)]}</td>
+                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[selectedProduct.ean]}</td>
                                   <td style={{ minWidth: '50px' }}>
                                     <img src={editProduct?.image_link ?? ''} alt="" width={35} />
                                   </td>
@@ -1255,445 +1447,6 @@ export function ShippingManagement() {
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><i className="bi bi-x"></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-plus"></i>Create</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="modal fade" id='editShipmentModal' tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-scrollable modal-fullscreen">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Shipment</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-              {!!editShipment && <form action="" method='post' id='editProductForm'>
-                <div className="row">
-                  <div className="col-md-1"></div>
-                  <div className="col-md-10">
-                    <div className="row">
-                      <div className="col-md-12">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Shipment Name:</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='shipment_name' defaultValue={editShipment.title} placeholder="Shipment Name" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-4">
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Shipping Type:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <Select
-                              name='type'
-                              className='react-select-styled react-select-solid react-select-sm w-100'
-                              options={shipingTypes}
-                              placeholder='Select shipping type'
-                              isSearchable={false}
-                              noOptionsMessage={e => `No more shipping type${e.inputValue}`}
-                              defaultValue={shipingTypes.find(type => type.value == editShipment.type)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Shipment Status:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <Select
-                              name='status'
-                              className='react-select-styled react-select-solid react-select-sm w-100'
-                              options={shippingStatus}
-                              placeholder='Select shipment status'
-                              isSearchable={false}
-                              noOptionsMessage={e => `No more shipping status${e.inputValue}`}
-                              defaultValue={shippingStatus.find(status => status.value == editShipment.status)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Warehouse:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <Select
-                              name='warehouse'
-                              className='react-select-styled react-select-solid react-select-sm w-100'
-                              options={warehouses}
-                              placeholder='Select a warehouse'
-                              noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
-                              defaultValue={warehouses.find(house => house.value == editShipment.warehouse)}
-                            />
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Expected Delivery Date:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="date" className="form-control" name='delivery_date' defaultValue={editShipment.delivery_date?.split('T')[0]} placeholder="Expected Delivery Date" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Agent Name:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <Select
-                              name='agent'
-                              className='react-select-styled react-select-solid react-select-sm w-100'
-                              options={agents}
-                              placeholder='Select an agent'
-                              noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
-                              defaultValue={agents.find(user => user.value === editShipment.agent)}
-                            />
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">AWB:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='awb' defaultValue={editShipment.awb} placeholder="AWB" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">VAT:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='vat' defaultValue={editShipment.vat} placeholder="VAT" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Custom Taxes:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='custom_taxes' defaultValue={editShipment.custom_taxes} placeholder="Custom Taxes" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                      <div className="col-md-4">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-50">Shipment Cost:</div>
-                          <div className="d-flex ms-auto mr-0 w-50">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <input type="text" className="form-control" name='shipment_cost' defaultValue={editShipment.shipment_cost} placeholder="Shipment Cost" />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-12">
-                        <label className="d-flex align-items-center py-1">
-                          <div className="d-flex fw-bold w-25">Note (Optional):</div>
-                          <div className="d-flex ms-auto mr-0 w-75">
-                            <div className="input-group">
-                              <span className="input-group-text"><i className="bi bi-link-45deg"></i></span>
-                              <textarea className="form-control" name='note' placeholder="Note" defaultValue={editShipment.note ?? ''} rows={3} />
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    <hr />
-                    <h1>Products</h1>
-                    <div className="row">
-                      <div className="col-md-12 overflow-auto">
-                        <table className='table table-bordered table-hover w-100 text-nowrap' style={{ overflowY: 'visible' }}>
-                          <thead>
-                            <tr className="py-1 fs-4 fw-bold text-center">
-                              <th></th>
-                              <th></th>
-                              <th></th>
-                              <th></th>
-                              <th style={{ minWidth: '500px' }}>Product</th>
-                              <th>Quantity</th>
-                              <th>Cost</th>
-                              <th>Total Cost</th>
-                              <th>Item per box</th>
-                              <th>PDF sent</th>
-                              <th>Pay URL</th>
-                              <th>Tracking</th>
-                              <th>Arrive to Agent</th>
-                              <th>Wechat Group</th>
-                              <th>PP</th>
-                              <th>Each Status</th>
-                              <th>Box Number</th>
-                              <th>Document</th>
-                              <th>Created Date</th>
-                              <th>Date to Agent</th>
-                              <th>Username</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Object.keys(selectedProducts).map((index) => {
-                              const selectedProduct = selectedProducts[parseInt(index)];
-                              const editProduct = allProducts.find(product => product.ean === selectedProduct.ean);
-                              getShippingType(selectedProduct.ean)
-                                .then(res => res.data)
-                                .then(res => {
-                                  switch (res.type as number) {
-                                    default: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '' }); return;
-                                    case 1: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🛫' }); return;
-                                    case 2: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚆' }); return;
-                                    case 3: setSelectedShippingTypes({ ...selectedShippingTypes, [parseInt(index)]: '🚢' }); return;
-                                  }
-                                })
-                                .catch(e => console.error(e));
-                              return (
-                                <tr className="py-1 fw-bold" key={`tr${index}`}>
-                                  <td className='align-content-center'>
-                                    <button type='button' className="btn btn-light-danger btn-sm d-flex" title='Unselect this Product' onClick={() => {
-                                      const newProArr = { ...selectedProducts };
-                                      delete newProArr[parseInt(index)];
-                                      setSelectedProducts(newProArr);
-                                    }}>
-                                      <i className="bi bi-trash-fill"></i>
-                                    </button>
-                                  </td>
-                                  <td className='align-content-center'>
-                                    <button type='button' className="btn btn-light-primary btn-sm d-flex" title='Edit this Product' onClick={() => handleSetEditProduct(editProduct?.id ?? 0)} data-bs-toggle="modal" data-bs-target="#editProductModal">
-                                      <i className="bi bi-pencil-square"></i>
-                                    </button>
-                                  </td>
-                                  <td className='fs-1' style={{ minWidth: '50px' }}>{selectedShippingTypes[parseInt(index)]}</td>
-                                  <td style={{ minWidth: '50px' }}>
-                                    <img src={editProduct?.image_link ?? ''} alt="" width={35} />
-                                  </td>
-                                  <td>
-                                    <Select
-                                      name='products'
-                                      className='react-select-styled react-select-solid react-select-sm w-100'
-                                      options={products}
-                                      placeholder='Select a product'
-                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                                      hideSelectedOptions
-                                      captureMenuScroll={true}
-                                      menuPlacement={'auto'}
-                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
-                                      value={products.find(product => product.value === selectedProduct.ean)}
-                                      onChange={product => setSelectedProducts({
-                                        ...selectedProducts,
-                                        [parseInt(index)]: {
-                                          ean: product?.value ?? '',
-                                          quantity: 1,
-                                          item_per_box: 1,
-                                          pdf_sent: false,
-                                          pay_url: '',
-                                          tracking: '',
-                                          arrive_agent: false,
-                                          wechat_group: '',
-                                          pp: '',
-                                          each_status: '',
-                                          box_number: 0,
-                                          document: '',
-                                          date_added: '',
-                                          date_agent: '',
-                                          user: currentUser?.id ?? 0,
-                                        }
-                                      })}
-                                    />
-                                  </td>
-                                  <td>
-                                    <input type="number" name='numProduct' value={selectedProduct.quantity} min={1} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].quantity = parseInt(e.target.value);
-                                      setSelectedProducts(newProducts);
-                                    }} className='form-control form-control-sm d-flex' />
-                                  </td>
-                                  <td className="align-content-center">${editProduct?.price}</td>
-                                  <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
-                                  <td style={{ minWidth: '100px' }}>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].item_per_box = parseInt(e.target.value);
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td className='align-content-center'>
-                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.pdf_sent} onChange={(e) => {
-                                        const newProducts = { ...selectedProducts };
-                                        newProducts[parseInt(index)].pdf_sent = e.target.checked;
-                                        setSelectedProducts(newProducts);
-                                      }} />
-                                    </div>
-                                  </td>
-                                  <td style={{ minWidth: '200px' }}>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pay_url} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].pay_url = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td style={{ minWidth: '200px' }}>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.tracking} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].tracking = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td className='align-content-center'>
-                                    <div className="form-check form-switch form-check-custom form-check-solid m-auto" style={{ width: 'fit-content' }}>
-                                      <input className="form-check-input" type="checkbox" checked={selectedProduct.arrive_agent} onChange={(e) => {
-                                        const newProducts = { ...selectedProducts };
-                                        newProducts[parseInt(index)].arrive_agent = e.target.checked;
-                                        setSelectedProducts(newProducts);
-                                      }} />
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].wechat_group = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td style={{ minWidth: '200px' }}>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].pp = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.each_status} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].each_status = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.box_number} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].box_number = parseInt(e.target.value);
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.document} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].document = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td>
-                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_added.split('T')[0]} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].date_added = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td>
-                                    <input type="date" className='form-control form-control-sm' value={selectedProduct.date_agent.split('T')[0]} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].date_agent = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
-                                  </td>
-                                  <td className='align-content-center' style={{ minWidth: '100px' }}>
-                                    {users.find(user => user.id === selectedProduct.user)?.full_name}
-                                  </td>
-                                </tr>
-                              )
-                            })}
-                            {(() => {
-                              const objects = Object.keys(selectedProducts);
-                              const len = objects.length;
-                              const num = (len ? parseInt(objects[len - 1]) + 1 : 1).toString();
-                              return (
-                                <tr className="py-1 fw-bold" key={`tr${num}`}>
-                                  <td style={{ minWidth: '50px' }}></td>
-                                  <td style={{ minWidth: '50px' }}></td>
-                                  <td style={{ minWidth: '50px' }}></td>
-                                  <td style={{ minWidth: '50px' }}></td>
-                                  <td>
-                                    <Select
-                                      name='products'
-                                      className='react-select-styled react-select-solid react-select-sm w-100'
-                                      options={products}
-                                      placeholder='Select a product'
-                                      noOptionsMessage={e => `No products including "${e.inputValue}"`}
-                                      hideSelectedOptions
-                                      captureMenuScroll={true}
-                                      menuPlacement={'auto'}
-                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
-                                      onChange={product => setSelectedProducts({
-                                        ...selectedProducts,
-                                        [parseInt(num)]: {
-                                          ean: product?.value ?? '',
-                                          quantity: 1,
-                                          item_per_box: 1,
-                                          pdf_sent: false,
-                                          pay_url: '',
-                                          tracking: '',
-                                          arrive_agent: false,
-                                          wechat_group: '',
-                                          pp: '',
-                                          each_status: '',
-                                          box_number: 0,
-                                          document: '',
-                                          date_added: '',
-                                          date_agent: '',
-                                          user: currentUser?.id ?? 0,
-                                        }
-                                      })}
-                                    />
-                                  </td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td></td>
-                                </tr>
-                              )
-                            })()}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-1"></div>
-                </div>
-              </form>}
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setEditShipment(undefined)} data-bs-toggle="modal" data-bs-target="#createShipmentModal"><i className="bi bi-x"></i>Close</button>
-              <button type="button" className="btn btn-primary" onClick={handleSave}><i className="bi bi-save"></i>Save changes</button>
             </div>
           </div>
         </div>
@@ -1966,7 +1719,7 @@ export function ShippingManagement() {
               </form>}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createShipmentModal" onClick={() => setEditProduct(undefined)}><i className='bi bi-trash'></i>Close</button>
+              <button type="button" className="btn btn-secondary" data-bs-toggle="modal" data-bs-target={editShipment ? '#editShipmentModal' : '#createShipmentModal'} onClick={() => setEditProduct(undefined)}><i className='bi bi-trash'></i>Close</button>
               <button type="button" className="btn btn-primary" onClick={handleEditProduct}><i className='bi bi-save'></i>Save changes</button>
             </div>
           </div>

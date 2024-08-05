@@ -32,6 +32,15 @@ const OrdersClientsPage = () => (
         }
       />
       <Route
+        path='orders/:id'
+        element={
+          <>
+            <PageTitle breadcrumbs={ocBreadCrumbs}></PageTitle>
+            <Orders />
+          </>
+        }
+      />
+      <Route
         path='returns'
         element={
           <>
