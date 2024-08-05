@@ -560,18 +560,18 @@ export const Products: React.FC = () => {
             </div>
             <div className="row flex-shrink-1">
               <div className="col-md-12 table-responsive d-flex h-100">
-                <table className="table table-rounded table-row-bordered border gy-7 gs-7 table-hover">
+                <table className="table table-rounded table-row-bordered border table-hover">
                   <thead>
                     <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
                       {/* <th style={{ width: '100px' }}><div className="form-check form-check-custom form-check-solid">
                         <input className="form-check-input" type="checkbox" value="" />
                       </div></th> */}
-                      <th>Product</th>
-                      <th>Price</th>
-                      <th>Stock</th>
-                      <th>Barcode Title</th>
-                      <th>Masterbox Title</th>
-                      <th>Action</th>
+                      <th className='px-3'>Product</th>
+                      <th className='px-3'>Price</th>
+                      <th className='px-3'>Stock</th>
+                      <th className='px-3'>Barcode Title</th>
+                      <th className='px-3'>Masterbox Title</th>
+                      <th className='px-3'>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -581,7 +581,7 @@ export const Products: React.FC = () => {
                           {/* <td className='align-content-center'>
                             <input className="form-check-input" type="checkbox" value={index} />
                           </td> */}
-                          <td className='align-content-center'>
+                          <td className='align-content-center px-2'>
                             <div className="d-flex">
                               <div className="d-flex align-items-center" onClick={() => navigate(`./${product.id}`)}>
                                 {
