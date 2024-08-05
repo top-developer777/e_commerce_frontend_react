@@ -4,7 +4,7 @@ import { SidebarMenuItem } from './SidebarMenuItem'
 import { useAuth } from '../../../../../app/modules/auth'
 import { getAllMarketplaces } from '../../../../../app/pages/config/components/_request';
 import { useEffect, useState } from 'react';
-import { getOrderAmout } from '../../../../../app/pages/orders_clients/components/_request';
+import { getNewOrderAmount } from '../../../../../app/pages/orders_clients/components/_request';
 // import { FALSE } from 'sass'
 
 const SidebarMenuMain = () => {
@@ -14,20 +14,9 @@ const SidebarMenuMain = () => {
   const [numOrder, setNumOrder] = useState(0);
 
   useEffect(() => {
-    getOrderAmout(1)
+    getNewOrderAmount()
       .then(res => {
-        let num = res.data as number;
-        getOrderAmout(2)
-          .then(res => {
-            num += res.data as number;
-            getOrderAmout(3)
-              .then(res => {
-                num += res.data as number;
-                setNumOrder(num);
-              })
-              .catch(e => console.error(e));
-          })
-          .catch(e => console.error(e));
+        setNumOrder(res.data as number);
       })
       .catch(e => console.error(e));
     getAllMarketplaces()
@@ -37,20 +26,9 @@ const SidebarMenuMain = () => {
   }, []);
 
   setInterval(() => {
-    getOrderAmout(1)
+    getNewOrderAmount()
       .then(res => {
-        let num = res.data as number;
-        getOrderAmout(2)
-          .then(res => {
-            num += res.data as number;
-            getOrderAmout(3)
-              .then(res => {
-                num += res.data as number;
-                setNumOrder(num);
-              })
-              .catch(e => console.error(e));
-          })
-          .catch(e => console.error(e));
+        setNumOrder(res.data as number);
       })
       .catch(e => console.error(e));
     getAllMarketplaces()

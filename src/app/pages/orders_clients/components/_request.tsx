@@ -18,6 +18,12 @@ export const getOrderAmout = (status = -1, searchText = '') => {
   })
 }
 
+export const getNewOrderAmount = () => {
+  return axios.get(`${API_URL}/orders/count/new_order`, {
+    params: { search_text: '' }
+  })
+}
+
 export const getAllReplaces = (page: number, limit = 50, status = -1) => {
   return axios
     .get(`${API_URL}/replaces`, {

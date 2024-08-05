@@ -332,6 +332,7 @@ const OrderTable: React.FC<{
       return;
     }
     newOrders.forEach(order => {
+      if (order.payment_mode_id === 2) return;
       getCustomer(order.id ?? 0)
         .then(res => res.data as CustomerInterface)
         .then(res => {
