@@ -331,7 +331,8 @@ const OrderTable: React.FC<{
       toast.error('Can\'t find warehouse.');
       return;
     }
-    newOrders.forEach(order => {
+    const len = newOrders.length;
+    newOrders.forEach((order, index) => {
       if (order.payment_mode_id === 2) return;
       getCustomer(order.id ?? 0)
         .then(res => res.data as CustomerInterface)
@@ -381,8 +382,8 @@ const OrderTable: React.FC<{
                 </>);
                 return;
               }
+              if (len === index + 1) toast.success('Completed!');
             })
-            .then(() => toast.success('Successfully created AWBs for all new orders.'))
             .catch(e => console.error(e));
         })
         .catch(e => {
