@@ -1034,7 +1034,7 @@ export const OrderDetails: React.FC<{ orderID: number, products: Product[], awbs
             </div>
             <div className="row mb-3">
               <div className="align-content-center col-md-2 fw-bold">Shipping Tax</div>
-              <div className="align-content-center col-md-2">${order?.shipping_tax.toFixed(2)}</div>
+              <div className="align-content-center col-md-2">${(order?.shipping_tax ?? 0).toFixed(2)}</div>
               <div className="align-content-center col-md-2 fw-bold">Cashed COD</div>
               <div className="align-content-center col-md-2">{order?.cashed_cod}</div>
               <div className="align-content-center col-md-2 fw-bold">Refunded Amount</div>
