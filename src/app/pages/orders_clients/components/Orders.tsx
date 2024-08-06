@@ -147,7 +147,12 @@ const OrderTable: React.FC<{
       return;
     }
     const sender = warehouses.find(house => house.id === senderId);
-    getCustomer(selectedOrder?.id ?? 0)
+    const products = props.products.filter(product => selectedOrder.product_id.findIndex(id => id === product.id) >= 0);
+    const observation = products.map((product, index) => {
+      const quantity = selectedOrder.quantity[index];
+      return `${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
+    }).join('➕');
+    getCustomer(selectedOrder.id ?? 0)
       .then(res => res.data)
       .then(res => {
         if (res === null) {
@@ -160,7 +165,7 @@ const OrderTable: React.FC<{
             parcel_number: 0,
             locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
             insured_value: '0',
-            observation: '',
+            observation: observation,
             courier_account_id: null,
             pickup_and_return: 0,
             saturday_delivery: 0,
@@ -192,7 +197,7 @@ const OrderTable: React.FC<{
           parcel_number: 0,
           locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
           insured_value: '0',
-          observation: '',
+          observation: observation,
           courier_account_id: null,
           pickup_and_return: 0,
           saturday_delivery: 0,
@@ -225,7 +230,7 @@ const OrderTable: React.FC<{
           parcel_number: 0,
           locker_id: JSON.parse(selectedOrder?.details ?? '{}').locker_id ?? '',
           insured_value: '0',
-          observation: '',
+          observation: observation,
           courier_account_id: null,
           pickup_and_return: 0,
           saturday_delivery: 0,
