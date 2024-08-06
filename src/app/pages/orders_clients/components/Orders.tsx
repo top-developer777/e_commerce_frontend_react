@@ -475,7 +475,7 @@ const OrderTable: React.FC<{
                   <td className='align-content-center text-center text-primary cursor-pointer' onClick={() => navigate(`./${order.id}`)}>{order.id}</td>
                   <td className='align-content-center text-center cursor-pointer'>
                     {selectedProducts.map(product => {
-                      return <div key={`product${order.id}:${product.id}`} onClick={() => navigate(`./${order.id}`)}><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></div>
+                      return <div key={`product${order.id}:${product.id}`} onClick={() => navigate(`/dashboard/products/${product.id}`)}><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></div>
                     })}
                   </td>
                   <td className='align-content-center text-center'>
@@ -1109,7 +1109,7 @@ export const OrderDetails: React.FC<{ orderID: number, products: Product[], awbs
                 return (
                   <tr key={`product${index}`}>
                     <td className='align-content-center'><img src={product?.image_link} alt={product?.model_name} width={60} height={60} /></td>
-                    <td className='align-content-center text-start cursor-pointer text-primary' onClick={() => navigate(`/dashboard/products/${product?.id}`)}>
+                    <td className='align-content-center text-start cursor-pointer text-primary' onClick={() => navigate(`/dashboard/products/${id}`)}>
                       {product?.product_name}
                     </td>
                     <td className='align-content-center'>{formatCurrency(parseFloat(product?.price ?? '0'))}</td>
