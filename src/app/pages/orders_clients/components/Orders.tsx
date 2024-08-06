@@ -341,7 +341,7 @@ const OrderTable: React.FC<{
           const products = props.products.filter(product => order.product_id.findIndex(id => id === product.id) >= 0);
           const observation = products.map((product, index) => {
             const quantity = order.quantity[index];
-            return `${product.ean}, ${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
+            return `${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
           }).join('➕');
           const data: AWBInterface = {
             order_id: order.id ?? 0,

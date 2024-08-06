@@ -581,7 +581,7 @@ export const Products: React.FC = () => {
                           {/* <td className='align-content-center'>
                             <input className="form-check-input" type="checkbox" value={index} />
                           </td> */}
-                          <td className='align-content-center px-2'>
+                          <td className='align-content-center px-3'>
                             <div className="d-flex">
                               <div className="d-flex align-items-center" onClick={() => navigate(`./${product.id}`)}>
                                 {
@@ -603,9 +603,9 @@ export const Products: React.FC = () => {
                           <td className='align-content-center text-center'>{product.stock}</td>
                           <td className='align-content-center'>{product.barcode_title}</td>
                           <td className='align-content-center'>{product.masterbox_title}</td>
-                          <td className="align-content-center">
+                          <td className="align-content-center px-3">
                             <div className="dropdown d-flex">
-                              <i className="bi bi-three-dots-vertical btn btn-sm btn-secondary" style={{ borderRadius: '100%', paddingLeft: '0.6rem', paddingRight: '0.7rem', paddingTop: '0.8rem' }} data-bs-toggle="dropdown" aria-expanded="false"></i>
+                              <i className="bi bi-three-dots-vertical btn btn-sm btn-secondary m-auto" style={{ borderRadius: '100%', paddingLeft: '0.6rem', paddingRight: '0.7rem', paddingTop: '0.8rem' }} data-bs-toggle="dropdown" aria-expanded="false"></i>
                               <ul className="dropdown-menu">
                                 <li><a className="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProductModal" onClick={() => {
                                   setEditProduct(product);
