@@ -6,8 +6,8 @@ import { Shipment, ShippingProduct } from '../../models/shipment';
 import { getWarehouses } from '../../dashboard/components/_request';
 import { WarehouseType } from '../../models/warehouse';
 import { Product } from '../../models/product';
-import { getUsers } from '../../config/components/_request';
-import { useAuth, UserModel } from '../../../modules/auth';
+import { getTeamMembers, TeamMember } from '../../config/components/_request';
+import { useAuth } from '../../../modules/auth';
 import { Suppliers } from '../../models/supplier';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -104,7 +104,7 @@ const ShippingType: React.FC<{ type: string }> = props => {
 
 const TableProductPlanner: React.FC<{
   products: ShippingProduct[];
-  users: UserModel[];
+  users: TeamMember[];
   allProducts: Product[];
   selectedShippingTypes: { [key: string]: string };
 }> = props => {
@@ -234,7 +234,7 @@ const TableShipment: React.FC<{
 }
 
 export function ShippingManagement() {
-  const [users, setUsers] = useState<UserModel[]>([]);
+  const [users, setUsers] = useState<TeamMember[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [selectedShippingTypes, setSelectedShippingTypes] = useState<{ [key: string]: string }>({});
@@ -308,12 +308,11 @@ export function ShippingManagement() {
     });
   }, [allProducts]);
   useEffect(() => {
-    getUsers()
-      .then(res => res.data)
+    getTeamMembers()
       .then(res => {
         const data = res.data;
         setUsers(data);
-        setAgents(data.filter((user: UserModel) => user.role === 'Order Agent').map((user: UserModel) => {
+        setAgents(data.filter((user: TeamMember) => user.role === 2).map((user: TeamMember) => {
           return { value: user.email, label: `${user.full_name} (${user.email})` }
         }));
       })
@@ -539,7 +538,10 @@ export function ShippingManagement() {
             return (<>
               <div className="row">
                 <div className="col-md-12">
-                  <button className="btn btn-sm btn-primary" onClick={() => navigate('./../')}>
+                  <button className='btn btn-light-primary btn-sm p-2' data-bs-toggle="modal" data-bs-target="#editShipmentModal" onClick={() => setEditShipment(shipment)}>
+                    <i className="bi bi-pencil-square fs-3 p-1"></i> Edit this shipment
+                  </button>
+                  <button className="btn btn-sm btn-white btn-active-light-info" style={{ float: 'right' }} onClick={() => navigate('./../')}>
                     <i className="bi bi-backspace-fill"></i> Back to Shipment List
                   </button>
                 </div>
