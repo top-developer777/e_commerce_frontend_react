@@ -5,6 +5,7 @@ import { getAllProducts } from './_request'
 import { SalesInformation } from './SalesInform'
 import { OrdersInformation } from './OrdersInform'
 import { Product } from '../../models/product'
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 interface Return {
   return_type: string;
@@ -208,6 +209,7 @@ const ShipmentType: React.FC<{ type: number }> = ({ type }) => {
 }
 
 export function Products() {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [products, setProducts] = useState<CalculateProduct[]>([]);
   const [totalProducts, setTotalProducts] = useState<number>(0);
   const [selectedProductID, setSelectedProductID] = useState<number>(-1);
@@ -223,6 +225,10 @@ export function Products() {
   const [stockDays, setStockDays] = useState<number>(0);
   const [importStock, setImportStock] = useState<number>(0);
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllProducts()
       .then(res => {
@@ -306,6 +312,7 @@ export function Products() {
                 <Select
                   className='react-select-styled react-select-solid react-select-sm w-100'
                   isSearchable={false}
+                  theme={isDarkMode ? darkModeStyles : undefined}
                   options={shippingMethods}
                   isClearable={false}
                   defaultValue={shippingMethods[0]}
@@ -430,9 +437,7 @@ export function Products() {
                           <div className="d-flex">
                             <div className="d-flex align-items-center" onClick={() => setSelectedProductID(index)}>
                               {
-                                product.image_link
-                                  ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
-                                  : <div> No Image </div>
+                                <img className='rounded-2' width={60} height={60} src={product.image_link ?? '/media/products/0.png'} alt={product.product_name} />
                               }
                             </div>
                             <div className="d-flex flex-column ms-2" onClick={() => setSelectedProductID(index)}>

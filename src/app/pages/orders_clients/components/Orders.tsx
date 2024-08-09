@@ -14,6 +14,7 @@ import { CourierType } from '../../models/courier';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CustomerInterface } from '../../models/customer';
 import { formatCurrency } from '../../dashboard/components/_function';
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 export const StatusBadge: React.FC<{ status: number }> = props => {
   switch (props.status) {
@@ -96,6 +97,7 @@ const OrderTable: React.FC<{
   setSort: React.Dispatch<React.SetStateAction<boolean>>;
   setEditID?: React.Dispatch<React.SetStateAction<number>>;
 }> = props => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const { currentPage, setCurrentPage, products } = props;
   const [selectedOrder, selectOrder] = useState<Order>();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
@@ -107,6 +109,10 @@ const OrderTable: React.FC<{
   const [newOrders, setNewOrders] = useState<Order[]>([]);
   const navigate = useNavigate();
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getWarehouses()
       .then(res => res.data)
@@ -561,6 +567,7 @@ const OrderTable: React.FC<{
                     <Select
                       name='sender'
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={senders}
                       placeholder='Select a warehouse'
                       isSearchable={false}
@@ -637,6 +644,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <Select
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={couriers}
                       placeholder='Select a courier'
                       isSearchable={false}
@@ -776,6 +784,7 @@ const OrderTable: React.FC<{
                     <Select
                       name='sender'
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={senders}
                       placeholder='Select a warehouse'
                       isSearchable={false}
@@ -790,6 +799,7 @@ const OrderTable: React.FC<{
                   <div className="d-flex ms-auto mr-0 w-75">
                     <Select
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={couriers}
                       placeholder='Select a courier'
                       isSearchable={false}

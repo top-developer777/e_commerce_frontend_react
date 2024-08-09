@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Select from 'react-select';
 import { Product } from "../../models/product";
 import { getAllProducts, getTrendInfo } from "./_request";
+import { darkModeStyles } from "../../../../_metronic/partials";
 
 const periods = [
   {
@@ -71,6 +72,7 @@ const getCategories = (type = 1) => {
 }
 
 export const TrendComponent = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [trendData, setTrendDdata] = useState<number[][]>([]);
   const [trendPeriod, setTrendPeriod] = useState<string>('1');
   const [searchTrendProducts, setSearchTrendProducts] = useState<string>('');
@@ -83,6 +85,10 @@ export const TrendComponent = () => {
   const [categories, setCategories] = useState<string[]>(getCategories(1));
   const [checkedProducts, setCheckedProducts] = useState<number[]>([]);
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   const handleTrendFilter = () => {
     setCategories(getCategories(parseInt(trendPeriod)));
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
@@ -209,6 +215,7 @@ export const TrendComponent = () => {
         <div className="col-md-3 border">
           <Select
             className='react-select-styled react-select-solid react-select-sm'
+            theme={isDarkMode ? darkModeStyles : undefined}
             onChange={(e) => setTrendPeriod(e?.value ?? '')}
             options={periods}
             defaultValue={{ value: '1', label: 'Last 12 months, by month' }}

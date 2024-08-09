@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import Select from 'react-select'
 import { useDropzone } from 'react-dropzone'
 import { createMarketplace, editMarketplace, getAllMarketplaces, removeMarketplace, uploadImage } from "./_request";
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 const flags = {
   "ro": "romania",
@@ -69,6 +70,7 @@ export interface interMKP {
 }
 
 export function Integrations() {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [editID, setEditID] = useState(-2);
   const [editImg, setEditImg] = useState('');
   const [addCredWay, setAddCredentials] = useState('user_pass');
@@ -105,8 +107,12 @@ export function Integrations() {
     { value: 'eMAG.hu', label: 'eMAG.hu' },
     { value: 'altex.ro', label: 'altex.ro' },
     { value: 'woocommerce.com', label: 'woocommerce.com' },
-  ]
+  ];
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else  setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllMarketplaces()
       .then(res => {
@@ -242,6 +248,7 @@ export function Integrations() {
                       <label className="form-label">Marketplace Domain</label>
                       <Select
                         className='react-select-styled'
+                        theme={isDarkMode ? darkModeStyles : undefined}
                         options={optionsMKP}
                         placeholder='Select Domain'
                         value={optionsMKP.filter(optionsMKP => optionsMKP.value === addMarketplace.marketplaceDomain)}
@@ -303,6 +310,7 @@ export function Integrations() {
                       <label className="form-label">Country</label>
                       <Select
                         className='react-select-styled'
+                        theme={isDarkMode ? darkModeStyles : undefined}
                         options={optionsCountry}
                         placeholder='Select Country'
                         isSearchable={false}
@@ -397,6 +405,7 @@ export function Integrations() {
                   <label className="form-label">Credential Method</label>
                   <Select
                     className='react-select-styled'
+                    theme={isDarkMode ? darkModeStyles : undefined}
                     options={optionsCred}
                     placeholder='Select Credential Method'
                     onChange={e => setAddCredentials(e?.value ?? '')}

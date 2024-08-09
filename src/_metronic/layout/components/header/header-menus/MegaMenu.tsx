@@ -152,7 +152,7 @@ const MegaMenu: FC = () => {
       {/* end:Col */}
       {/* begin:Col */}
       <div className='col-lg-6 mb-3 py-lg-3 pe-lg-8 d-flex align-items-center'>
-        <img src={toAbsoluteUrl('media/stock/900x600/45.jpg')} className='rounded mw-100' alt='' />
+        <img src={toAbsoluteUrl('/media/stock/900x600/45.jpg')} className='rounded mw-100' alt='' />
       </div>
       {/* end:Col */}
     </div>

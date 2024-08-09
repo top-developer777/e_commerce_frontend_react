@@ -3,6 +3,7 @@ import Select from 'react-select'
 import { getPLInfo } from "./_request";
 import { Product } from "../../models/product";
 import { getAllProducts } from "./_request";
+import { darkModeStyles } from "../../../../_metronic/partials";
 
 const periods = [
   {
@@ -20,6 +21,7 @@ const periods = [
 ];
 
 export const PLComponent = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [PLData, setPLDdata] = useState<{ [key: string]: [] }[]>([]);
   const [PLPeriod, setPLPeriod] = useState<string>('1');
   const [searchPLProducts, setSearchPLProducts] = useState<string>('');
@@ -29,6 +31,10 @@ export const PLComponent = () => {
   const [mappingCompleted, setMappingCompleted] = useState<boolean>(false);
   const scrollRef = useRef<HTMLUListElement | null>(null);
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   const handlePLFilter = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
     const productIds = [];
@@ -77,7 +83,7 @@ export const PLComponent = () => {
   }, []);
   useEffect(() => {
     if (mappingCompleted) handlePLFilter();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mappingCompleted]);
 
   return (
@@ -146,6 +152,7 @@ export const PLComponent = () => {
         <div className="col-md-3 border">
           <Select
             className='react-select-styled react-select-solid react-select-sm'
+            theme={isDarkMode ? darkModeStyles : undefined}
             onChange={(e) => setPLPeriod(e?.value ?? '')}
             options={periods}
             defaultValue={{ value: '1', label: 'Last 12 months, by month' }}

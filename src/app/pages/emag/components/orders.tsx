@@ -3,6 +3,7 @@ import Select from 'react-select';
 import { Content } from "../../../../_metronic/layout/components/content"
 import { generateAWB, getEmagOrders } from "./_request"
 import { EmagOrder } from "../../models/emagOrder";
+import { darkModeStyles } from "../../../../_metronic/partials";
 
 const observations = [
   { value: 'EAN', label: 'EAN' },
@@ -10,10 +11,15 @@ const observations = [
 ];
 
 export const EmagOrders = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [emagOrders, setEmagOrders] = useState<EmagOrder[]>([]);
   const [orderID, setOrderID] = useState<number>(0);
   const [observation, setObservation] = useState<string[]>(['EAN']);
-  
+
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getEmagOrders()
       .then(res => setEmagOrders(res.data))
@@ -22,7 +28,7 @@ export const EmagOrders = () => {
       id: "This is fake Order"
     }])
   }, []);
-  
+
   const handleFilter = () => {
 
   }
@@ -92,6 +98,7 @@ export const EmagOrders = () => {
                     <Select
                       name='observation'
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={observations}
                       placeholder='Select observations'
                       isSearchable={false}

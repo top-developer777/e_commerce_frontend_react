@@ -12,6 +12,7 @@ import { WarehouseType } from '../../models/warehouse';
 import { getAllMarketplaces } from '../../config/components/_request'
 import { interMKP } from '../../config/components/Integrations'
 import { useNavigate, useParams } from 'react-router-dom';
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 const API_URL = import.meta.env.VITE_APP_API_URL
 
@@ -253,6 +254,7 @@ const DetailedProduct: React.FC<{ product: Product | undefined }> = ({ product }
 }
 
 export const Products: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [totalProducts, setTotalProducts] = useState<number>(0);
@@ -273,6 +275,10 @@ export const Products: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams();
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllProducts(currentPage, limit)
       .then(res => {
@@ -585,9 +591,7 @@ export const Products: React.FC = () => {
                             <div className="d-flex">
                               <div className="d-flex align-items-center" onClick={() => navigate(`./${product.id}`)}>
                                 {
-                                  product.image_link
-                                    ? <img className='rounded-2' width={60} height={60} src={product.image_link} alt={product.product_name} />
-                                    : <div> No Image </div>
+                                  <img className='rounded-2' width={60} height={60} src={product.image_link ?? '/media/products/0.png'} alt={product.product_name} />
                                 }
                               </div>
                               <div className="d-flex flex-column ms-2">
@@ -694,6 +698,7 @@ export const Products: React.FC = () => {
                           <Select
                             name='warehouse_id'
                             className='react-select-styled react-select-solid react-select-sm w-100'
+                            theme={isDarkMode ? darkModeStyles : undefined}
                             options={warehouses}
                             placeholder='Select a warehouse'
                             isSearchable={false}
@@ -799,6 +804,7 @@ export const Products: React.FC = () => {
                             <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
                             <Select
                               className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={supplierOptions}
                               placeholder='Select supplier'
                               noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}
@@ -988,6 +994,7 @@ export const Products: React.FC = () => {
                           <Select
                             name='warehouse_id'
                             className='react-select-styled react-select-solid react-select-sm w-100'
+                            theme={isDarkMode ? darkModeStyles : undefined}
                             options={warehouses}
                             placeholder='Select a warehouse'
                             isSearchable={false}
@@ -1092,6 +1099,7 @@ export const Products: React.FC = () => {
                             <span className="input-group-text" id="supplier-id"><i className="bi bi-chat-dots-fill"></i></span>
                             <Select
                               className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={supplierOptions}
                               placeholder='Select suppliers'
                               noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}

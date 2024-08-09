@@ -1,3 +1,5 @@
+import {  ThemeConfig } from 'react-select'
+
 export * from './layout/quick-links/QuicLinks'
 export * from './layout/search/Search'
 export * from './layout/search/SearchInner'
@@ -30,3 +32,16 @@ export * from './modals/upgrade-plan/UpgradePlan'
 
 // chat
 export * from './chat/ChatInner'
+
+export const darkModeStyles: ThemeConfig = (theme) => ({
+  ...theme,
+  colors: {
+    ...theme.colors,
+    primary: '#fff',
+    primary25: '#555',
+    neutral0: '#333',
+    neutral20: '#555',
+    neutral80: '#fff',
+    neutral30: '#777',
+  },
+});

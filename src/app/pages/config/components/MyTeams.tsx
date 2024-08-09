@@ -12,6 +12,7 @@ import { Content } from '../../../../_metronic/layout/components/content'
 import { useEffect, useState } from 'react'
 import { User } from '../../../modules/apps/user-management/users-list/core/_models'
 import { addTeamMember, deleteTeamMember, editTeamMember, getTeamMembers, getUsers, TeamMember } from './_request'
+import { darkModeStyles } from '../../../../_metronic/partials'
 
 // const UsersList = () => {
 //   const {itemIdForUpdate} = useListView()
@@ -46,6 +47,7 @@ const roleNum2Str = (role: number): string => {
 }
 
 export function MyTeams() {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [users, setUsers] = useState<TeamMember[]>([]);
   const [userOptions, setUserOptions] = useState<{ value: number, label: string }[]>([]);
@@ -60,6 +62,10 @@ export function MyTeams() {
     { value: -1, label: 'Unallowed' },
   ];
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else  setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getTeamMembers()
       .then(res => setUsers(res.data))
@@ -193,6 +199,7 @@ export function MyTeams() {
                     <div className="fw-bold">Select User</div>
                     <Select
                       className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={userOptions}
                       placeholder='Select user'
                       noOptionsMessage={e => `No more users including "${e.inputValue}"`}
@@ -235,6 +242,7 @@ export function MyTeams() {
                       <div className="col-md-6 align-content-center">
                         <Select
                           className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                          theme={isDarkMode ? darkModeStyles : undefined}
                           options={roleOptions}
                           value={roleOptions.find(role => role.value == editUser?.role)}
                           onChange={value => setEditUser({ ...editUser, role: value?.label })}

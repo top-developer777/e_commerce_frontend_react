@@ -6,6 +6,7 @@ import { getCSS, getCSSVariableValue } from '../../../../_metronic/assets/ts/_ut
 import { useThemeMode } from '../../../../_metronic/partials/layout/theme-mode/ThemeModeProvider'
 import { Product } from '../../models/product'
 import { getProductInfo } from '../../dashboard/components/_request';
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 type Props = {
   className: string,
@@ -14,6 +15,7 @@ type Props = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SalesInformation: FC<Props> = ({ className, product }) => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [seriesSales, setSeriesSales] = useState<string>(JSON.stringify([]));
   const [categories1, setCategories] = useState<string>(JSON.stringify([]));
   const [salesPeriod, setSalesPeriod] = useState<number>(1);
@@ -37,6 +39,10 @@ const SalesInformation: FC<Props> = ({ className, product }) => {
     return chart;
   }
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getProductInfo(product.ean ?? '', salesPeriod)
       .then(res => {
@@ -76,6 +82,7 @@ const SalesInformation: FC<Props> = ({ className, product }) => {
           <div className='col-xl-4'>
             <Select
               className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+              theme={isDarkMode ? darkModeStyles : undefined}
               options={salesPeriodOptions}
               defaultValue={salesPeriodOptions[0]}
               onChange={value => setSalesPeriod(value?.value ?? 1)}

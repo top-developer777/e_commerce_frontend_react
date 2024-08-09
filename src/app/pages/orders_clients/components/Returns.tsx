@@ -6,6 +6,7 @@ import { Return } from '../../models/returns';
 import { getAllReturns } from './_request';
 import { Product } from '../../models/product';
 import { getAllProducts } from '../../inventory_management/components/_request';
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 const StatusBadge: React.FC<{ status: number }> = props => {
   switch (props.status) {
@@ -77,6 +78,7 @@ const StatusBadge: React.FC<{ status: number }> = props => {
 }
 
 export const Returns = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [returns, setReturns] = useState<Return[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedRequestStatus, setSelectedReqeustStatus] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
@@ -98,6 +100,10 @@ export const Returns = () => {
     'Voucher'
   ];
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllReturns()
       .then(res => setReturns(res.data))
@@ -114,6 +120,7 @@ export const Returns = () => {
         <div className="col-md-9">
           <Select
             className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+            theme={isDarkMode ? darkModeStyles : undefined}
             options={requestStatusOptions}
             placeholder='Select status at least one'
             defaultValue={[...requestStatusOptions]}

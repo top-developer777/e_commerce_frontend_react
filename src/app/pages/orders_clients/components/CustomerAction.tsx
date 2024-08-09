@@ -5,6 +5,7 @@ import { Replacements } from '../../models/replacement';
 import { Product } from '../../models/product';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { getAllReplaces, getReplaceAmount } from './_request';
+import { darkModeStyles } from '../../../../_metronic/partials';
 // import { formatCurrency } from '../../dashboard/components/_function';
 
 // const TypeBadge: React.FC<{
@@ -34,6 +35,7 @@ import { getAllReplaces, getReplaceAmount } from './_request';
 // )
 
 export const CustomerAction = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState<number>(50);
@@ -71,6 +73,10 @@ export const CustomerAction = () => {
 
   }
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else  setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllProducts()
       .then(res => {
@@ -169,6 +175,7 @@ export const CustomerAction = () => {
                       <Select
                         className='react-select-styled react-select-solid react-select-sm flex-1'
                         name='product_id'
+                        theme={isDarkMode ? darkModeStyles : undefined}
                         options={products}
                         placeholder='Select product'
                         noOptionsMessage={e => `No more products including "${e.inputValue}"`}

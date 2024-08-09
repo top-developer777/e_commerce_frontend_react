@@ -8,6 +8,7 @@ import { getChartInfo, getAllProducts } from './_request'
 import { Order } from '../../models/order'
 import { TableProductsOrders } from './TableProductOrders'
 import { Product } from '../../models/product'
+import { darkModeStyles } from '../../../../_metronic/partials'
 
 type Props = {
   className: string
@@ -118,11 +119,11 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
         formatter: function (val) {
           return `${val}`;
         },
-      },{
+      }, {
         formatter: function (val) {
           return `${val}`;
         },
-      },{
+      }, {
         formatter: function (val) {
           return `$${val}k`;
         },
@@ -148,6 +149,7 @@ const getChartOptions = (height: number, series: string, categories: string): Ap
 }
 
 export const ChartComponent: FC<Props> = ({ className }) => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [series, setSeries] = useState<string>('[]');
   const [categories, setCategories] = useState<string>('[]');
   const [chartPeriod, setChartPeriod] = useState<string>('1');
@@ -169,6 +171,10 @@ export const ChartComponent: FC<Props> = ({ className }) => {
     data: number[];
   };
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   const handleChartFilter = () => {
     const inputs = scrollRef.current?.querySelectorAll('li input[type="checkbox"]') as unknown as HTMLInputElement[];
     const productIds = [];
@@ -260,6 +266,10 @@ export const ChartComponent: FC<Props> = ({ className }) => {
     }
   }
 
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     getAllProducts(1, 1000)
       .then(res => {
@@ -287,7 +297,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
   }, [handleScroll]);
   useEffect(() => {
     if (mappingCompleted) handleChartFilter();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mappingCompleted]);
 
   return (
@@ -356,6 +366,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
         <div className="col-md-3 border">
           <Select
             className='react-select-styled react-select-solid react-select-sm'
+            theme={isDarkMode ? darkModeStyles : undefined}
             onChange={(e) => setChartPeriod(e?.value ?? '')}
             options={periods}
             defaultValue={{ value: '1', label: 'Last 12 months, by month' }}
