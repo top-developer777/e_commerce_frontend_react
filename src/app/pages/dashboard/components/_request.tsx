@@ -31,21 +31,21 @@ const getProductsDay = (day: string) => {
 
 const getAllProducts = (page: number, limit: number = 50, suppliers: string = '', filter: string = '') => {
     return axios
-        .get(`${API_URL}/products`, {
+        .get(`${API_URL}/internal_products`, {
             params: { page: page, items_per_page: limit, supplier_ids: suppliers, search_text: filter }
         })
 }
 
 const getProductAmount = (suppliers: string = '') => {
-    return axios.get(`${API_URL}/products/count?supplier_ids=${suppliers}`)
+    return axios.get(`${API_URL}/internal_products/count?supplier_ids=${suppliers}`)
 }
 
 const getProductInfo = async (ean: string, type: number = 1) => {
-    return axios.get(`${API_URL}/products/info/${ean}?type=${type}`)
+    return axios.get(`${API_URL}/internal_products/info/${ean}?type=${type}`)
 }
 
 const deleteProduct = async (id: number) => {
-    return axios.delete(`${API_URL}/products/${id}`)
+    return axios.delete(`${API_URL}/internal_products/${id}`)
 }
 
 const getWarehouses = async () => {

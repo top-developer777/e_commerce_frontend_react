@@ -155,9 +155,9 @@ const OrderTable: React.FC<{
     const sender = warehouses.find(house => house.id === senderId);
     const products = props.products.filter(product => selectedOrder.product_id.findIndex(id => id === product.id) >= 0);
     const observation = products.map((product, index) => {
-      const quantity = selectedOrder.quantity[index];
-      return `${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
-    }).join('➕');
+      const quantity = selectedOrder.quantity[index] ?? 1;
+      return `${product.observation ?? '(No observation)'} X${quantity}${quantity > 1 ? ' ' + Array(quantity).fill('●').join('') : ''}`;
+    }).join(' ➕ ');
     getCustomer(selectedOrder.id ?? 0)
       .then(res => res.data)
       .then(res => {
@@ -351,9 +351,9 @@ const OrderTable: React.FC<{
         .then(res => {
           const products = props.products.filter(product => order.product_id.findIndex(id => id === product.id) >= 0);
           const observation = products.map((product, index) => {
-            const quantity = order.quantity[index];
-            return `${product.observation ?? ''} X${quantity} ${quantity > 1 ? Array(quantity).fill('●').join('') : ''}`
-          }).join('➕');
+            const quantity = order.quantity[index] ?? 1;
+            return `${product.observation ?? '(No observation)'} X${quantity}${quantity > 1 ? ' ' + Array(quantity).fill('●').join('') : ''}`;
+          }).join(' ➕ ');
           const data: AWBInterface = {
             order_id: order.id ?? 0,
             sender_name: sender.sender_name,
@@ -485,15 +485,15 @@ const OrderTable: React.FC<{
                   <td className='align-content-center text-center '>{(new Date(order.date)).toLocaleString()}</td>
                   <td className='align-content-center text-center text-primary cursor-pointer' onClick={() => navigate(`./${order.id}`)}>{order.id}</td>
                   <td className='align-content-center text-center cursor-pointer'>
-                    {selectedProducts.map(product => {
-                      return <div key={`product${order.id}:${product.id}`} onClick={() => navigate(`/dashboard/products/${product.id}`)}><img width={40} src={product?.image_link} alt={product?.model_name} title={product?.product_name} /></div>
+                    {selectedProducts.map((product, index) => {
+                      return <div key={`product${order.id}:${product.id}:${index}`} onClick={() => navigate(`/dashboard/products/${product.id}`)}><img width={40} src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name ?? 'Image Coming Soon'} title={product?.product_name} /></div>
                     })}
                   </td>
                   <td className='align-content-center text-center'>
                     {order.order_market_place}<br />
                     {selectedProducts.map(product => {
-                      return warehouses.find(warehouse => warehouse.id === product?.warehouse_id)?.name
-                    }).join('+')}
+                      return warehouses.find(warehouse => warehouse.id === product?.warehouse_id)?.name ?? '(Not selected warehouse)'
+                    }).join(' + ')}
                   </td>
                   <td className='align-content-center text-center'>
                     {order.status === 0 && <>None</>}
@@ -1123,7 +1123,7 @@ export const OrderDetails: React.FC<{ orderID: number, products: Product[], awbs
                 const product = products.find(product => product.id === id);
                 return (
                   <tr key={`product${index}`}>
-                    <td className='align-content-center'><img src={product?.image_link} alt={product?.model_name} width={60} height={60} /></td>
+                    <td className='align-content-center'><img src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name} width={60} height={60} /></td>
                     <td className='align-content-center text-start cursor-pointer text-primary' onClick={() => navigate(`/dashboard/products/${id}`)}>
                       {product?.product_name}
                     </td>
