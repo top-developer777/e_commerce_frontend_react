@@ -309,7 +309,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
               <span className="input-group-text" id="products"><i className="bi bi-search"></i></span>
               <input type="text" className="form-control" onChange={(e) => setSearchChartProducts(e.target.value)} name='products' autoComplete='false' placeholder="Search products by name, tag, SKU, ASIN" />
               {selectedProducts.length === 0 && <></>}
-              {selectedProducts.length === 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+              {selectedProducts.length === 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                 <div className="d-flex align-items-center h-100 w-100">
                   <span className='d-flex'>
                     <img src={products[parseInt(selectedProducts[0])].image_link} alt="" width={30} height={30} />
@@ -322,7 +322,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
                   </span>
                 </div>
               </div>}
-              {selectedProducts.length > 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+              {selectedProducts.length > 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                 <div className="d-flex align-items-center h-100 w-100">
                   <span className='d-flex ps-2' style={{ width: 'calc(100% - 22px)' }}>
                     Selected: {selectedProducts.length} products
@@ -344,7 +344,7 @@ export const ChartComponent: FC<Props> = ({ className }) => {
                 {products.length > 0 && products.map((product, index) => {
                   if (index === products.length - 1 && !mappingCompleted) setTimeout(() => setMappingCompleted(true), 0);
                   return (
-                    <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
+                    <li className={`list-group-item ${isDarkMode ? 'bg-secondary' : ''}`} key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchChartProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
                           <input type="checkbox" value={product.id ?? 0} onClick={checkSelected} defaultChecked={index < 30} />

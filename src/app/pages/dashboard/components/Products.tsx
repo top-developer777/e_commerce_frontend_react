@@ -493,7 +493,7 @@ export const Products: React.FC = () => {
                     <span className="input-group-text" id="filter"><i className="bi bi-search"></i></span>
                     <input type="text" className="form-control" name='filter' placeholder="Search by supplier" onChange={(e) => filterSuppliers(e.target.value)} />
                     {selectedSuppliers.length === 0 && <></>}
-                    {selectedSuppliers.length === 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+                    {selectedSuppliers.length === 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                       <div className="d-flex align-items-center h-100 w-100">
                         <span className='d-flex ps-2' style={{ width: 'calc(100% - 22px)' }}>
                           Selected: a supplier
@@ -505,7 +505,7 @@ export const Products: React.FC = () => {
                         </span>
                       </div>
                     </div>}
-                    {selectedSuppliers.length > 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+                    {selectedSuppliers.length > 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                       <div className="d-flex align-items-center h-100 w-100">
                         <span className='d-flex ps-2' style={{ width: 'calc(100% - 22px)' }}>
                           Selected: {selectedSuppliers.length} suppliers
@@ -522,7 +522,7 @@ export const Products: React.FC = () => {
                     <ul className="list-group supplier-panel">
                       {suppliers.length === 0 && <li className='list-group-item cursor-not-allowed'>No supplier</li>}
                       {suppliers.map(((supplier, index) => (
-                        <li className="list-group-item" key={`productsupplier${index}`}>
+                        <li className={`list-group-item ${isDarkMode ? 'bg-secondary' : ''}`} key={`productsupplier${index}`}>
                           <label className='d-flex align-items-center cursor-pointer'>
                             <div className="d-flex pe-3">
                               <input type="checkbox" value={supplier.id} onChange={handleChangeSuppliers} />

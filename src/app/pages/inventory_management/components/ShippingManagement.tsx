@@ -11,6 +11,7 @@ import { useAuth } from '../../../modules/auth';
 import { Suppliers } from '../../models/supplier';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
+import { darkModeStyles } from '../../../../_metronic/partials';
 
 const shippingStatus: { value: string, label: string }[] = [
   { value: "Customs", label: "Customs" },
@@ -234,6 +235,7 @@ const TableShipment: React.FC<{
 }
 
 export function ShippingManagement() {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [users, setUsers] = useState<TeamMember[]>([]);
   const [changed, setChanged] = useState<boolean>(true);
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -252,6 +254,11 @@ export function ShippingManagement() {
   const navigate = useNavigate();
 
   const params = useParams();
+
+  setInterval(() => {
+    if (localStorage.getItem('kt_theme_mode_value') === 'dark') setIsDarkMode(true);
+    else setIsDarkMode(false);
+  }, 100);
   useEffect(() => {
     if (params.id && params.id !== '0') {
       setSelectedShipment(parseInt(params.id));
@@ -500,6 +507,7 @@ export function ShippingManagement() {
               <div className="col-md-3">
                 <Select
                   className='react-select-styled react-select-solid react-select-sm'
+                  theme={isDarkMode ? darkModeStyles : undefined}
                   options={shipingTypeOptions}
                   isMulti
                   isSearchable={false}
@@ -630,6 +638,7 @@ export function ShippingManagement() {
                             <Select
                               name='type'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={shipingTypeOptions}
                               placeholder='Select shipping type'
                               isSearchable={false}
@@ -646,6 +655,7 @@ export function ShippingManagement() {
                             <Select
                               name='status'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={shippingStatus}
                               placeholder='Select shipment status'
                               isSearchable={false}
@@ -662,6 +672,7 @@ export function ShippingManagement() {
                             <Select
                               name='warehouse'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={warehouses}
                               placeholder='Select a warehouse'
                               noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
@@ -690,6 +701,7 @@ export function ShippingManagement() {
                             <Select
                               name='agent'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={agents}
                               placeholder='Select an agent'
                               noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
@@ -816,6 +828,7 @@ export function ShippingManagement() {
                                     <Select
                                       name='products'
                                       className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
                                       options={products}
                                       placeholder='Select a product'
                                       noOptionsMessage={e => `No products including "${e.inputValue}"`}
@@ -853,7 +866,7 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
-                                  <td className="align-content-center">${editProduct?.price}</td>
+                                  <td className="align-content-center">${parseFloat(editProduct?.price ?? '0').toFixed(2)}</td>
                                   <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
@@ -963,6 +976,7 @@ export function ShippingManagement() {
                                     <Select
                                       name='products'
                                       className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
                                       options={products}
                                       placeholder='Select a product'
                                       noOptionsMessage={e => `No products including "${e.inputValue}"`}
@@ -1058,6 +1072,7 @@ export function ShippingManagement() {
                             <Select
                               name='type'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={shipingTypeOptions}
                               placeholder='Select shipping type'
                               isSearchable={false}
@@ -1074,6 +1089,7 @@ export function ShippingManagement() {
                             <Select
                               name='status'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={shippingStatus}
                               placeholder='Select shipment status'
                               isSearchable={false}
@@ -1090,6 +1106,7 @@ export function ShippingManagement() {
                             <Select
                               name='warehouse'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={warehouses}
                               placeholder='Select a warehouse'
                               noOptionsMessage={e => `No more warehouses including "${e.inputValue}"`}
@@ -1118,6 +1135,7 @@ export function ShippingManagement() {
                             <Select
                               name='agent'
                               className='react-select-styled react-select-solid react-select-sm w-100'
+                              theme={isDarkMode ? darkModeStyles : undefined}
                               options={agents}
                               placeholder='Select an agent'
                               noOptionsMessage={e => `No more agents including "${e.inputValue}"`}
@@ -1244,6 +1262,7 @@ export function ShippingManagement() {
                                     <Select
                                       name='products'
                                       className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
                                       options={products}
                                       placeholder='Select a product'
                                       noOptionsMessage={e => `No products including "${e.inputValue}"`}
@@ -1281,7 +1300,7 @@ export function ShippingManagement() {
                                       setSelectedProducts(newProducts);
                                     }} className='form-control form-control-sm d-flex' />
                                   </td>
-                                  <td className="align-content-center">${editProduct?.price}</td>
+                                  <td className="align-content-center">${parseFloat(editProduct?.price ?? '0').toFixed(2)}</td>
                                   <td className='align-content-center'>${(parseFloat(editProduct?.price ?? '0') * selectedProduct.quantity).toFixed(2)}</td>
                                   <td style={{ minWidth: '100px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.item_per_box} onChange={(e) => {
@@ -1391,6 +1410,7 @@ export function ShippingManagement() {
                                     <Select
                                       name='products'
                                       className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
                                       options={products}
                                       placeholder='Select a product'
                                       noOptionsMessage={e => `No products including "${e.inputValue}"`}
@@ -1522,6 +1542,7 @@ export function ShippingManagement() {
                     <Select
                       name='warehouse_id'
                       className='react-select-styled react-select-solid react-select-sm w-100'
+                      theme={isDarkMode ? darkModeStyles : undefined}
                       options={warehouses2}
                       placeholder='Select a warehouse'
                       isSearchable={false}
@@ -1629,6 +1650,7 @@ export function ShippingManagement() {
                       <Select
                         name='supplier_id'
                         className='react-select-styled react-select-solid react-select-sm flex-grow-1'
+                        theme={isDarkMode ? darkModeStyles : undefined}
                         options={supplierOptions}
                         placeholder='Select supplier'
                         noOptionsMessage={e => `No more suppliers including "${e.inputValue}"`}

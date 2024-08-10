@@ -158,7 +158,7 @@ export const TrendComponent = () => {
               <span className="input-group-text" id="products"><i className="bi bi-search"></i></span>
               <input type="text" className="form-control" onChange={(e) => setSearchTrendProducts(e.target.value)} name='products' autoComplete='false' placeholder="Search products by name, tag, SKU, ASIN" />
               {selectedProducts.length === 0 && <></>}
-              {selectedProducts.length === 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+              {selectedProducts.length === 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                 <div className="d-flex align-items-center h-100 w-100">
                   <span className='d-flex'>
                     <img src={products[parseInt(selectedProducts[0])].image_link} alt="" width={30} height={30} />
@@ -171,7 +171,7 @@ export const TrendComponent = () => {
                   </span>
                 </div>
               </div>}
-              {selectedProducts.length > 1 && <div className='d-absolute bg-white' style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
+              {selectedProducts.length > 1 && <div className={`d-absolute ${isDarkMode ? 'bg-secondary' : 'bg-white'}`} style={{ top: '2px', right: '2px', bottom: '2px', width: '200px' }}>
                 <div className="d-flex align-items-center h-100 w-100">
                   <span className='d-flex ps-2'>
                     Selected: {selectedProducts.length} products
@@ -193,7 +193,7 @@ export const TrendComponent = () => {
                 {products.map((product, index) => {
                   if (index === products.length - 1 && !mappingCompleted) setTimeout(() => setMappingCompleted(true), 0);
                   return (
-                    <li className="list-group-item" key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchTrendProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
+                    <li className={`list-group-item ${isDarkMode ? 'bg-secondary' : ''}`} key={`product${index}`} style={{ display: ([product.model_name, product.product_name].join('').toLowerCase().indexOf(searchTrendProducts.toLowerCase()) < 0) ? 'hidden' : 'block' }}>
                       <label className='d-flex align-items-center flex-row'>
                         <div className="d-flex pe-3">
                           <input type="checkbox" value={product.id ?? 0} onClick={checkSelected} defaultChecked={index < 30} />
@@ -242,7 +242,7 @@ export const TrendComponent = () => {
         <table className="table table-bordered table-hover cursor-pointer">
           <thead>
             <tr>
-              <th className="start-0 position-sticky bg-white">Product</th>
+              <th className={`start-0 position-sticky ${isDarkMode ? 'bg-black' : 'bg-white'}`}>Product</th>
               {categories.map((cat, index) => <th key={`trendheader${index}`} className="text-nowrap">{cat}</th>)}
             </tr>
           </thead>
@@ -250,7 +250,7 @@ export const TrendComponent = () => {
             {!!trendData.length && !!trendData[0].length &&
               trendData[0].map((_, i) => (
                 <tr key={`trend${i}`}>
-                  <td className="start-0 position-sticky bg-white"><img src={products.find(product => product.id === checkedProducts[i])?.image_link ?? ''} alt={`product${checkedProducts[i]}`} width={50} /></td>
+                  <td className={`start-0 position-sticky ${isDarkMode ? 'bg-black' : 'bg-white'}`}><img src={products.find(product => product.id === checkedProducts[i])?.image_link ?? ''} alt={`product${checkedProducts[i]}`} width={50} /></td>
                   {trendData.map((trend, index) => <td key={`trend(${i})(${index})`} className="align-content-center text-end">{parseFloat(trend[i].toString()).toFixed(3)}</td>)}
                 </tr>
               ))

@@ -37,11 +37,12 @@ export const darkModeStyles: ThemeConfig = (theme) => ({
   ...theme,
   colors: {
     ...theme.colors,
-    primary: '#fff',
+    primary: 'rgb(245, 245, 245)',
     primary25: '#555',
     neutral0: '#333',
+    neutral10: '#000',
     neutral20: '#555',
-    neutral80: '#fff',
+    neutral80: 'rgb(245, 245, 245)',
     neutral30: '#777',
   },
 });

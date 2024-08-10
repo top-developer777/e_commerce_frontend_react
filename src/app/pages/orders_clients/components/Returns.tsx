@@ -172,7 +172,7 @@ export const Returns = () => {
                             const product = products.find(pro => pro.id === id);
                             return (
                               <div key={`returnProduct(${index})(${i})`} className='d-flex'>
-                                <img className='d-flex' src={product?.image_link} alt={product?.model_name} title={product?.product_name} width={50} />
+                                <img className='d-flex' src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name} title={product?.product_name} width={50} />
                                 <span className="d-flex text-nowrap align-items-center ms-2"> X {_return.quantity[i]}</span>
                               </div>
                             )
