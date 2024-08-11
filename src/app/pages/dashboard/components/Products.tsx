@@ -582,8 +582,8 @@ export const Products: React.FC = () => {
                   </thead>
                   <tbody>
                     {
-                      products.map(product =>
-                        <tr key={`productlist${product.id}`}>
+                      products.map((product, index) =>
+                        <tr key={`productlist${index}`}>
                           {/* <td className='align-content-center'>
                             <input className="form-check-input" type="checkbox" value={index} />
                           </td> */}
