@@ -75,7 +75,7 @@ export function Integrations() {
   const [editImg, setEditImg] = useState('');
   const [addCredWay, setAddCredentials] = useState('user_pass');
   const [addcredentials, setCredentials] = useState<interCred>({ type: 'user_pass', firstKey: '', secondKey: '' });
-  const [addproductsCURD, setProductsCURD] = useState<interProdCrud>({ endpoint: '/product_offer', create: '/create', read: '/read', update: '/update', delete: '/delete', count: '/count' });
+  const [addproductsCURD, setProductsCURD] = useState<interProdCrud>({ endpoint: '/offer', create: '/create', read: '/read', update: '/update', delete: '/delete', count: '/count' });
   const [addordersCRUD, setOrdersCRUD] = useState<interOrderCrud>({ endpoint: '/order', create: '/create', read: '/read', update: '/update', delete: '/delete', count: '/count' });
   const [addMarketplace, setAddMarketPlace] = useState<interMKP>({
     country: 'ro',
@@ -289,8 +289,8 @@ export function Integrations() {
                               ...addMarketplace,
                               marketplaceDomain: 'altex.ro',
                               country: 'ro',
-                              baseAPIURL: '',
-                              baseURL: '',
+                              baseAPIURL: 'https://mkp-stage.altex.ro/v2.0/',
+                              baseURL: 'https://mkp-stage.altex.ro/',
                               title: 'Altex Marketplace (Romania)'
                             });
                           }
