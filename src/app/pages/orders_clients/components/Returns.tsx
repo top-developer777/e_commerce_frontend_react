@@ -3,7 +3,7 @@ import Select from 'react-select';
 
 import { Content } from '../../../../_metronic/layout/components/content';
 import { Return } from '../../models/returns';
-import { getAllReturns } from './_request';
+import { getAllReturns, getAWBByOrderID } from './_request';
 import { Product } from '../../models/product';
 import { getAllProducts } from '../../inventory_management/components/_request';
 import { darkModeStyles } from '../../../../_metronic/partials';
@@ -81,6 +81,7 @@ export const Returns = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [returns, setReturns] = useState<Return[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [awbs, setAWBs] = useState<{ [key: number]: string }>();
   const [selectedRequestStatus, setSelectedReqeustStatus] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const requestStatusOptions = [
     { value: 1, label: 'Incomplete' },
@@ -112,6 +113,21 @@ export const Returns = () => {
       .then(res => setProducts(res.data))
       .catch(e => console.error(e));
   }, []);
+  useEffect(() => {
+    returns.forEach(_return => {
+      getAWBByOrderID(_return.order_id)
+        .then(res => res.data)
+        .then(res => {
+          if (res.data) {
+            setAWBs({ ...awbs, [_return.order_id]: res.data });
+          } else {
+            setAWBs({ ...awbs, [_return.order_id]: '' });
+          }
+        })
+        .catch(e => console.error(e));
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returns])
 
   return (
     <Content>
@@ -137,6 +153,7 @@ export const Returns = () => {
             <tr>
               <th>eMAG ID</th>
               <th>Order ID</th>
+              <th>AWB</th>
               <th>Type</th>
               <th>Customer</th>
               <th>Products</th>
@@ -160,6 +177,7 @@ export const Returns = () => {
                   <tr key={`return${index}`}>
                     <td className='align-content-center'>{_return.emag_id}</td>
                     <td className='align-content-center'>{_return.order_id}</td>
+                    <td className='align-content-center'>{(awbs && awbs[_return.order_id]) ? awbs[_return.order_id] : ''}</td>
                     <td className='align-content-center'>{_return.type === 2 ? 'Fulfilled by eMAG' : 'Fulfilled by seller'}</td>
                     <td className='align-content-center'>
                       <b>{_return.customer_name}</b><br />
