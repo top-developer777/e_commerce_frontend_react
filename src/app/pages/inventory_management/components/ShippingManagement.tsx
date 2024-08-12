@@ -243,6 +243,7 @@ export function ShippingManagement() {
   const [selectedShipment, setSelectedShipment] = useState<number>(-1);
   const [editShipment, setEditShipment] = useState<Shipment>();
   const [supplierOptions, setSupplierOptions] = useState<{ value: number, label: string }[]>([]);
+  const [wechats, setWechats] = useState<{ value: string, label: string }[]>([]);
   const [editProduct, setEditProduct] = useState<Product>();
   const [products, setProducts] = useState<{ value: string, label: string }[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -327,9 +328,12 @@ export function ShippingManagement() {
     getAllSuppliers()
       .then(res => {
         if (!res.data.length) return;
+        const data: { value: string; label: string; }[] = [];
         setSupplierOptions(res.data.map((datum: Suppliers) => {
+          if (data.findIndex(wechat => wechat.value === datum.group) === -1) data.push({ value: datum.group, label: datum.group });
           return { value: datum.id, label: `${datum.group} / ${datum.name} (${datum.wechat})` }
-        }))
+        }));
+        setWechats(data);
       })
       .catch(e => console.error(e));
   }, []);
@@ -847,8 +851,8 @@ export function ShippingManagement() {
                                           pay_url: '',
                                           tracking: '',
                                           arrive_agent: false,
-                                          wechat_group: '',
-                                          pp: '',
+                                          wechat_group: wechats[0]?.value ?? '',
+                                          pp: allProducts.find(product => product.ean === selectedProduct.ean)?.link_address_1688 ? 'Agent' : '',
                                           each_status: '',
                                           box_number: 0,
                                           document: '',
@@ -908,11 +912,24 @@ export function ShippingManagement() {
                                     </div>
                                   </td>
                                   <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].wechat_group = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
+                                    <Select
+                                      name='wechat_group'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
+                                      options={wechats}
+                                      placeholder='Select a Wechat Group'
+                                      noOptionsMessage={e => `No Wechat Groups including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                      value={wechats.find(supplier => supplier.value === selectedProduct.wechat_group)}
+                                      onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].wechat_group = e?.value ?? '';
+                                        setSelectedProducts(newProducts);
+                                      }}
+                                    />
                                   </td>
                                   <td style={{ minWidth: '200px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
@@ -994,7 +1011,7 @@ export function ShippingManagement() {
                                           pay_url: '',
                                           tracking: '',
                                           arrive_agent: false,
-                                          wechat_group: '',
+                                          wechat_group: wechats[0]?.value ?? '',
                                           pp: '',
                                           each_status: '',
                                           box_number: 0,
@@ -1281,7 +1298,7 @@ export function ShippingManagement() {
                                           pay_url: '',
                                           tracking: '',
                                           arrive_agent: false,
-                                          wechat_group: '',
+                                          wechat_group: wechats[0]?.value ?? '',
                                           pp: '',
                                           each_status: '',
                                           box_number: 0,
@@ -1342,11 +1359,24 @@ export function ShippingManagement() {
                                     </div>
                                   </td>
                                   <td>
-                                    <input type="text" className='form-control form-control-sm' value={selectedProduct.wechat_group} onChange={(e) => {
-                                      const newProducts = { ...selectedProducts };
-                                      newProducts[parseInt(index)].wechat_group = e.target.value;
-                                      setSelectedProducts(newProducts);
-                                    }} />
+                                    <Select
+                                      name='wechat_group'
+                                      className='react-select-styled react-select-solid react-select-sm w-100'
+                                      theme={isDarkMode ? darkModeStyles : undefined}
+                                      options={wechats}
+                                      placeholder='Select a Wechat Group'
+                                      noOptionsMessage={e => `No Wechat Groups including "${e.inputValue}"`}
+                                      hideSelectedOptions
+                                      captureMenuScroll={true}
+                                      menuPlacement={'auto'}
+                                      menuPortalTarget={document.querySelector('#createShipmentModal') as HTMLElement}
+                                      value={wechats.find(supplier => supplier.value === selectedProduct.wechat_group)}
+                                      onChange={(e) => {
+                                        const newProducts = { ...selectedProducts };
+                                        newProducts[parseInt(index)].wechat_group = e?.value ?? '';
+                                        setSelectedProducts(newProducts);
+                                      }}
+                                    />
                                   </td>
                                   <td style={{ minWidth: '200px' }}>
                                     <input type="text" className='form-control form-control-sm' value={selectedProduct.pp} onChange={(e) => {
@@ -1428,7 +1458,7 @@ export function ShippingManagement() {
                                           pay_url: '',
                                           tracking: '',
                                           arrive_agent: false,
-                                          wechat_group: '',
+                                          wechat_group: wechats[0]?.value ?? '',
                                           pp: '',
                                           each_status: '',
                                           box_number: 0,
