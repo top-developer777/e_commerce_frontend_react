@@ -140,12 +140,13 @@ export function Integrations() {
   }
 
   const onSubmit = async () => {
-    setCredentials({ ...addcredentials, type: addCredWay })
-    setAddMarketPlace({ ...addMarketplace, products_crud: addproductsCURD, orders_crud: addordersCRUD, credentials: addcredentials })
+    setCredentials({ ...addcredentials, type: addCredWay });
     const data = {
       ...addMarketplace,
-      image_url: editImg,
-      credentials: addcredentials
+      products_crud: addproductsCURD,
+      orders_crud: addordersCRUD,
+      credentials: addcredentials,
+      image_url: editImg
     }
     if ((
       data.baseAPIURL
@@ -408,8 +409,8 @@ export function Integrations() {
                     theme={isDarkMode ? darkModeStyles : undefined}
                     options={optionsCred}
                     placeholder='Select Credential Method'
-                    onChange={e => setAddCredentials(e?.value ?? '')}
-                    defaultValue={optionsCred.filter(cred => cred.value === addcredentials.type)}
+                    onChange={e => setCredentials({ ...addcredentials, type: e?.value ?? '' })}
+                    value={optionsCred.find(cred => cred.value === addcredentials.type)}
                     isSearchable={false}
                     isClearable={false}
                   />
@@ -421,7 +422,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder={addCredWay === 'user_pass' ? 'Username or Email' : 'Public Key'}
                     onChange={e => setCredentials({ ...addcredentials, firstKey: e.target.value })}
-                    defaultValue={addcredentials.firstKey}
+                    value={addcredentials.firstKey}
                   />
                 </div>
                 <div className='col-lg-5'>
@@ -431,7 +432,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder={addCredWay === 'user_pass' ? 'Password for marketplace' : 'Private Key'}
                     onChange={e => setCredentials({ ...addcredentials, secondKey: e.target.value })}
-                    defaultValue={addcredentials.secondKey}
+                    value={addcredentials.secondKey}
                   />
                 </div>
               </div>
@@ -443,7 +444,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/product_offer"
                     onChange={e => setProductsCURD({ ...addproductsCURD, endpoint: e.target.value })}
-                    defaultValue={addproductsCURD.endpoint}
+                    value={addproductsCURD.endpoint}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -453,7 +454,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/create"
                     onChange={e => setProductsCURD({ ...addproductsCURD, create: e.target.value })}
-                    defaultValue={addproductsCURD.create}
+                    value={addproductsCURD.create}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -463,7 +464,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/read"
                     onChange={e => setProductsCURD({ ...addproductsCURD, read: e.target.value })}
-                    defaultValue={addproductsCURD.read}
+                    value={addproductsCURD.read}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -473,7 +474,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/update"
                     onChange={e => setProductsCURD({ ...addproductsCURD, update: e.target.value })}
-                    defaultValue={addproductsCURD.update}
+                    value={addproductsCURD.update}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -483,7 +484,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/delete"
                     onChange={e => setProductsCURD({ ...addproductsCURD, delete: e.target.value })}
-                    defaultValue={addproductsCURD.delete}
+                    value={addproductsCURD.delete}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -493,7 +494,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/count"
                     onChange={e => setProductsCURD({ ...addproductsCURD, count: e.target.value })}
-                    defaultValue={addproductsCURD.count}
+                    value={addproductsCURD.count}
                   />
                 </div>
               </div>
@@ -505,7 +506,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/product_offer"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, endpoint: e.target.value })}
-                    defaultValue={addordersCRUD.endpoint}
+                    value={addordersCRUD.endpoint}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -515,7 +516,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/create"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, create: e.target.value })}
-                    defaultValue={addordersCRUD.create}
+                    value={addordersCRUD.create}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -525,7 +526,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/read"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, read: e.target.value })}
-                    defaultValue={addordersCRUD.read}
+                    value={addordersCRUD.read}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -535,7 +536,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/update"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, update: e.target.value })}
-                    defaultValue={addordersCRUD.update}
+                    value={addordersCRUD.update}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -545,7 +546,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/delete"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, delete: e.target.value })}
-                    defaultValue={addordersCRUD.delete}
+                    value={addordersCRUD.delete}
                   />
                 </div>
                 <div className='col-md-2'>
@@ -555,7 +556,7 @@ export function Integrations() {
                     className="form-control form-control-solid"
                     placeholder="/count"
                     onChange={e => setOrdersCRUD({ ...addordersCRUD, count: e.target.value })}
-                    defaultValue={addordersCRUD.count}
+                    value={addordersCRUD.count}
                   />
                 </div>
               </div>
