@@ -18,13 +18,13 @@ const MasterLayout = () => {
 
   return (
     <PageDataProvider>
-      <div className='d-flex flex-column flex-root app-root' id='kt_app_root'>
-        <div className='app-page flex-column flex-column-fluid' id='kt_app_page'>
+      <div className='d-flex flex-column flex-root app-root h-100' id='kt_app_root'>
+        <div className='app-page flex-column flex-column-fluid h-100' id='kt_app_page'>
           <HeaderWrapper />
           <div className='app-wrapper flex-column flex-row-fluid' id='kt_app_wrapper'>
             <Sidebar />
-            <div className='app-main flex-column flex-row-fluid' id='kt_app_main'>
-              <div className='d-flex flex-column flex-column-fluid'>
+            <div className='app-main flex-column flex-row-fluid' id='kt_app_main' style={{ height: 'calc(100vh - var(--bs-app-header-height))' }}>
+              <div className='d-flex flex-column flex-column-fluid h-100'>
                 <Outlet />
                 <ToastContainer limit={3} />
               </div>

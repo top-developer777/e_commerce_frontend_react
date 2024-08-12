@@ -19,7 +19,6 @@
         }
 
         body:not([data-kt-app-toolbar-fixed="true"]) & {
-            height: auto;
             background-color: transparent;
             border-top: 0;
             border-bottom: 0;
@@ -32,7 +31,6 @@
 @include media-breakpoint-down(lg) {
     .app-toolbar {
         body:not([data-kt-app-toolbar-fixed-mobile="true"]) & {
-            height: auto;
             background-color: transparent;
             border-top: 0;
             border-bottom: 0;

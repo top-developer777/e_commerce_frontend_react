@@ -45,7 +45,7 @@ const HeaderNotificationsMenu: FC = () => {
             if (!alert.read) {
               toast(<div>
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{alert.title}</div>
-                <div className='overflow-hidden text-nowrap' style={{ textOverflow: 'ellipsis', width: 'calc(var(--toastify-toast-width) - 66px)' }}>{alert.description}</div>
+                <div className='overflow-hidden text-nowrap' style={{ textOverflow: 'ellipsis', width: 'calc(var(--toastify-toast-width) - 66px)' }}>{alert.description ?? '(Not specified)'}</div>
               </div>, {
                 autoClose: 5000000,
                 closeOnClick: true,
@@ -154,7 +154,8 @@ const HeaderNotificationsMenu: FC = () => {
                       </a>
                       <div className={`fs-7 ${alert.read ? 'text-gray-500' : 'text-danger fw-bold'}`} >
                         {(() => {
-                          let text = alert.description;
+                          let text = String(alert.description);
+                          if (text === 'null') text = '(Not specified)';
                           let clipped = false;
                           if (text.length > 45) clipped = true;
                           text = text.slice(0, 45);

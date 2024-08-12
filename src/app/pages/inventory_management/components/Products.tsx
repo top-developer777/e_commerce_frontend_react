@@ -188,6 +188,7 @@ const DetailedProduct: React.FC<{ product: Product, setSelectedProductID: React.
 }
 
 interface CalculateProduct extends Product {
+  sales_per_day: number;
   quantity: number;
   stock_imports: string[];
   type: number;
@@ -418,12 +419,13 @@ export function Products() {
             </div>
             <table className="table table-rounded table-row-bordered border gy-7 gs-7 cursor-pointer table-hover">
               <thead>
-                <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
-                  <th>Product</th>
+                <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200 text-center">
+                  <th className='text-start'>Product</th>
                   <th>Quantity</th>
                   <th>Stock Imports</th>
                   <th>Days in stock</th>
                   <th>Shipping Type</th>
+                  <th>Sales per day</th>
                 </tr>
               </thead>
               <tbody>
@@ -449,6 +451,7 @@ export function Products() {
                         <td className='align-content-center' onClick={() => setSelectedProductID(index)}>{product.stock_imports ? <div>{`${product.stock_imports[0]} (${parseFloat(product.stock_imports[1]).toFixed(1)})`} <br /> {product.stock_imports[2]}</div> : ''}</td>
                         <td className='align-content-center text-nowrap' onClick={() => setSelectedProductID(index)}>{product.day_stock[0]} (days stock)<br />{product.day_stock[1]} (import)</td>
                         <td className='align-content-center text-center' onClick={() => setSelectedProductID(index)}><ShipmentType type={product.type} /></td>
+                        <td className='align-content-center text-center' onClick={() => setSelectedProductID(index)}>{product.sales_per_day}</td>
                         {/* <td className='align-content-center'>
                         <div className="form-check form-switch form-check-custom form-check-solid">
                           <input className="form-check-input" type="checkbox" value="" id="flexSwitchChecked" defaultChecked={true} readOnly={true} />

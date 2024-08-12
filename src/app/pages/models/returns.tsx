@@ -7,6 +7,7 @@ export interface Return {
   customer_phone: string;
   products: number[];
   quantity: number[];
+  observations: string[];
   pickup_address: string;
   return_reason: number;
   return_type: number;

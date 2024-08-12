@@ -17,18 +17,20 @@ const Content = ({children}: WithChildren) => {
     <div
       id='kt_app_content'
       className={clsx(
-        'app-content flex-column-fluid',
+        'd-flex app-content mb-0 mt-auto',
         classes.content.join(' '),
         config?.app?.content?.class
       )}
+      style={{ height: 'calc(100% - var(--bs-app-toolbar-height))' }}
     >
       {appContentContainer ? (
         <div
           id='kt_app_content_container'
-          className={clsx('app-container d-flex h-100 flex-column', classes.contentContainer.join(' '), {
-            'container-xxl': appContentContainer === 'fixed',
-            'container-fluid': appContentContainer === 'fluid',
+          className={clsx('d-flex app-container d-flex h-100 w-100 flex-column overflow-auto', classes.contentContainer.join(' '), {
+            'flex-column-xxl': appContentContainer === 'fixed',
+            'flex-column-fluid': appContentContainer === 'fluid',
           })}
+          style={{ flex: '1' }}
         >
           {children}
         </div>

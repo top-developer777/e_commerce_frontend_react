@@ -115,9 +115,9 @@ export const Returns = () => {
 
   return (
     <Content>
-      <div className="row mb-3">
-        <div className="col-md-3 fw-bold text-end align-content-center">Request Status: </div>
-        <div className="col-md-9">
+      <div className="d-flex flex-row align-items-center align-self-end pb-3">
+        <div className="d-flex fw-bold text-end align-content-center pe-3">Request Status: </div>
+        <div className="d-flex">
           <Select
             className='react-select-styled react-select-solid react-select-sm flex-grow-1'
             theme={isDarkMode ? darkModeStyles : undefined}
@@ -131,71 +131,71 @@ export const Returns = () => {
           />
         </div>
       </div>
-      <div className="row">
-        <div className="col-md-12 table-responsive">
-          <table className="table table-rounded table-bordered border gy-7 gs-7 cursor-pointer table-hover text-center">
-            <thead className='fw-bold'>
-              <tr>
-                <th>eMAG ID</th>
-                <th>Order ID</th>
-                <th>Type</th>
-                <th>Customer</th>
-                <th>Products</th>
-                <th>Pickup Address</th>
-                <th>Return Reason</th>
-                <th>Return Type</th>
-                <th>Request Status</th>
-                <th>Date</th>
-                <th>Return Marketplace</th>
-                <th>Replacement Product ID in eMAG</th>
-                <th>Replacement Product ID</th>
-                <th>Replacement Product Name</th>
-                <th>Replacement Product Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {returns.map((_return, index) => {
-                if (selectedRequestStatus.findIndex(status => status === _return.request_status) >= 0) {
-                  return (
-                    <tr key={`return${index}`}>
-                      <td className='align-content-center'>{_return.emag_id}</td>
-                      <td className='align-content-center'>{_return.order_id}</td>
-                      <td className='align-content-center'>{_return.type === 2 ? 'Fulfilled by eMAG' : 'Fulfilled by seller'}</td>
-                      <td className='align-content-center'>
-                        <b>{_return.customer_name}</b><br />
-                        {_return.customer_company ? <>{` (${_return.customer_company})`}<br /></> : ''}
-                        {_return.customer_phone?.startsWith('+') ? _return.customer_phone : `+${_return.customer_phone}`}
-                      </td>
-                      <td className='align-content-center'>
-                        {(() => (
-                          _return.products.map((id, i) => {
-                            const product = products.find(pro => pro.id === id);
-                            return (
-                              <div key={`returnProduct(${index})(${i})`} className='d-flex'>
-                                <img className='d-flex' src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name} title={product?.product_name} width={50} />
-                                <span className="d-flex text-nowrap align-items-center ms-2"> X {_return.quantity[i]}</span>
-                              </div>
-                            )
-                          })
-                        ))()}
-                      </td>
-                      <td className='align-content-center'>{_return.pickup_address}</td>
-                      <td className='align-content-center'>{_return.return_reason}</td>
-                      <td className='align-content-center'>{returnTypes[_return.return_type]}</td>
-                      <td className='align-content-center'><StatusBadge status={_return.request_status} /></td>
-                      <td className='text-nowrap align-content-center'>{_return.date?.split('T')[0]}</td>
-                      <td className='align-content-center'>{_return.return_market_place}</td>
-                      <td className='align-content-center'>{_return.replacement_product_id}</td>
-                      <td className='align-content-center'>{_return.replacement_product_id}</td>
-                      <td className='align-content-center'>{_return.replacement_product_name}</td>
-                      <td className='align-content-center'>{_return.replacement_product_quantity}</td>
-                    </tr>
-                  )
-                }
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div className="d-flex overflow-auto">
+        <table className="table table-rounded table-bordered border gy-7 gs-7 cursor-pointer table-hover text-center">
+          <thead className='fw-bold'>
+            <tr>
+              <th>eMAG ID</th>
+              <th>Order ID</th>
+              <th>Type</th>
+              <th>Customer</th>
+              <th>Products</th>
+              <th>Pickup Address</th>
+              <th>Return Reason</th>
+              <th>Return Type</th>
+              <th>Request Status</th>
+              <th>Observation</th>
+              <th>Date</th>
+              <th>Return Marketplace</th>
+              <th>Replacement Product ID in eMAG</th>
+              <th>Replacement Product ID</th>
+              <th>Replacement Product Name</th>
+              <th>Replacement Product Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {returns.map((_return, index) => {
+              if (selectedRequestStatus.findIndex(status => status === _return.request_status) >= 0) {
+                return (
+                  <tr key={`return${index}`}>
+                    <td className='align-content-center'>{_return.emag_id}</td>
+                    <td className='align-content-center'>{_return.order_id}</td>
+                    <td className='align-content-center'>{_return.type === 2 ? 'Fulfilled by eMAG' : 'Fulfilled by seller'}</td>
+                    <td className='align-content-center'>
+                      <b>{_return.customer_name}</b><br />
+                      {_return.customer_company ? <>{` (${_return.customer_company})`}<br /></> : ''}
+                      {_return.customer_phone?.startsWith('+') ? _return.customer_phone : `+${_return.customer_phone}`}
+                    </td>
+                    <td className='align-content-center'>
+                      {(() => (
+                        _return.products.map((id, i) => {
+                          const product = products.find(pro => pro.id === id);
+                          return (
+                            <div key={`returnProduct(${index})(${i})`} className='d-flex'>
+                              <img className='d-flex' src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name} title={product?.product_name} width={50} />
+                              <span className="d-flex text-nowrap align-items-center ms-2"> X {_return.quantity[i]}</span>
+                            </div>
+                          )
+                        })
+                      ))()}
+                    </td>
+                    <td className='align-content-center'>{_return.pickup_address}</td>
+                    <td className='align-content-center'>{_return.return_reason}</td>
+                    <td className='align-content-center'>{returnTypes[_return.return_type]}</td>
+                    <td className='align-content-center'><StatusBadge status={_return.request_status} /></td>
+                    <td className='align-content-center'>{_return.observations.map((ob, j) => <div key={`observation-${index}-${j}`}>{ob}</div>)}</td>
+                    <td className='text-nowrap align-content-center'>{_return.date?.split('T')[0]}</td>
+                    <td className='align-content-center'>{_return.return_market_place}</td>
+                    <td className='align-content-center'>{_return.replacement_product_id}</td>
+                    <td className='align-content-center'>{_return.replacement_product_id}</td>
+                    <td className='align-content-center'>{_return.replacement_product_name}</td>
+                    <td className='align-content-center'>{_return.replacement_product_quantity}</td>
+                  </tr>
+                )
+              }
+            })}
+          </tbody>
+        </table>
       </div>
     </Content>
   )

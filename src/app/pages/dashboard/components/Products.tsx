@@ -565,7 +565,7 @@ export const Products: React.FC = () => {
               </div>
             </div>
             <div className="row flex-shrink-1">
-              <div className="col-md-12 table-responsive d-flex h-100">
+              <div className="col-md-12 d-flex">
                 <table className="table table-rounded table-row-bordered border table-hover">
                   <thead>
                     <tr className="fw-bold fs-6 text-gray-800 border-bottom-2 border-gray-200">
@@ -575,8 +575,6 @@ export const Products: React.FC = () => {
                       <th className='px-3'>Product</th>
                       <th className='px-3'>Price</th>
                       <th className='px-3'>Stock</th>
-                      <th className='px-3'>Barcode Title</th>
-                      <th className='px-3'>Masterbox Title</th>
                       <th className='px-3'>Action</th>
                     </tr>
                   </thead>
@@ -590,9 +588,7 @@ export const Products: React.FC = () => {
                           <td className='align-content-center px-3'>
                             <div className="d-flex">
                               <div className="d-flex align-items-center" onClick={() => navigate(`./${product.id}`)}>
-                                {
-                                  <img className='rounded-2' width={60} height={60} src={product.image_link ?? '/media/products/0.png'} alt={product.product_name} />
-                                }
+                                <img className='rounded-2' width={60} height={60} src={product.image_link?.length ? product.image_link : '/media/products/0.png'} alt={product.product_name} />
                               </div>
                               <div className="d-flex flex-column ms-2">
                                 <div className="d-flex align-items-center">
@@ -600,13 +596,13 @@ export const Products: React.FC = () => {
                                 </div>
                                 <div className="d-flex text-primary cursor-pointer" onClick={() => navigate(`./${product.id}`)}>{product.product_name}</div>
                                 <div className="d-flex"><a href={product.link_address_1688} target='_blank'>{product.link_address_1688}</a></div>
+                                <div className="d-flex fw-bold cursor-pointer" data-bs-toggle="modal" data-bs-target="#marketplaceModal" onClick={() => setSelectedProduct(product)}>{(product.market_place?.length && product.market_place?.length > 2) ? `+${product.market_place?.length - 1} Marketplaces` : ''}</div>
+                                <div className="d-flex fw-bold cursor-pointer" data-bs-toggle="modal" data-bs-target="#marketplaceModal" onClick={() => setSelectedProduct(product)}>{(product.market_place?.length && product.market_place?.length === 2) ? `+1 Marketplace` : ''}</div>
                               </div>
                             </div>
                           </td>
                           <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
                           <td className='align-content-center text-center'>{product.stock}</td>
-                          <td className='align-content-center'>{product.barcode_title}</td>
-                          <td className='align-content-center'>{product.masterbox_title}</td>
                           <td className="align-content-center px-3">
                             <div className="dropdown d-flex">
                               <i className="bi bi-three-dots-vertical btn btn-sm btn-secondary m-auto" style={{ borderRadius: '100%', paddingLeft: '0.6rem', paddingRight: '0.7rem', paddingTop: '0.8rem' }} data-bs-toggle="dropdown" aria-expanded="false"></i>
@@ -1207,10 +1203,10 @@ export const Products: React.FC = () => {
                   </div>
                   <div className="modal-body">
                     {!!selectedProduct && marketPlaces.filter(market => (selectedProduct.market_place ?? []).findIndex(mark => mark === market.marketplaceDomain) >= 0).map((marketplace, index) => <div className="d-flex align-items-center py-1" key={`marketplace${index}`}>
-                      <div className="d-flex flex-center overflow-hidden" style={{ height: '50px', minWidth: '100px' }}>
+                      <div className="d-flex flex-center overflow-hidden" style={{ height: '50px', width: '150px' }}>
                         <img className="rounded" style={{ width: '75%' }} alt={marketplace.marketplaceDomain} src={`${API_URL}/utils/${marketplace.image_url ?? ''}`} />
                       </div>
-                      <div className="d-flex">{marketplace.title}</div>
+                      <div className="d-flex fw-bold fs-5">{marketplace.title}</div>
                     </div>)}
                   </div>
                   <div className="modal-footer">
