@@ -917,6 +917,7 @@ export function ShippingManagement() {
                                       className='react-select-styled react-select-solid react-select-sm w-100'
                                       theme={isDarkMode ? darkModeStyles : undefined}
                                       options={wechats}
+                                      isSearchable={false}
                                       placeholder='Select a Wechat Group'
                                       noOptionsMessage={e => `No Wechat Groups including "${e.inputValue}"`}
                                       hideSelectedOptions
@@ -1364,6 +1365,7 @@ export function ShippingManagement() {
                                       className='react-select-styled react-select-solid react-select-sm w-100'
                                       theme={isDarkMode ? darkModeStyles : undefined}
                                       options={wechats}
+                                      isSearchable={false}
                                       placeholder='Select a Wechat Group'
                                       noOptionsMessage={e => `No Wechat Groups including "${e.inputValue}"`}
                                       hideSelectedOptions
