@@ -124,7 +124,7 @@ const OrderTable: React.FC<{
           return { value: data.id, label: `${data.sender_name} (${data.phone1})` };
         });
         setAwbsForm({
-          senderID: warehouse[0].value,
+          senderID: warehouse[0]?.value ?? 0,
           courier_account_id: null,
           pickup_and_return: 0,
           sameday_delivery: 0,
