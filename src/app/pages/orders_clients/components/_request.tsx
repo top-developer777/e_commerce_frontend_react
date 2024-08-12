@@ -69,3 +69,7 @@ export const getCouriers = async (page: number = 1, limit: number = 50) => {
 export const getNewOrders = async () => {
   return axios.get(`${ORDERS_ENDPOINT}/new_order`, { params: { flag: false, search_text: '' } });
 }
+
+export const getAllCustomers = async () => {
+  return axios.get(`${API_URL}/customer`);
+}

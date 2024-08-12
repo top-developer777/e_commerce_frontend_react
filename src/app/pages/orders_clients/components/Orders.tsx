@@ -107,6 +107,7 @@ const OrderTable: React.FC<{
   const [awbsForm, setAwbsForm] = useState<AllAWBInterface>();
   const [senderId, setSenderId] = useState<number>(0);
   const [newOrders, setNewOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<{ id: number, data: CustomerInterface }[]>([]);
   const navigate = useNavigate();
 
   setInterval(() => {
@@ -146,7 +147,15 @@ const OrderTable: React.FC<{
       .then(res => res.data)
       .then(res => setNewOrders(res))
       .catch(e => console.error(e));
-  }, []);
+    props.orders.forEach(order => {
+      getCustomer(order.id ?? 0)
+        .then(res => {
+          setCustomers([...customers, { id: order.id ?? 0, data: res.data }]);
+        })
+        .catch(e => console.error(e));
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.orders]);
   useEffect(() => {
     if (!selectedOrder) {
       setAwbForm(undefined);
@@ -483,7 +492,44 @@ const OrderTable: React.FC<{
                     <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                   </td> */}
                   <td className='align-content-center text-center '>{(new Date(order.date)).toLocaleString()}</td>
-                  <td className='align-content-center text-center text-primary cursor-pointer' onClick={() => navigate(`./${order.id}`)}>{order.id}</td>
+                  <td className='align-content-center text-center text-primary cursor-pointer text-nowrap'>
+                    <a href='#' onClick={() => navigate(`./${order.id}`)}>{order.id}</a>
+                    <a href={`https://marketplace.emag.ro/order/list-xb?mktId=${order.id ?? 0}`} className="ms-2" target='_blank'>
+                      <svg fill="none" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
+                        <filter id="a" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse" height="22" width="24" x=".5" y="1.5">
+                          <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                          <feBlend in="SourceGraphic" in2="BackgroundImageFix" mode="normal" result="shape"/>
+                          <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                          <feOffset/>
+                          <feGaussianBlur stdDeviation=".25"/>
+                          <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/>
+                          <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.3 0"/>
+                          <feBlend in2="shape" mode="normal" result="effect1_innerShadow_19_598"/>
+                          <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                          <feOffset dx="-1" dy="1"/><feGaussianBlur stdDeviation="1"/>
+                          <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/>
+                          <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.25 0"/>
+                          <feBlend in2="effect1_innerShadow_19_598" mode="normal" result="effect2_innerShadow_19_598"/>
+                          <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                          <feOffset dx="2"/>
+                          <feGaussianBlur stdDeviation="2"/>
+                          <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/>
+                          <feColorMatrix type="matrix" values="0 0 0 0 0.220833 0 0 0 0 0.220833 0 0 0 0 0.220833 0 0 0 0.28 0"/>
+                          <feBlend in2="effect2_innerShadow_19_598" mode="normal" result="effect3_innerShadow_19_598"/>
+                          <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+                          <feOffset dx="1" dy="1"/><feGaussianBlur stdDeviation="1.5"/>
+                          <feComposite in2="hardAlpha" k2="-1" k3="1" operator="arithmetic"/>
+                          <feColorMatrix type="matrix" values="0 0 0 0 0.2 0 0 0 0 0.199167 0 0 0 0 0.199217 0 0 0 0.1 0"/>
+                          <feBlend in2="effect3_innerShadow_19_598" mode="normal" result="effect4_innerShadow_19_598"/>
+                        </filter>
+                        <pattern id="b" height=".791667" patternContentUnits="objectBoundingBox" width="1.05556"/>
+                        <g filter="url(#a)" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                          <path d="m18 13v6c0 .5304-.2107 1.0391-.5858 1.4142s-.8838.5858-1.4142.5858h-11c-.53043 0-1.03914-.2107-1.41421-.5858-.37508-.3751-.58579-.8838-.58579-1.4142v-11c0-.53043.21071-1.03914.58579-1.41421.37507-.37508.88378-.58579 1.41421-.58579h6m4-3h6m0 0v6m0-6-11 11" stroke="#00f"/>
+                          <path d="m18 13v6c0 .5304-.2107 1.0391-.5858 1.4142s-.8838.5858-1.4142.5858h-11c-.53043 0-1.03914-.2107-1.41421-.5858-.37508-.3751-.58579-.8838-.58579-1.4142v-11c0-.53043.21071-1.03914.58579-1.41421.37507-.37508.88378-.58579 1.41421-.58579h6m4-3h6m0 0v6m0-6-11 11" stroke="url(#b)" stroke-opacity=".05"/>
+                        </g>
+                      </svg>
+                    </a>
+                  </td>
                   <td className='align-content-center text-center cursor-pointer'>
                     {selectedProducts.map((product, index) => {
                       return <div key={`product${order.id}:${product.id}:${index}`} onClick={() => navigate(`/dashboard/products/${product.id}`)}><img width={40} src={product?.image_link ?? '/media/products/0.png'} alt={product?.model_name ?? 'Image Coming Soon'} title={product?.product_name} /></div>
@@ -526,7 +572,7 @@ const OrderTable: React.FC<{
                     <StatusBadge status={order.status} />
                   </td>
                   <td className='align-content-center text-center'>
-                    {'shipping addr'}
+                    {customers.find(customer => customer.id === order.id)?.data.shipping_street ?? '(Not found)'}
                   </td>
                   <td className='align-content-center text-center'>
                     {order.payment_mode}
