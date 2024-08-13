@@ -29,7 +29,7 @@ export interface Product {
   day_stock: number[];
   internal_shipping_price: string;
   market_place?: string[];
-  sale_price?: string;
+  sale_price?: number;
   observation?: string;
   warehouse_id?: number;
   buy_button_rank?: number;

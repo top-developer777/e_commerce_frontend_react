@@ -63,7 +63,10 @@ const isValidURL = (url: string) => {
   }
 }
 
-const formatCurrency = (value: number) => {
+const formatCurrency = (value: number, marketplace: string = 'emag.ro') => {
+  if (marketplace.endsWith('.ro')) return `${value} RON`;
+  if (marketplace.endsWith('.bg')) return `${value} BGN`;
+  if (marketplace.endsWith('.hu')) return `${value} HUF`;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
@@ -234,7 +237,7 @@ const DetailedProduct: React.FC<{ product: Product | undefined }> = ({ product }
             </div>
           </div>
           <div className="row py-2">
-            <div className="col-md-4 fw-bold">Sale Price: {formatCurrency(parseFloat(product.sale_price ?? '0'))}</div>
+            <div className="col-md-4 fw-bold">Sale Price: {formatCurrency(product.sale_price ?? 0)}</div>
             <div className="col-md-4">Part Number Key: {product.part_number_key}</div>
             <div className="col-md-4">Stock: {product.stock}</div>
           </div>
@@ -601,7 +604,7 @@ export const Products: React.FC = () => {
                               </div>
                             </div>
                           </td>
-                          <td className='align-content-center'>{formatCurrency(parseFloat(product.price))}</td>
+                          <td className='align-content-center text-nowrap'>{formatCurrency(parseFloat(product.price), product.market_place ? product.market_place[0] : 'emag.ro')}</td>
                           <td className='align-content-center text-center'>{product.stock}</td>
                           <td className="align-content-center px-3">
                             <div className="dropdown d-flex">
