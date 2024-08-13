@@ -578,7 +578,7 @@ const OrderTable: React.FC<{
                     {order.payment_mode}
                   </td>
                   <td className='align-content-center text-center text-nowrap'>
-                    {(() => {
+                    {order.cashed_co ?? order.cashed_cod ?? (() => {
                       let totalPrice = 0;
                       order.product_id.map((product, index) => {
                         const price = products.find(pro => pro.id === parseInt(product.toString()))?.sale_price ?? 0;
