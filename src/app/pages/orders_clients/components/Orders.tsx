@@ -601,7 +601,9 @@ const OrderTable: React.FC<{
                       totalPrice *= (10 - JSON.parse(order.vouchers ?? '[]')?.reduce((total: number, pr: { sale_price: string }) => total + parseFloat(pr?.sale_price ?? '0'), 0) ?? 0) / 10;
                       totalPrice += order.shipping_tax;
                       return <>{totalPrice.toFixed(2)} {sign}</>
-                    })()}
+                    })()}<br />
+                    Cashed CO: {order.cashed_co}<br />
+                    Cashed COD: {order.cashed_cod}
                   </td>
                   <td className='align-content-center text-center'>
                     {selectedProducts.map(product => product.stock ?? 0).join(', ')}
