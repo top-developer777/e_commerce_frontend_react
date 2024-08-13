@@ -92,13 +92,14 @@ const OrderTable: React.FC<{
   totalPages: number;
   totalOrders: number;
   sort: boolean;
+  totals: number[];
   awbs: { orderID: number, data: any }[];
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   setSort: React.Dispatch<React.SetStateAction<boolean>>;
   setEditID?: React.Dispatch<React.SetStateAction<number>>;
 }> = props => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const { currentPage, setCurrentPage, products } = props;
+  const { currentPage, setCurrentPage, products, totals } = props;
   const [selectedOrder, selectOrder] = useState<Order>();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
   const [senders, setSenders] = useState<{ value: number, label: string }[]>([]);
@@ -145,7 +146,9 @@ const OrderTable: React.FC<{
       .catch(e => console.error(e));
     getNewOrders()
       .then(res => res.data)
-      .then(res => setNewOrders(res))
+      .then(res => {
+        setNewOrders(res);
+      })
       .catch(e => console.error(e));
     props.orders.forEach(order => {
       getCustomer(order.id ?? 0)
@@ -579,31 +582,21 @@ const OrderTable: React.FC<{
                   </td>
                   <td className='align-content-center text-center text-nowrap'>
                     {(() => {
-                      let totalPrice = 0;
-                      order.product_id.map((product, index) => {
-                        const price = products.find(pro => pro.id === parseInt(product.toString()))?.sale_price ?? 0;
-                        totalPrice += price * order.quantity[index];
-                      });
-                      const marketplace = order.order_market_place;
                       let sign = '';
+                      const marketplace = order.order_market_place;
                       if (marketplace.endsWith('.ro')) {
                         sign = 'RON';
-                        totalPrice *= 1.19;
                       }
                       if (marketplace.endsWith('.bg')) {
                         sign = 'BGN';
-                        totalPrice *= 1.2;
                       }
                       if (marketplace.endsWith('.hu')) {
                         sign = 'HUF';
-                        totalPrice *= 1.27;
                       }
-                      totalPrice *= (10 - JSON.parse(order.vouchers ?? '[]')?.reduce((total: number, pr: { sale_price: string }) => total + parseFloat(pr?.sale_price ?? '0'), 0) ?? 0) / 10;
-                      totalPrice += order.shipping_tax;
-                      return <>{totalPrice.toFixed(2)} {sign}</>
+                      return <>{totals[index].toFixed(2)} {sign}</>
                     })()}<br />
-                    Cashed CO: {order.cashed_co}<br />
-                    Cashed COD: {order.cashed_cod}
+                    CO: {order.cashed_co}<br />
+                    COD: {order.cashed_cod}
                   </td>
                   <td className='align-content-center text-center'>
                     {selectedProducts.map(product => product.stock ?? 0).join(', ')}
@@ -988,6 +981,7 @@ const SearchBar: React.FC<{
 
 export const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totals, setTotals] = useState<number[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchText, setSearchText] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -1024,7 +1018,8 @@ export const Orders: React.FC = () => {
     }
     getAllOrders(currentPage, limit, selectedStatus, searchText, sort)
       .then(async res => {
-        setOrders(res.data);
+        setOrders(res.data.map((data: { order: Order, total: number }) => data.order));
+        setTotals(res.data.map((data: { order: Order, total: number }) => data.total));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, limit, selectedStatus, searchText, sort]);
@@ -1050,7 +1045,7 @@ export const Orders: React.FC = () => {
   else return (
     <Content>
       <SearchBar searchText={searchText} setSearchText={setSearchText} selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
-      <OrderTable orders={orders} products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} awbs={awbs} />
+      <OrderTable orders={orders} products={products} currentPage={currentPage} setCurrentPage={setCurrentPage} totals={totals} totalPages={totalPages} totalOrders={totalOrders} sort={sort} setSort={setSort} awbs={awbs} />
     </Content>
   )
 }
