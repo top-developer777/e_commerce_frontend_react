@@ -599,6 +599,7 @@ const OrderTable: React.FC<{
                         totalPrice *= 1.27;
                       }
                       totalPrice += order.shipping_tax;
+                      totalPrice -= JSON.parse(order.vouchers).reduce((total: number, a: number) => total + a, 0);
                       return <>{totalPrice.toFixed(2)} {sign}</>
                     })()}
                   </td>
