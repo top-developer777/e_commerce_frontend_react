@@ -578,7 +578,7 @@ const OrderTable: React.FC<{
                     {order.payment_mode}
                   </td>
                   <td className='align-content-center text-center text-nowrap'>
-                    {order.cashed_co ?? order.cashed_cod ?? (() => {
+                    {(() => {
                       let totalPrice = 0;
                       order.product_id.map((product, index) => {
                         const price = products.find(pro => pro.id === parseInt(product.toString()))?.sale_price ?? 0;
@@ -586,9 +586,18 @@ const OrderTable: React.FC<{
                       });
                       const marketplace = order.order_market_place;
                       let sign = '';
-                      if (marketplace.endsWith('.ro')) sign = 'RON';
-                      if (marketplace.endsWith('.bg')) sign = 'BGN';
-                      if (marketplace.endsWith('.hu')) sign = 'HUF';
+                      if (marketplace.endsWith('.ro')) {
+                        sign = 'RON';
+                        totalPrice *= 1.19;
+                      }
+                      if (marketplace.endsWith('.bg')) {
+                        sign = 'BGN';
+                        totalPrice *= 1.2;
+                      }
+                      if (marketplace.endsWith('.hu')) {
+                        sign = 'HUF';
+                        totalPrice *= 1.27;
+                      }
                       return <>{totalPrice.toFixed(2)} {sign}</>
                     })()}
                   </td>
