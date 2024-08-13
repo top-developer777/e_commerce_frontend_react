@@ -589,7 +589,7 @@ const OrderTable: React.FC<{
                       if (marketplace.endsWith('.ro')) sign = 'RON';
                       if (marketplace.endsWith('.bg')) sign = 'BGN';
                       if (marketplace.endsWith('.hu')) sign = 'HUF';
-                      return <>{totalPrice} {sign}</>
+                      return <>{totalPrice.toFixed(2)} {sign}</>
                     })()}
                   </td>
                   <td className='align-content-center text-center'>
