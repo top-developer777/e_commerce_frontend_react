@@ -598,6 +598,7 @@ const OrderTable: React.FC<{
                         sign = 'HUF';
                         totalPrice *= 1.27;
                       }
+                      totalPrice += order.shipping_tax;
                       return <>{totalPrice.toFixed(2)} {sign}</>
                     })()}
                   </td>
