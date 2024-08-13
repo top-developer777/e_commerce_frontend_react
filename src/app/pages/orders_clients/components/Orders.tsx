@@ -598,8 +598,7 @@ const OrderTable: React.FC<{
                         sign = 'HUF';
                         totalPrice *= 1.27;
                       }
-                      totalPrice *= 0.9;
-                      totalPrice *= (10 - JSON.parse(order.vouchers ?? '[]')?.length ?? 0) / 10;
+                      totalPrice *= (10 - JSON.parse(order.vouchers ?? '[]')?.reduce((total: number, pr: { sale_price: string }) => total + parseFloat(pr?.sale_price ?? '0'), 0) ?? 0) / 10;
                       totalPrice += order.shipping_tax;
                       return <>{totalPrice.toFixed(2)} {sign}</>
                     })()}
