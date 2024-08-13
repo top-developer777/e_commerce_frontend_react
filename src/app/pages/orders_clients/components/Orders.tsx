@@ -497,7 +497,7 @@ const OrderTable: React.FC<{
                     {order.order_market_place.startsWith('eMAG.') && <a href={`https://marketplace.${order.order_market_place.toLowerCase()}/order/list-xb?mktId=${order.id ?? 0}`} className="ms-2" target='_blank'>
                       <svg fill="none" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
                         <filter id="a" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="22" width="24" x=".5" y="1.5">
-                          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                          <feFlood floodOpacity="0" result="BackgroundImageFix" />
                           <feBlend in="SourceGraphic" in2="BackgroundImageFix" mode="normal" result="shape" />
                           <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
                           <feOffset />
@@ -525,7 +525,7 @@ const OrderTable: React.FC<{
                         <pattern id="b" height=".791667" patternContentUnits="objectBoundingBox" width="1.05556" />
                         <g filter="url(#a)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3">
                           <path d="m18 13v6c0 .5304-.2107 1.0391-.5858 1.4142s-.8838.5858-1.4142.5858h-11c-.53043 0-1.03914-.2107-1.41421-.5858-.37508-.3751-.58579-.8838-.58579-1.4142v-11c0-.53043.21071-1.03914.58579-1.41421.37507-.37508.88378-.58579 1.41421-.58579h6m4-3h6m0 0v6m0-6-11 11" stroke="#00f" />
-                          <path d="m18 13v6c0 .5304-.2107 1.0391-.5858 1.4142s-.8838.5858-1.4142.5858h-11c-.53043 0-1.03914-.2107-1.41421-.5858-.37508-.3751-.58579-.8838-.58579-1.4142v-11c0-.53043.21071-1.03914.58579-1.41421.37507-.37508.88378-.58579 1.41421-.58579h6m4-3h6m0 0v6m0-6-11 11" stroke="url(#b)" stroke-opacity=".05" />
+                          <path d="m18 13v6c0 .5304-.2107 1.0391-.5858 1.4142s-.8838.5858-1.4142.5858h-11c-.53043 0-1.03914-.2107-1.41421-.5858-.37508-.3751-.58579-.8838-.58579-1.4142v-11c0-.53043.21071-1.03914.58579-1.41421.37507-.37508.88378-.58579 1.41421-.58579h6m4-3h6m0 0v6m0-6-11 11" stroke="url(#b)" strokeOpacity=".05" />
                         </g>
                       </svg>
                     </a>}
